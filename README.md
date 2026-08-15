@@ -76,4 +76,4 @@ TIMETT/
 
 This project is open-source and available under the MIT License.
 
-Guys this is just our beginning friendly project, please do NOT project your predjudice on it this and kindly be supportive of us :)
+

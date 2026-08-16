@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from app.api.routes.health import router as health_router
 from app.api.routes.institutions import router as institution_router
 from app.api.routes.departments import router as department_router
+from app.api.routes.academic_years import router as academic_year_router
+from app.api.routes.semesters import router as semester_router
 from app.api.routes.faculty import router as faculty_router
 from app.api.routes.subjects import router as subject_router
 from app.api.routes.sections import router as section_router
@@ -15,6 +17,7 @@ from app.api.routes.timetable_entries import router as timetable_entry_router
 from app.api.routes.constraints import router as constraint_router
 from app.api.routes.timetable_versions import router as timetable_version_router
 from app.api.routes.generation_runs import router as generation_run_router
+from app.api.routes.generator import router as generator_router
 
 
 app = FastAPI(
@@ -26,6 +29,8 @@ app = FastAPI(
 app.include_router(health_router)
 app.include_router(institution_router)
 app.include_router(department_router)
+app.include_router(academic_year_router)
+app.include_router(semester_router)
 app.include_router(faculty_router)
 app.include_router(subject_router)
 app.include_router(section_router)
@@ -38,3 +43,4 @@ app.include_router(timetable_entry_router)
 app.include_router(constraint_router)
 app.include_router(timetable_version_router)
 app.include_router(generation_run_router)
+app.include_router(generator_router)

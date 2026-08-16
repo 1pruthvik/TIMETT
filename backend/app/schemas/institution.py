@@ -1,15 +1,11 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class InstitutionBase(BaseModel):
+class InstitutionCreate(BaseModel):
     name: str
 
 
-class InstitutionCreate(InstitutionBase):
-    pass
-
-
-class InstitutionResponse(InstitutionBase):
+class InstitutionResponse(InstitutionCreate):
     id: int
 
     model_config = ConfigDict(from_attributes=True)

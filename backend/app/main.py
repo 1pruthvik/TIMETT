@@ -1,16 +1,10 @@
 from fastapi import FastAPI
-from app.db.database import engine
+
+from app.api.routes.health import router as health_router
 
 app = FastAPI(
-    title="College Timetable Planner API",
+    title="TIMETT API",
     version="1.0.0",
 )
 
-
-@app.get("/health")
-def health_check():
-    try:
-        with engine.connect():
-            return {"status": "ok", "database": "connected"}
-    except Exception as e:
-        return {"status": "error", "database": str(e)}
+app.include_router(health_router)

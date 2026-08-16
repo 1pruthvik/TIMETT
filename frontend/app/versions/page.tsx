@@ -14,47 +14,57 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
-export default function FacultyPage() {
+export default function VersionsPage() {
   return (
     <AppShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Faculty
+              Versions
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage faculty members and their availability.
+              View and manage saved timetable versions.
             </p>
           </div>
 
-          <Button>Add Faculty</Button>
+          <Button>Create Version</Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Faculty Members</CardTitle>
+            <CardTitle>Saved Versions</CardTitle>
           </CardHeader>
 
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Timetable</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Updated</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
                 <TableRow>
+                  <TableCell>v1</TableCell>
+                  <TableCell>Semester 1</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">Draft</Badge>
+                  </TableCell>
+                  <TableCell>Just now</TableCell>
+                </TableRow>
+
+                <TableRow>
                   <TableCell
                     colSpan={4}
                     className="text-center text-muted-foreground"
                   >
-                    No faculty members added yet.
+                    No other versions available.
                   </TableCell>
                 </TableRow>
               </TableBody>

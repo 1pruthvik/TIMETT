@@ -9,6 +9,12 @@ from app.api.routes.sections import router as section_router
 from app.api.routes.rooms import router as room_router
 from app.api.routes.time_slots import router as time_slot_router
 from app.api.routes.faculty_availability import router as faculty_availability_router
+from app.api.routes.subject_offerings import router as subject_offering_router
+from app.api.routes.timetables import router as timetable_router
+from app.api.routes.timetable_entries import router as timetable_entry_router
+from app.api.routes.constraints import router as constraint_router
+from app.api.routes.timetable_versions import router as timetable_version_router
+from app.api.routes.generation_runs import router as generation_run_router
 
 
 app = FastAPI(
@@ -26,3 +32,9 @@ app.include_router(section_router)
 app.include_router(room_router)
 app.include_router(time_slot_router)
 app.include_router(faculty_availability_router)
+app.include_router(subject_offering_router)
+app.include_router(timetable_router)
+app.include_router(timetable_entry_router)
+app.include_router(constraint_router)
+app.include_router(timetable_version_router)
+app.include_router(generation_run_router)

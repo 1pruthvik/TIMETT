@@ -14,6 +14,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+
+const faculty = [
+  {
+    name: "No faculty added",
+    department: "-",
+    status: "Empty",
+  },
+];
 
 export default function FacultyPage() {
   return (
@@ -25,7 +34,7 @@ export default function FacultyPage() {
               Faculty
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage faculty members and their availability.
+              Manage faculty members and their teaching information.
             </p>
           </div>
 
@@ -43,20 +52,20 @@ export default function FacultyPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-muted-foreground"
-                  >
-                    No faculty members added yet.
-                  </TableCell>
-                </TableRow>
+                {faculty.map((member) => (
+                  <TableRow key={member.name}>
+                    <TableCell>{member.name}</TableCell>
+                    <TableCell>{member.department}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{member.status}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>

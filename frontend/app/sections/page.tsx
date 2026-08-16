@@ -15,26 +15,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default function FacultyPage() {
+export default function SectionsPage() {
   return (
     <AppShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Faculty
+              Sections
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage faculty members and their availability.
+              Manage classes, batches, and student sections.
             </p>
           </div>
 
-          <Button>Add Faculty</Button>
+          <Button>Add Section</Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Faculty Members</CardTitle>
+            <CardTitle>Section List</CardTitle>
           </CardHeader>
 
           <CardContent>
@@ -42,9 +42,9 @@ export default function FacultyPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Year</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Students</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -54,7 +54,7 @@ export default function FacultyPage() {
                     colSpan={4}
                     className="text-center text-muted-foreground"
                   >
-                    No faculty members added yet.
+                    No sections added yet.
                   </TableCell>
                 </TableRow>
               </TableBody>

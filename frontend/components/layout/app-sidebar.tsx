@@ -24,6 +24,8 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+import Link from "next/link";
+
 const mainItems = [
     {
         title: "Dashboard",
@@ -101,7 +103,7 @@ export function AppSidebar() {
                         <SidebarMenu>
                             {mainItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton render={<a href={item.url} />}>
+                                    <SidebarMenuButton render={<Link href={item.url}></Link>}>
                                         <item.icon />
                                         <span>{item.title}</span>
                                     </SidebarMenuButton>
@@ -118,7 +120,7 @@ export function AppSidebar() {
                         <SidebarMenu>
                             {managementItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton render={<a href={item.url} />}>
+                                    <SidebarMenuButton render={<Link href={item.url}></Link>}>
                                         <item.icon />
                                         <span>{item.title}</span>
                                     </SidebarMenuButton>

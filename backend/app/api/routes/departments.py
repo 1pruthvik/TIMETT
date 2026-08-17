@@ -26,7 +26,9 @@ def create_department(data: DepartmentCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[DepartmentResponse])
-def get_departments(db: Session = Depends(get_db)):
+def get_departments(institution_id: int | None = None, db: Session = Depends(get_db)):
+    if institution_id:
+        return db.query(Department).filter(Department.institution_id == institution_id).all()
     return db.query(Department).all()
 
 

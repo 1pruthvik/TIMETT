@@ -26,7 +26,9 @@ def create_room(data: RoomCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[RoomResponse])
-def get_rooms(db: Session = Depends(get_db)):
+def get_rooms(institution_id: int | None = None, db: Session = Depends(get_db)):
+    if institution_id:
+        return db.query(Room).filter(Room.institution_id == institution_id).all()
     return db.query(Room).all()
 
 
@@ -62,12 +64,16 @@ def update_room(
     return item
 
 
+from app.models.timetable_entry import TimetableEntry
+
 @router.delete("/{room_id}", status_code=204)
 def delete_room(room_id: int, db: Session = Depends(get_db)):
     item = db.query(Room).filter(Room.id == room_id).first()
 
     if not item:
         raise HTTPException(status_code=404, detail="Room not found")
+
+    db.query(TimetableEntry).filter(TimetableEntry.room_id == room_id).delete(synchronize_session=False)
 
     db.delete(item)
     db.commit()

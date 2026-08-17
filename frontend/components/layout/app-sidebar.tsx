@@ -12,6 +12,9 @@ import {
   BookOpen,
   Layers3,
   Sparkles,
+  Building2,
+  Clock,
+  CalendarRange,
 } from "lucide-react";
 
 import {
@@ -28,7 +31,7 @@ import {
 const mainItems = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -45,6 +48,16 @@ const mainItems = [
 
 const managementItems = [
   {
+    title: "Academic Terms",
+    url: "/academic-terms",
+    icon: CalendarRange,
+  },
+  {
+    title: "Departments",
+    url: "/departments",
+    icon: Building2,
+  },
+  {
     title: "Faculty",
     url: "/faculty",
     icon: Users,
@@ -60,9 +73,14 @@ const managementItems = [
     icon: GraduationCap,
   },
   {
-    title: "Rooms",
+    title: "Rooms & Labs",
     url: "/rooms",
     icon: DoorOpen,
+  },
+  {
+    title: "Time Slots",
+    url: "/time-slots",
+    icon: Clock,
   },
   {
     title: "Constraints",
@@ -113,7 +131,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Academic Setup</SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>

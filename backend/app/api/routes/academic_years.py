@@ -34,7 +34,9 @@ def create_academic_year(
 
 
 @router.get("/", response_model=list[AcademicYearResponse])
-def get_academic_years(db: Session = Depends(get_db)):
+def get_academic_years(institution_id: int | None = None, db: Session = Depends(get_db)):
+    if institution_id:
+        return db.query(AcademicYear).filter(AcademicYear.institution_id == institution_id).all()
     return db.query(AcademicYear).all()
 
 

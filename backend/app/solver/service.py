@@ -6,12 +6,14 @@ from app.models.room import Room
 from app.models.time_slot import TimeSlot
 from app.models.timetable import Timetable
 from app.models.timetable_entry import TimetableEntry
+from app.models.faculty_availability import FacultyAvailability
 
 
 def generate_timetable(db: Session):
     offerings = db.query(SubjectOffering).all()
     rooms = db.query(Room).all()
     slots = db.query(TimeSlot).all()
+    availabilities = db.query(FacultyAvailability).all()
 
     if not offerings:
         return {"status": "error", "message": "No subject offerings found"}
@@ -32,7 +34,7 @@ def generate_timetable(db: Session):
                     f"offering_{o}_room_{r}_slot_{s}"
                 )
 
-    # Every offering must be scheduled exactly once.
+    # 1. Every offering must be scheduled exactly once.
     for o in range(len(offerings)):
         model.Add(
             sum(
@@ -43,7 +45,7 @@ def generate_timetable(db: Session):
             == 1
         )
 
-    # A room cannot host two classes simultaneously.
+    # 2. A room cannot host two classes simultaneously.
     for r in range(len(rooms)):
         for s in range(len(slots)):
             model.Add(
@@ -54,7 +56,7 @@ def generate_timetable(db: Session):
                 <= 1
             )
 
-    # A section cannot have two classes simultaneously.
+    # 3. A section cannot have two classes simultaneously.
     section_ids = {o.section_id for o in offerings}
 
     for section_id in section_ids:
@@ -69,7 +71,7 @@ def generate_timetable(db: Session):
                 <= 1
             )
 
-    # A faculty member cannot teach two classes simultaneously.
+    # 4. A faculty member cannot teach two classes simultaneously.
     faculty_ids = {o.faculty_id for o in offerings}
 
     for faculty_id in faculty_ids:
@@ -84,13 +86,31 @@ def generate_timetable(db: Session):
                 <= 1
             )
 
+    # 5. Faculty Availability Constraint:
+    # If a faculty member has configured availability records, disallow any slot not in their allowed windows.
+    faculty_allowed_slots = {}
+    for avail in availabilities:
+        key = (avail.day_of_week.lower(), avail.start_time)
+        faculty_allowed_slots.setdefault(avail.faculty_id, set()).add(key)
+
+    for o, offering in enumerate(offerings):
+        fac_id = offering.faculty_id
+        if fac_id in faculty_allowed_slots:
+            allowed = faculty_allowed_slots[fac_id]
+            for s, slot in enumerate(slots):
+                slot_key = (slot.day_of_week.lower(), slot.start_time)
+                if slot_key not in allowed:
+                    # Forbid assigning this offering in this slot
+                    for r in range(len(rooms)):
+                        model.Add(assignment[o, r, s] == 0)
+
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
 
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return {
             "status": "infeasible",
-            "message": "No valid timetable could be generated",
+            "message": "No valid timetable could be generated with current mandatory constraints.",
         }
 
     # Create timetable.

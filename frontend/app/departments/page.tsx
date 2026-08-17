@@ -29,28 +29,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, DoorOpen, Users, RefreshCw } from "lucide-react";
+import { Plus, Trash2, Building2, RefreshCw } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
-interface Room {
+interface Department {
   id: number;
   name: string;
-  capacity: number;
-  room_type?: string | null;
   institution_id: number;
 }
 
-export default function RoomsPage() {
-  const [rooms, setRooms] = useState<Room[]>([]);
+export default function DepartmentsPage() {
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [institutionId, setInstitutionId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   // Form state
   const [name, setName] = useState("");
-  const [capacity, setCapacity] = useState("60");
-  const [roomType, setRoomType] = useState("Classroom");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -63,16 +59,15 @@ export default function RoomsPage() {
       const userInstId = user?.institution_id || 1;
       setInstitutionId(userInstId);
 
-      // 2. Fetch rooms for user's institution
-      const roomUrl = `${API_BASE}/rooms/?institution_id=${userInstId}`;
-      const roomRes = await fetch(roomUrl);
-      if (roomRes.ok) {
-        const roomData = await roomRes.json();
-        setRooms(roomData);
+      const deptUrl = `${API_BASE}/departments/?institution_id=${userInstId}`;
+      const res = await fetch(deptUrl);
+      if (res.ok) {
+        const data = await res.json();
+        setDepartments(data);
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to connect to backend API.");
+      setError("Failed to fetch departments.");
     } finally {
       setLoading(false);
     }
@@ -82,64 +77,61 @@ export default function RoomsPage() {
     fetchData();
   }, []);
 
-  const handleAddRoom = async (e: React.FormEvent) => {
+  const handleAddDepartment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !capacity) return;
+    if (!name.trim()) return;
 
     setSubmitting(true);
     setError("");
 
     try {
-      const res = await fetch(`${API_BASE}/rooms/`, {
+      const res = await fetch(`${API_BASE}/departments/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
-          capacity: parseInt(capacity, 10) || 60,
-          room_type: roomType,
           institution_id: institutionId,
         }),
       });
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.detail || "Failed to add room");
+        throw new Error(errData.detail || "Failed to add department");
       }
 
       setName("");
-      setCapacity("60");
       setOpen(false);
       await fetchData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error creating room");
+      setError(err instanceof Error ? err.message : "Error creating department");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this room?")) return;
+    if (!confirm("Are you sure you want to delete this department?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/rooms/${id}`, {
+      const res = await fetch(`${API_BASE}/departments/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        setRooms((prev) => prev.filter((r) => r.id !== id));
+        setDepartments((prev) => prev.filter((d) => d.id !== id));
       }
     } catch (err) {
-      console.error("Failed to delete room", err);
+      console.error("Failed to delete department", err);
     }
   };
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-6xl">
+      <div className="space-y-6 max-w-5xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Rooms & Laboratories</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Academic Departments</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Configure physical classrooms, computer labs, capacities, and facilities.
+              Manage branches and academic departments within your institution.
             </p>
           </div>
 
@@ -152,56 +144,26 @@ export default function RoomsPage() {
               <DialogTrigger asChild>
                 <Button className="gap-2">
                   <Plus className="size-4" />
-                  Add Room
+                  Add Department
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Add Room / Lab</DialogTitle>
+                  <DialogTitle>Add New Department</DialogTitle>
                   <DialogDescription>
-                    Enter room identifier, capacity, and room type.
+                    Enter department name (e.g. Computer Science, Mechanical Engineering, etc.).
                   </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleAddRoom} className="space-y-4 pt-2">
+                <form onSubmit={handleAddDepartment} className="space-y-4 pt-2">
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Room Name / Number *
+                      Department Name *
                     </label>
                     <Input
-                      placeholder="e.g. Room 301 or CS Lab 2"
+                      placeholder="e.g. Electronics & Communication Engineering"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Type *
-                    </label>
-                    <select
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      value={roomType}
-                      onChange={(e) => setRoomType(e.target.value)}
-                    >
-                      <option value="Classroom">Lecture Classroom</option>
-                      <option value="Computer Lab">Computer Laboratory</option>
-                      <option value="Hardware Lab">Hardware / Electronics Lab</option>
-                      <option value="Seminar Hall">Seminar / Auditorium</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Student Capacity *
-                    </label>
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="e.g. 60"
-                      value={capacity}
-                      onChange={(e) => setCapacity(e.target.value)}
                       required
                     />
                   </div>
@@ -210,7 +172,7 @@ export default function RoomsPage() {
 
                   <DialogFooter className="pt-2">
                     <Button type="submit" disabled={submitting || !name.trim()}>
-                      {submitting ? "Saving..." : "Save Room"}
+                      {submitting ? "Saving..." : "Save Department"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -223,9 +185,9 @@ export default function RoomsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Physical Infrastructure</CardTitle>
+                <CardTitle>Department Directory</CardTitle>
                 <CardDescription>
-                  {rooms.length} {rooms.length === 1 ? "room" : "rooms"} available for scheduling
+                  {departments.length} {departments.length === 1 ? "department" : "departments"} registered
                 </CardDescription>
               </div>
             </div>
@@ -235,16 +197,16 @@ export default function RoomsPage() {
             {loading ? (
               <div className="py-12 text-center text-sm text-muted-foreground">
                 <div className="inline-block size-5 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
-                <p>Loading rooms from database...</p>
+                <p>Loading departments from database...</p>
               </div>
-            ) : rooms.length === 0 ? (
+            ) : departments.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-3">
-                  <DoorOpen className="size-6" />
+                  <Building2 className="size-6" />
                 </div>
-                <h3 className="text-sm font-medium">No rooms configured</h3>
+                <h3 className="text-sm font-medium">No departments found</h3>
                 <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                  Add lecture halls and computer laboratories to begin assigning timetable slots.
+                  Add your first department using the "Add Department" button above.
                 </p>
               </div>
             ) : (
@@ -253,38 +215,34 @@ export default function RoomsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
-                      <TableHead>Room</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Capacity</TableHead>
+                      <TableHead>Department Name</TableHead>
+                      <TableHead>Institution ID</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
 
                   <TableBody>
-                    {rooms.map((room) => (
-                      <TableRow key={room.id}>
+                    {departments.map((dept) => (
+                      <TableRow key={dept.id}>
                         <TableCell className="font-mono text-xs text-muted-foreground">
-                          #{room.id}
+                          #{dept.id}
                         </TableCell>
-                        <TableCell className="font-medium">{room.name}</TableCell>
+                        <TableCell className="font-medium flex items-center gap-2">
+                          <Building2 className="size-4 text-muted-foreground" />
+                          <span>{dept.name}</span>
+                        </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="font-normal text-xs">
-                            {room.room_type || "Classroom"}
+                          <Badge variant="outline" className="text-xs">
+                            Inst #{dept.institution_id}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Users className="size-3.5" />
-                            <span>{room.capacity} seats</span>
-                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
                             className="size-8 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleDelete(room.id)}
-                            title="Delete room"
+                            onClick={() => handleDelete(dept.id)}
+                            title="Delete department"
                           >
                             <Trash2 className="size-4" />
                           </Button>

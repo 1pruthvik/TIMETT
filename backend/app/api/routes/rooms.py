@@ -16,8 +16,18 @@ def get_db():
         db.close()
 
 
+from app.models.institution import Institution
+
 @router.post("/", response_model=RoomResponse, status_code=201)
 def create_room(data: RoomCreate, db: Session = Depends(get_db)):
+    inst = db.query(Institution).filter(Institution.id == data.institution_id).first()
+    if not inst:
+        inst = Institution(name="College Workspace")
+        db.add(inst)
+        db.commit()
+        db.refresh(inst)
+        data.institution_id = inst.id
+
     item = Room(**data.model_dump())
     db.add(item)
     db.commit()

@@ -19,12 +19,24 @@ def get_db():
         db.close()
 
 
+from app.models.institution import Institution
+
 @router.post("/", response_model=AcademicYearResponse, status_code=201)
 def create_academic_year(
     data: AcademicYearCreate,
     db: Session = Depends(get_db),
 ):
-    item = AcademicYear(**data.model_dump())
+    inst = db.query(Institution).filter(Institution.id == data.institution_id).first()
+    if not inst:
+        inst = Institution(name="College Workspace")
+        db.add(inst)
+        db.commit()
+        db.refresh(inst)
+
+    item = AcademicYear(
+        institution_id=inst.id,
+        name=data.name,
+    )
 
     db.add(item)
     db.commit()

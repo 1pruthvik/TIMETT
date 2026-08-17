@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
@@ -10,6 +11,7 @@ from app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
     UserResponse,
+    OAuthRequest,
 )
 from app.core.security import (
     create_access_token,
@@ -141,6 +143,176 @@ def login(
 
     return AuthResponse(
         access_token=token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            name=user.name,
+            email=user.email,
+            role=user.role,
+            is_active=user.is_active,
+            institution_id=inst_id,
+            department_id=dept_id,
+        ),
+    )
+
+
+@router.post("/oauth", response_model=AuthResponse)
+def oauth_authorize(
+    data: OAuthRequest,
+    db: Session = Depends(get_db),
+):
+    user = (
+        db.query(User)
+        .filter(User.email == data.email)
+        .first()
+    )
+
+    if not user:
+        user = User(
+            name=data.name,
+            email=data.email,
+            password_hash=None,
+            role="user",
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        # Update user name to Google name
+        if data.name:
+            user.name = data.name
+            db.commit()
+            db.refresh(user)
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is disabled.",
+        )
+
+    inst_id, dept_id = get_or_create_user_tenant(user, db)
+    token = create_access_token(user.id)
+
+    return AuthResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            name=user.name,
+            email=user.email,
+            role=user.role,
+            is_active=user.is_active,
+            institution_id=inst_id,
+            department_id=dept_id,
+        ),
+    )
+
+
+import os
+import urllib.request
+import json
+
+class GitHubCallbackRequest(BaseModel):
+    code: str
+
+@router.post("/github/callback", response_model=AuthResponse)
+def github_callback(
+    data: GitHubCallbackRequest,
+    db: Session = Depends(get_db),
+):
+    client_id = os.getenv("GITHUB_CLIENT_ID")
+    client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+
+    if not client_id or not client_secret:
+        raise HTTPException(
+            status_code=500,
+            detail="GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET is not configured in backend/.env",
+        )
+
+    # 1. Exchange code for access token
+    token_url = "https://github.com/login/oauth/access_token"
+    payload = json.dumps({
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "code": data.code,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        token_url,
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(req) as resp:
+            token_data = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to exchange GitHub code: {str(e)}")
+
+    gh_access_token = token_data.get("access_token")
+    if not gh_access_token:
+        raise HTTPException(status_code=400, detail=token_data.get("error_description", "Invalid GitHub code"))
+
+    # 2. Fetch GitHub User Profile
+    user_req = urllib.request.Request(
+        "https://api.github.com/user",
+        headers={
+            "Authorization": f"Bearer {gh_access_token}",
+            "User-Agent": "TIMETT-App",
+        },
+    )
+    with urllib.request.urlopen(user_req) as resp:
+        gh_user = json.loads(resp.read().decode("utf-8"))
+
+    email = gh_user.get("email")
+    # If email is private on GitHub, fetch from /user/emails
+    if not email:
+        emails_req = urllib.request.Request(
+            "https://api.github.com/user/emails",
+            headers={
+                "Authorization": f"Bearer {gh_access_token}",
+                "User-Agent": "TIMETT-App",
+            },
+        )
+        with urllib.request.urlopen(emails_req) as resp:
+            emails_list = json.loads(resp.read().decode("utf-8"))
+            primary_email = next((e["email"] for e in emails_list if e.get("primary")), None)
+            email = primary_email or (emails_list[0]["email"] if emails_list else f"{gh_user['login']}@github.com")
+
+    # Use pure GitHub username
+    github_username = gh_user.get("login") or gh_user.get("name") or "GitHub User"
+
+    # 3. Create or fetch user in database
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(
+            name=github_username,
+            email=email,
+            password_hash=None,
+            role="user",
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        # Set user name to the GitHub username
+        user.name = github_username
+        db.commit()
+        db.refresh(user)
+
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="This account is disabled.")
+
+    inst_id, dept_id = get_or_create_user_tenant(user, db)
+    app_token = create_access_token(user.id)
+
+    return AuthResponse(
+        access_token=app_token,
         token_type="bearer",
         user=UserResponse(
             id=user.id,

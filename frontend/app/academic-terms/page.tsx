@@ -29,7 +29,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Calendar, CalendarRange, RefreshCw } from "lucide-react";
+import { Plus, Trash2, Calendar, CalendarRange, RefreshCw, AlertCircle } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -70,19 +70,29 @@ export default function AcademicTermsPage() {
       const user = storedUser ? JSON.parse(storedUser) : null;
       const instId = user?.institution_id;
 
-      const yrUrl = instId ? `${API_BASE}/academic-years/?institution_id=${instId}` : `${API_BASE}/academic-years/`;
-      const [yrRes, semRes] = await Promise.all([
-        fetch(yrUrl),
-        fetch(`${API_BASE}/semesters/`),
-      ]);
+      let yrs: AcademicYear[] = [];
+      if (instId) {
+        const yrRes = await fetch(`${API_BASE}/academic-years/?institution_id=${instId}`);
+        if (yrRes.ok) {
+          yrs = await yrRes.json();
+        }
+      }
 
-      const yrs: AcademicYear[] = yrRes.ok ? await yrRes.json() : [];
+      // If no years found with query param, fetch all
+      if (yrs.length === 0) {
+        const allYrRes = await fetch(`${API_BASE}/academic-years/`);
+        if (allYrRes.ok) {
+          yrs = await allYrRes.json();
+        }
+      }
+
+      const semRes = await fetch(`${API_BASE}/semesters/`);
       const sems: Semester[] = semRes.ok ? await semRes.json() : [];
 
       setAcademicYears(yrs);
       setSemesters(sems);
 
-      if (yrs.length > 0 && !selectedYearId) {
+      if (yrs.length > 0) {
         setSelectedYearId(yrs[0].id);
       }
     } catch (err) {
@@ -126,6 +136,7 @@ export default function AcademicTermsPage() {
       setYearName("");
       await fetchData();
     } catch (err) {
+      console.error("Error creating academic year", err);
       setYearError(err instanceof Error ? err.message : "Error creating year");
     } finally {
       setSubmittingYear(false);
@@ -134,7 +145,10 @@ export default function AcademicTermsPage() {
 
   const handleAddSemester = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!semName.trim() || !selectedYearId) return;
+    if (!semName.trim() || !selectedYearId) {
+      setSemError("Please choose an Academic Year and enter a Semester name.");
+      return;
+    }
 
     setSubmittingSem(true);
     setSemError("");
@@ -158,6 +172,7 @@ export default function AcademicTermsPage() {
       setSemName("");
       await fetchData();
     } catch (err) {
+      console.error("Error creating semester", err);
       setSemError(err instanceof Error ? err.message : "Error creating semester");
     } finally {
       setSubmittingSem(false);
@@ -231,7 +246,12 @@ export default function AcademicTermsPage() {
                     />
                   </div>
 
-                  {yearError && <p className="text-xs text-destructive">{yearError}</p>}
+                  {yearError && (
+                    <div className="flex items-center gap-2 rounded bg-destructive/10 p-2 text-xs text-destructive">
+                      <AlertCircle className="size-4 shrink-0" />
+                      <span>{yearError}</span>
+                    </div>
+                  )}
 
                   <DialogFooter className="pt-2">
                     <Button type="submit" disabled={submittingYear || !yearName.trim()}>
@@ -263,18 +283,24 @@ export default function AcademicTermsPage() {
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">
                       Academic Year *
                     </label>
-                    <select
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      value={selectedYearId}
-                      onChange={(e) => setSelectedYearId(Number(e.target.value))}
-                      required
-                    >
-                      {academicYears.map((y) => (
-                        <option key={y.id} value={y.id}>
-                          {y.name}
-                        </option>
-                      ))}
-                    </select>
+                    {academicYears.length === 0 ? (
+                      <p className="text-xs text-destructive">
+                        Please add an Academic Year first before adding a semester.
+                      </p>
+                    ) : (
+                      <select
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        value={selectedYearId}
+                        onChange={(e) => setSelectedYearId(Number(e.target.value))}
+                        required
+                      >
+                        {academicYears.map((y) => (
+                          <option key={y.id} value={y.id}>
+                            {y.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div>
@@ -289,10 +315,18 @@ export default function AcademicTermsPage() {
                     />
                   </div>
 
-                  {semError && <p className="text-xs text-destructive">{semError}</p>}
+                  {semError && (
+                    <div className="flex items-center gap-2 rounded bg-destructive/10 p-2 text-xs text-destructive">
+                      <AlertCircle className="size-4 shrink-0" />
+                      <span>{semError}</span>
+                    </div>
+                  )}
 
                   <DialogFooter className="pt-2">
-                    <Button type="submit" disabled={submittingSem || !semName.trim() || !selectedYearId}>
+                    <Button
+                      type="submit"
+                      disabled={submittingSem || !semName.trim() || !selectedYearId || academicYears.length === 0}
+                    >
                       {submittingSem ? "Saving..." : "Save Semester"}
                     </Button>
                   </DialogFooter>
@@ -338,9 +372,9 @@ export default function AcademicTermsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {academicYears.map((yr) => (
+                      {academicYears.map((yr, index) => (
                         <TableRow key={yr.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground">#{yr.id}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground font-semibold">#{index + 1}</TableCell>
                           <TableCell className="font-medium">{yr.name}</TableCell>
                           <TableCell className="text-right">
                             <Button
@@ -389,18 +423,18 @@ export default function AcademicTermsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
+                        <TableHead>#</TableHead>
                         <TableHead>Semester Name</TableHead>
                         <TableHead>Academic Year</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {semesters.map((sem) => {
+                      {semesters.map((sem, index) => {
                         const yr = academicYears.find((y) => y.id === sem.academic_year_id);
                         return (
                           <TableRow key={sem.id}>
-                            <TableCell className="font-mono text-xs text-muted-foreground">#{sem.id}</TableCell>
+                            <TableCell className="font-mono text-xs text-muted-foreground font-semibold">#{index + 1}</TableCell>
                             <TableCell className="font-medium">{sem.name}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className="text-xs font-normal">

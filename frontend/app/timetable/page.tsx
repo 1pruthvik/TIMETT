@@ -333,8 +333,9 @@ export default function TimetablePage() {
         setOfferings([...offs]);
       }
 
-      // 9. Call OR-Tools Generator
-      const genRes = await fetch(`${API_BASE}/generator/generate`, {
+      // 9. Call OR-Tools Generator scoped to user semester and institution
+      const genUrl = `${API_BASE}/generator/generate?semester_id=${semesterId}&institution_id=${institutionId}`;
+      const genRes = await fetch(genUrl, {
         method: "POST",
       });
 

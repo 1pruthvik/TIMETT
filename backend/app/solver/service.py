@@ -15,9 +15,17 @@ from app.models.timetable_version import TimetableVersion
 from app.models.generation_run import GenerationRun
 
 
-def generate_timetable(db: Session):
-    offerings = db.query(SubjectOffering).all()
-    rooms = db.query(Room).all()
+def generate_timetable(db: Session, semester_id: int | None = None, institution_id: int | None = None):
+    offering_query = db.query(SubjectOffering)
+    if semester_id is not None:
+        offering_query = offering_query.filter(SubjectOffering.semester_id == semester_id)
+    offerings = offering_query.all()
+
+    room_query = db.query(Room)
+    if institution_id is not None:
+        room_query = room_query.filter(Room.institution_id == institution_id)
+    rooms = room_query.all()
+
     slots = db.query(TimeSlot).all()
     availability = db.query(FacultyAvailability).all()
     sections = db.query(Section).all()

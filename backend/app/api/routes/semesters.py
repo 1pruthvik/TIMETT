@@ -19,11 +19,28 @@ def get_db():
         db.close()
 
 
+from app.models.academic_year import AcademicYear
+from app.models.institution import Institution
+
 @router.post("/", response_model=SemesterResponse, status_code=201)
 def create_semester(
     data: SemesterCreate,
     db: Session = Depends(get_db),
 ):
+    yr = db.query(AcademicYear).filter(AcademicYear.id == data.academic_year_id).first()
+    if not yr:
+        inst = db.query(Institution).first()
+        if not inst:
+            inst = Institution(name="College Workspace")
+            db.add(inst)
+            db.commit()
+            db.refresh(inst)
+        yr = AcademicYear(name="2026 - 2027", institution_id=inst.id)
+        db.add(yr)
+        db.commit()
+        db.refresh(yr)
+        data.academic_year_id = yr.id
+
     item = Semester(**data.model_dump())
 
     db.add(item)

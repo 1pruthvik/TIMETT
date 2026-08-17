@@ -294,10 +294,10 @@ export default function TimeSlotsPage() {
                   </TableHeader>
 
                   <TableBody>
-                    {slots.map((s) => (
+                    {slots.map((s, index) => (
                       <TableRow key={s.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          #{s.id}
+                        <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                          #{index + 1}
                         </TableCell>
                         <TableCell className="font-medium">
                           <Badge variant="outline" className="font-medium text-xs">

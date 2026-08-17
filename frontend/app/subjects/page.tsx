@@ -266,6 +266,7 @@ export default function SubjectsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>#</TableHead>
                       <TableHead>Code</TableHead>
                       <TableHead>Subject Name</TableHead>
                       <TableHead>Department</TableHead>
@@ -274,13 +275,16 @@ export default function SubjectsPage() {
                   </TableHeader>
 
                   <TableBody>
-                    {subjects.map((sub) => {
+                    {subjects.map((sub, index) => {
                       const deptName =
                         departments.find((d) => d.id === sub.department_id)?.name ||
                         `Dept #${sub.department_id}`;
 
                       return (
                         <TableRow key={sub.id}>
+                          <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                            #{index + 1}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="secondary" className="font-mono text-xs">
                               {sub.code}

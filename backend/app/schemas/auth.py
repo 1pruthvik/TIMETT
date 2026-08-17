@@ -12,6 +12,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class OAuthRequest(BaseModel):
+    provider: str
+    email: EmailStr
+    name: str
+    avatar_url: str | None = None
+
+
 class UserResponse(BaseModel):
     id: int
     name: str

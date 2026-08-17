@@ -26,7 +26,9 @@ def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[SubjectResponse])
-def get_subjects(db: Session = Depends(get_db)):
+def get_subjects(department_id: int | None = None, db: Session = Depends(get_db)):
+    if department_id:
+        return db.query(Subject).filter(Subject.department_id == department_id).all()
     return db.query(Subject).all()
 
 
@@ -61,12 +63,21 @@ def update_subject(
     return item
 
 
+from app.models.subject_offering import SubjectOffering
+from app.models.timetable_entry import TimetableEntry
+
 @router.delete("/{subject_id}", status_code=204)
 def delete_subject(subject_id: int, db: Session = Depends(get_db)):
     item = db.query(Subject).filter(Subject.id == subject_id).first()
 
     if not item:
         raise HTTPException(status_code=404, detail="Subject not found")
+
+    offering_ids = [o.id for o in db.query(SubjectOffering.id).filter(SubjectOffering.subject_id == subject_id).all()]
+    if offering_ids:
+        db.query(TimetableEntry).filter(TimetableEntry.subject_offering_id.in_(offering_ids)).delete(synchronize_session=False)
+
+    db.query(SubjectOffering).filter(SubjectOffering.subject_id == subject_id).delete(synchronize_session=False)
 
     db.delete(item)
     db.commit()

@@ -14,3 +14,4 @@ from app.models.timetable_entry import TimetableEntry
 from app.models.constraint import Constraint
 from app.models.timetable_version import TimetableVersion
 from app.models.generation_run import GenerationRun
+from app.models.user import User

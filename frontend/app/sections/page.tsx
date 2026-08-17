@@ -258,15 +258,15 @@ export default function SectionsPage() {
                   </TableHeader>
 
                   <TableBody>
-                    {sections.map((sec) => {
+                    {sections.map((sec, index) => {
                       const deptName =
                         departments.find((d) => d.id === sec.department_id)?.name ||
                         `Dept #${sec.department_id}`;
 
                       return (
                         <TableRow key={sec.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground">
-                            #{sec.id}
+                          <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                            #{index + 1}
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary" className="font-semibold text-xs">

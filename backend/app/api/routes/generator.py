@@ -19,5 +19,9 @@ def get_db():
 
 
 @router.post("/generate")
-def generate(db: Session = Depends(get_db)):
-    return generate_timetable(db)
+def generate(
+    semester_id: int | None = None,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    return generate_timetable(db, semester_id=semester_id, institution_id=institution_id)

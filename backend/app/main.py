@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routes.auth import router as auth_router
 from app.api.routes.health import router as health_router
 from app.api.routes.institutions import router as institution_router
 from app.api.routes.departments import router as department_router
@@ -25,8 +27,19 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(institution_router)
 app.include_router(department_router)
 app.include_router(academic_year_router)
@@ -44,3 +57,4 @@ app.include_router(constraint_router)
 app.include_router(timetable_version_router)
 app.include_router(generation_run_router)
 app.include_router(generator_router)
+

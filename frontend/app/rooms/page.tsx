@@ -261,10 +261,10 @@ export default function RoomsPage() {
                   </TableHeader>
 
                   <TableBody>
-                    {rooms.map((room) => (
+                    {rooms.map((room, index) => (
                       <TableRow key={room.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          #{room.id}
+                        <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                          #{index + 1}
                         </TableCell>
                         <TableCell className="font-medium">{room.name}</TableCell>
                         <TableCell>

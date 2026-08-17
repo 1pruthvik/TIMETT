@@ -138,12 +138,33 @@ export default function FacultyPage() {
       }
 
       if (depts.length === 0) {
+        let targetInstId = userInstId;
+        if (!targetInstId) {
+          const instRes = await fetch(`${API_BASE}/institutions/`);
+          if (instRes.ok) {
+            const insts = await instRes.json();
+            if (insts.length > 0) targetInstId = insts[0].id;
+          }
+        }
+
+        if (!targetInstId) {
+          const createInst = await fetch(`${API_BASE}/institutions/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: "College of Engineering" }),
+          });
+          if (createInst.ok) {
+            const newInst = await createInst.json();
+            targetInstId = newInst.id;
+          }
+        }
+
         const createDept = await fetch(`${API_BASE}/departments/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: "Computer Science & Engineering",
-            institution_id: userInstId || 1,
+            institution_id: targetInstId || 1,
           }),
         });
         if (createDept.ok) {
@@ -641,13 +662,13 @@ export default function FacultyPage() {
                   </TableHeader>
 
                   <TableBody>
-                    {faculty.map((member) => {
+                    {faculty.map((member, index) => {
                       const memberOfferings = offerings.filter((o) => o.faculty_id === member.id);
 
                       return (
                         <TableRow key={member.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground">
-                            #{member.id}
+                          <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                            #{index + 1}
                           </TableCell>
                           <TableCell className="font-medium">{member.name}</TableCell>
                           <TableCell>

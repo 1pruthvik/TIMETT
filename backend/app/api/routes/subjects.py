@@ -16,8 +16,25 @@ def get_db():
         db.close()
 
 
+from app.models.department import Department
+from app.models.institution import Institution
+
 @router.post("/", response_model=SubjectResponse, status_code=201)
 def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
+    dept = db.query(Department).filter(Department.id == data.department_id).first()
+    if not dept:
+        inst = db.query(Institution).first()
+        if not inst:
+            inst = Institution(name="College Workspace")
+            db.add(inst)
+            db.commit()
+            db.refresh(inst)
+        dept = Department(name="Computer Science & Engineering", institution_id=inst.id)
+        db.add(dept)
+        db.commit()
+        db.refresh(dept)
+        data.department_id = dept.id
+
     item = Subject(**data.model_dump())
     db.add(item)
     db.commit()

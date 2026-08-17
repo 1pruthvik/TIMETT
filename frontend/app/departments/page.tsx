@@ -222,10 +222,10 @@ export default function DepartmentsPage() {
                   </TableHeader>
 
                   <TableBody>
-                    {departments.map((dept) => (
+                    {departments.map((dept, index) => (
                       <TableRow key={dept.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          #{dept.id}
+                        <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                          #{index + 1}
                         </TableCell>
                         <TableCell className="font-medium flex items-center gap-2">
                           <Building2 className="size-4 text-muted-foreground" />

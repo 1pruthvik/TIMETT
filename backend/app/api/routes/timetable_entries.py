@@ -26,7 +26,9 @@ def create(data: TimetableEntryCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[TimetableEntryResponse])
-def get_all(db: Session = Depends(get_db)):
+def get_all(timetable_id: int | None = None, db: Session = Depends(get_db)):
+    if timetable_id:
+        return db.query(TimetableEntry).filter(TimetableEntry.timetable_id == timetable_id).all()
     return db.query(TimetableEntry).all()
 
 

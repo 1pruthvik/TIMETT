@@ -60,18 +60,25 @@ export default function SectionsPage() {
     setLoading(true);
     setError("");
     try {
+      const storedUser = localStorage.getItem("user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const userDeptId = user?.department_id;
+      const userInstId = user?.institution_id;
+
       // 1. Fetch departments
-      const deptRes = await fetch(`${API_BASE}/departments/`);
+      const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
+      const deptRes = await fetch(deptUrl);
       if (deptRes.ok) {
         const depts = await deptRes.json();
         setDepartments(depts);
-        if (depts.length > 0 && !departmentId) {
-          setDepartmentId(depts[0].id);
+        if (depts.length > 0) {
+          setDepartmentId(userDeptId || depts[0].id);
         }
       }
 
       // 2. Fetch sections
-      const secRes = await fetch(`${API_BASE}/sections/`);
+      const secUrl = userDeptId ? `${API_BASE}/sections/?department_id=${userDeptId}` : `${API_BASE}/sections/`;
+      const secRes = await fetch(secUrl);
       if (secRes.ok) {
         const secData = await secRes.json();
         setSections(secData);

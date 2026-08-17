@@ -94,13 +94,23 @@ export default function TimetablePage() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
+      const storedUser = localStorage.getItem("user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const userDeptId = user?.department_id;
+      const userInstId = user?.institution_id;
+
+      const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
+      const facUrl = userDeptId ? `${API_BASE}/faculty/?department_id=${userDeptId}` : `${API_BASE}/faculty/`;
+      const roomUrl = userInstId ? `${API_BASE}/rooms/?institution_id=${userInstId}` : `${API_BASE}/rooms/`;
+      const secUrl = userDeptId ? `${API_BASE}/sections/?department_id=${userDeptId}` : `${API_BASE}/sections/`;
+
       const [slotRes, offRes, subRes, facRes, roomRes, secRes, entryRes] = await Promise.all([
         fetch(`${API_BASE}/time-slots/`),
         fetch(`${API_BASE}/subject-offerings/`),
-        fetch(`${API_BASE}/subjects/`),
-        fetch(`${API_BASE}/faculty/`),
-        fetch(`${API_BASE}/rooms/`),
-        fetch(`${API_BASE}/sections/`),
+        fetch(subUrl),
+        fetch(facUrl),
+        fetch(roomUrl),
+        fetch(secUrl),
         fetch(`${API_BASE}/timetable-entries/`),
       ]);
 

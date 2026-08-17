@@ -26,7 +26,9 @@ def create_faculty(data: FacultyCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[FacultyResponse])
-def get_faculty(db: Session = Depends(get_db)):
+def get_faculty(department_id: int | None = None, db: Session = Depends(get_db)):
+    if department_id:
+        return db.query(Faculty).filter(Faculty.department_id == department_id).all()
     return db.query(Faculty).all()
 
 
@@ -61,6 +63,10 @@ def update_faculty(
     return item
 
 
+from app.models.subject_offering import SubjectOffering
+from app.models.faculty_availability import FacultyAvailability
+from app.models.timetable_entry import TimetableEntry
+
 @router.delete("/{faculty_id}", status_code=204)
 def delete_faculty(faculty_id: int, db: Session = Depends(get_db)):
     item = db.query(Faculty).filter(Faculty.id == faculty_id).first()
@@ -68,5 +74,17 @@ def delete_faculty(faculty_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Faculty not found")
 
+    # 1. Find all offerings for this faculty
+    offering_ids = [o.id for o in db.query(SubjectOffering.id).filter(SubjectOffering.faculty_id == faculty_id).all()]
+
+    # 2. Delete any timetable entries referencing those offerings
+    if offering_ids:
+        db.query(TimetableEntry).filter(TimetableEntry.subject_offering_id.in_(offering_ids)).delete(synchronize_session=False)
+
+    # 3. Delete offerings and availability
+    db.query(SubjectOffering).filter(SubjectOffering.faculty_id == faculty_id).delete(synchronize_session=False)
+    db.query(FacultyAvailability).filter(FacultyAvailability.faculty_id == faculty_id).delete(synchronize_session=False)
+
+    # 4. Delete the faculty member
     db.delete(item)
     db.commit()

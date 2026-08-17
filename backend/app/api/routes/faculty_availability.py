@@ -35,7 +35,9 @@ def create_availability(
 
 
 @router.get("/", response_model=list[FacultyAvailabilityResponse])
-def get_availability(db: Session = Depends(get_db)):
+def get_availability(faculty_id: int | None = None, db: Session = Depends(get_db)):
+    if faculty_id:
+        return db.query(FacultyAvailability).filter(FacultyAvailability.faculty_id == faculty_id).all()
     return db.query(FacultyAvailability).all()
 
 

@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr, Field
 class RegisterRequest(BaseModel):
     name: str = Field(min_length=2, max_length=255)
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
 
 
 class LoginRequest(BaseModel):
@@ -18,6 +18,8 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: str
     is_active: bool
+    institution_id: int | None = None
+    department_id: int | None = None
 
 
 class AuthResponse(BaseModel):

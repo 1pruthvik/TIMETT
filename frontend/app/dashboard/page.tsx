@@ -46,11 +46,21 @@ export default function DashboardPage() {
   const fetchLiveCounts = async () => {
     setLoading(true);
     try {
+      const storedUser = localStorage.getItem("user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const userDeptId = user?.department_id;
+      const userInstId = user?.institution_id;
+
+      const facUrl = userDeptId ? `${API_BASE}/faculty/?department_id=${userDeptId}` : `${API_BASE}/faculty/`;
+      const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
+      const roomUrl = userInstId ? `${API_BASE}/rooms/?institution_id=${userInstId}` : `${API_BASE}/rooms/`;
+      const secUrl = userDeptId ? `${API_BASE}/sections/?department_id=${userDeptId}` : `${API_BASE}/sections/`;
+
       const [facRes, subRes, roomRes, secRes, ttRes, yrRes, semRes] = await Promise.all([
-        fetch(`${API_BASE}/faculty/`),
-        fetch(`${API_BASE}/subjects/`),
-        fetch(`${API_BASE}/rooms/`),
-        fetch(`${API_BASE}/sections/`),
+        fetch(facUrl),
+        fetch(subUrl),
+        fetch(roomUrl),
+        fetch(secUrl),
         fetch(`${API_BASE}/timetables/`),
         fetch(`${API_BASE}/academic-years/`),
         fetch(`${API_BASE}/semesters/`),

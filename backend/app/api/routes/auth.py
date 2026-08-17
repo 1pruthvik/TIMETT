@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
 from app.models.user import User
+from app.models.institution import Institution
+from app.models.department import Department
 from app.schemas.auth import (
     AuthResponse,
     LoginRequest,
@@ -23,11 +25,29 @@ router = APIRouter(
 
 def get_db():
     db = SessionLocal()
-
     try:
         yield db
     finally:
         db.close()
+
+
+def get_or_create_user_tenant(user: User, db: Session):
+    inst_name = f"{user.name}'s Workspace (ID {user.id})"
+    inst = db.query(Institution).filter(Institution.name == inst_name).first()
+    if not inst:
+        inst = Institution(name=inst_name)
+        db.add(inst)
+        db.commit()
+        db.refresh(inst)
+
+    dept = db.query(Department).filter(Department.institution_id == inst.id).first()
+    if not dept:
+        dept = Department(name="Computer Science & Engineering", institution_id=inst.id)
+        db.add(dept)
+        db.commit()
+        db.refresh(dept)
+
+    return inst.id, dept.id
 
 
 @router.post(
@@ -63,6 +83,7 @@ def register(
     db.commit()
     db.refresh(user)
 
+    inst_id, dept_id = get_or_create_user_tenant(user, db)
     token = create_access_token(user.id)
 
     return AuthResponse(
@@ -74,6 +95,8 @@ def register(
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            institution_id=inst_id,
+            department_id=dept_id,
         ),
     )
 
@@ -113,6 +136,7 @@ def login(
             detail="This account is disabled.",
         )
 
+    inst_id, dept_id = get_or_create_user_tenant(user, db)
     token = create_access_token(user.id)
 
     return AuthResponse(
@@ -124,5 +148,7 @@ def login(
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            institution_id=inst_id,
+            department_id=dept_id,
         ),
     )

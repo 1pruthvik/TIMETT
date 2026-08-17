@@ -62,18 +62,25 @@ export default function SubjectsPage() {
     setLoading(true);
     setError("");
     try {
+      const storedUser = localStorage.getItem("user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const userDeptId = user?.department_id;
+      const userInstId = user?.institution_id;
+
       // 1. Fetch departments
-      const deptRes = await fetch(`${API_BASE}/departments/`);
+      const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
+      const deptRes = await fetch(deptUrl);
       if (deptRes.ok) {
         const depts = await deptRes.json();
         setDepartments(depts);
-        if (depts.length > 0 && !departmentId) {
-          setDepartmentId(depts[0].id);
+        if (depts.length > 0) {
+          setDepartmentId(userDeptId || depts[0].id);
         }
       }
 
       // 2. Fetch subjects
-      const subRes = await fetch(`${API_BASE}/subjects/`);
+      const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
+      const subRes = await fetch(subUrl);
       if (subRes.ok) {
         const subData = await subRes.json();
         setSubjects(subData);

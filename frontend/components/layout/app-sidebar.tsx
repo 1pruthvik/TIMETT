@@ -133,6 +133,12 @@ export function AppSidebar() {
           <SidebarGroup>
             <SidebarMenu>
               <SidebarMenuItem>
+                <SidebarMenuButton render={<Link href="/account" />}>
+                  <Users />
+                  <span>Account</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton render={<Link href="/settings" />}>
                   <Settings />
                   <span>Settings</span>

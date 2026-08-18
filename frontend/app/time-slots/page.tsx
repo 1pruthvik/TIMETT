@@ -10,14 +10,6 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -75,7 +67,7 @@ export interface DailyBreak {
   duration: DurationHMS;
 }
 
-interface GeneratedSlot {
+export interface GeneratedSlot {
   type: "theory" | "lab" | "break";
   label: string;
   startTime: string; // 12h display e.g. "09:00 AM"
@@ -189,7 +181,7 @@ function Clock12Picker({
                   key={h}
                   type="button"
                   onClick={() => onChange({ ...value, hour: h })}
-                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.hour === h
                       ? "bg-primary text-primary-foreground shadow-xs"
                       : "hover:bg-muted text-foreground"
@@ -212,7 +204,7 @@ function Clock12Picker({
                   key={m}
                   type="button"
                   onClick={() => onChange({ ...value, minute: m })}
-                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.minute === m
                       ? "bg-primary text-primary-foreground shadow-xs"
                       : "hover:bg-muted text-foreground"
@@ -233,7 +225,7 @@ function Clock12Picker({
               <button
                 type="button"
                 onClick={() => onChange({ ...value, period: "AM" })}
-                className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   value.period === "AM"
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md"
                     : "border border-border hover:bg-muted text-muted-foreground"
@@ -244,7 +236,7 @@ function Clock12Picker({
               <button
                 type="button"
                 onClick={() => onChange({ ...value, period: "PM" })}
-                className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   value.period === "PM"
                     ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md"
                     : "border border-border hover:bg-muted text-muted-foreground"
@@ -260,7 +252,7 @@ function Clock12Picker({
           <Button
             size="sm"
             onClick={() => setOpen(false)}
-            className="h-7 text-xs rounded-lg px-3 font-semibold bg-primary text-primary-foreground"
+            className="h-7 text-xs rounded-lg px-3 font-semibold bg-primary text-primary-foreground cursor-pointer"
           >
             Apply Time
           </Button>
@@ -321,7 +313,7 @@ function DurationHMSPicker({
               key={idx}
               type="button"
               onClick={() => onChange({ hours: p.h, minutes: p.m, seconds: p.s })}
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-md border border-border bg-muted/40 hover:bg-muted text-foreground transition-colors"
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-md border border-border bg-muted/40 hover:bg-muted text-foreground transition-colors cursor-pointer"
             >
               {p.label}
             </button>
@@ -341,7 +333,7 @@ function DurationHMSPicker({
                   key={h}
                   type="button"
                   onClick={() => onChange({ ...value, hours: h })}
-                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.hours === h
                       ? "bg-purple-600 text-white shadow-xs"
                       : "hover:bg-muted text-foreground"
@@ -364,7 +356,7 @@ function DurationHMSPicker({
                   key={m}
                   type="button"
                   onClick={() => onChange({ ...value, minutes: m })}
-                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.minutes === m
                       ? "bg-purple-600 text-white shadow-xs"
                       : "hover:bg-muted text-foreground"
@@ -387,7 +379,7 @@ function DurationHMSPicker({
                   key={s}
                   type="button"
                   onClick={() => onChange({ ...value, seconds: s })}
-                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                  className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.seconds === s
                       ? "bg-purple-600 text-white shadow-xs"
                       : "hover:bg-muted text-foreground"
@@ -404,7 +396,7 @@ function DurationHMSPicker({
           <Button
             size="sm"
             onClick={() => setOpen(false)}
-            className="h-7 text-xs rounded-lg px-3 font-semibold bg-purple-600 text-white hover:bg-purple-700"
+            className="h-7 text-xs rounded-lg px-3 font-semibold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer"
           >
             Apply Duration
           </Button>
@@ -645,7 +637,7 @@ export default function TimeSlotsPage() {
     setSavedSuccess(false);
 
     try {
-      // 1. Save architecture config to localStorage
+      // 1. Save architecture config and active timeline to localStorage
       const config = {
         selectedDays,
         numWorkingDays,
@@ -656,8 +648,17 @@ export default function TimeSlotsPage() {
         breaks,
       };
       localStorage.setItem("timett_time_slot_config", JSON.stringify(config));
+      localStorage.setItem("timett_active_timeline", JSON.stringify(generatedTimeline));
 
-      // 2. Clear old slots and register new generated theory periods in backend
+      // 2. Delete old slots and register new generated theory periods in backend
+      const existingRes = await fetch(`${API_BASE}/time-slots/`).catch(() => null);
+      if (existingRes && existingRes.ok) {
+        const oldSlots: SavedTimeSlot[] = await existingRes.json();
+        for (const oldSlot of oldSlots) {
+          await fetch(`${API_BASE}/time-slots/${oldSlot.id}`, { method: "DELETE" }).catch(() => null);
+        }
+      }
+
       const theorySlots = generatedTimeline.filter((s) => s.type === "theory");
 
       for (const day of selectedDays) {
@@ -709,6 +710,7 @@ export default function TimeSlotsPage() {
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
           </Button>
 
+          {/* SINGLE PRIMARY APPLY BUTTON AT TOP */}
           <Button
             onClick={handleSaveAndApplyGrid}
             disabled={savingGrid || generatedTimeline.length === 0}
@@ -932,7 +934,7 @@ export default function TimeSlotsPage() {
                     No daily breaks currently added. Click &ldquo;Add Break&rdquo; to define tea, recess, or lunch intervals.
                   </p>
                 ) : (
-                  breaks.map((b, idx) => (
+                  breaks.map((b) => (
                     <div
                       key={b.id}
                       className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 rounded-2xl border border-border bg-card/60 p-3.5 shadow-xs"
@@ -990,9 +992,9 @@ export default function TimeSlotsPage() {
             </GlassPanel>
           </div>
 
-          {/* Right Column: Live Schedule Generator Preview (5 Cols) */}
+          {/* Right Column: Live Schedule Generator Preview (Fully Expanded without Scrolling) */}
           <div className="lg:col-span-5 space-y-6">
-            <GlassPanel className="p-0 overflow-hidden rounded-3xl border-border shadow-md sticky top-6">
+            <GlassPanel className="p-0 overflow-hidden rounded-3xl border-border shadow-md">
               {/* Header */}
               <div className="flex items-center justify-between p-5 border-b border-border bg-card/70">
                 <div className="flex items-center gap-3">
@@ -1014,73 +1016,60 @@ export default function TimeSlotsPage() {
                 </Badge>
               </div>
 
-              {/* Timeline Sequence */}
-              <div className="p-5 space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin">
+              {/* Timeline Sequence Expanded to Full Length */}
+              <div className="p-5 space-y-2.5">
                 {generatedTimeline.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic py-6 text-center">
                     Please ensure end time is later than start time to preview schedule.
                   </p>
                 ) : (
-                  <div className="space-y-2.5">
-                    {generatedTimeline.map((slot, sIdx) => {
-                      const isBreak = slot.type === "break";
+                  generatedTimeline.map((slot, sIdx) => {
+                    const isBreak = slot.type === "break";
 
-                      return (
-                        <div
-                          key={sIdx}
-                          className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
-                            isBreak
-                              ? "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200"
-                              : "bg-card border-border hover:border-primary/40 text-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`flex size-8 items-center justify-center rounded-xl font-mono text-xs font-bold ${
-                                isBreak
-                                  ? "bg-amber-500/20 text-amber-600 dark:text-amber-300"
-                                  : "bg-primary/10 text-primary border border-primary/20"
-                              }`}
-                            >
-                              {isBreak ? <Coffee className="size-4" /> : `#${sIdx + 1}`}
-                            </div>
-
-                            <div>
-                              <span className="font-bold text-xs block">
-                                {slot.label}
-                              </span>
-                              <span className="text-[11px] font-mono text-muted-foreground">
-                                {slot.startTime} &mdash; {slot.endTime}
-                              </span>
-                            </div>
-                          </div>
-
-                          <Badge
-                            variant="outline"
-                            className={`text-[10px] font-mono font-bold px-2 py-0.5 ${
+                    return (
+                      <div
+                        key={sIdx}
+                        className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                          isBreak
+                            ? "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200"
+                            : "bg-card border-border hover:border-primary/40 text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`flex size-8 items-center justify-center rounded-xl font-mono text-xs font-bold ${
                               isBreak
-                                ? "bg-amber-500/20 border-amber-500/40 text-amber-700 dark:text-amber-300"
-                                : "bg-muted/60 text-muted-foreground border-border"
+                                ? "bg-amber-500/20 text-amber-600 dark:text-amber-300"
+                                : "bg-primary/10 text-primary border border-primary/20"
                             }`}
                           >
-                            {slot.durationMinutes} mins
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                            {isBreak ? <Coffee className="size-4" /> : `#${sIdx + 1}`}
+                          </div>
 
-                {/* Apply Button */}
-                <div className="pt-3 border-t border-border">
-                  <Button
-                    onClick={handleSaveAndApplyGrid}
-                    disabled={savingGrid || generatedTimeline.length === 0}
-                    className="w-full tt-gradient-btn h-10 rounded-xl gap-2 font-bold cursor-pointer shadow-md"
-                  >
-                    {savingGrid ? "Applying to Timetable System..." : "Save & Apply Schedule Architecture"}
-                  </Button>
-                </div>
+                          <div>
+                            <span className="font-bold text-xs block">
+                              {slot.label}
+                            </span>
+                            <span className="text-[11px] font-mono text-muted-foreground">
+                              {slot.startTime} &mdash; {slot.endTime}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] font-mono font-bold px-2 py-0.5 ${
+                            isBreak
+                              ? "bg-amber-500/20 border-amber-500/40 text-amber-700 dark:text-amber-300"
+                              : "bg-muted/60 text-muted-foreground border-border"
+                          }`}
+                        >
+                          {slot.durationMinutes} mins
+                        </Badge>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </GlassPanel>
           </div>

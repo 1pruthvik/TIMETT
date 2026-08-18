@@ -45,11 +45,12 @@ import {
   Layers3,
   Bot,
   DoorOpen,
+  Coffee,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const DEFAULT_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const DEFAULT_PERIODS = [
   "09:00 - 10:00",
   "10:00 - 11:00",
@@ -124,6 +125,16 @@ interface SlotDetail {
   isLab?: boolean;
 }
 
+export interface TimelineColumn {
+  type: "theory" | "lab" | "break";
+  label: string;
+  startTime: string;
+  endTime: string;
+  startTime24: string;
+  endTime24: string;
+  durationMinutes: number;
+}
+
 type TimetableLifecycle = "DRAFT" | "GENERATED" | "EDITING" | "REVIEW" | "FINALIZED";
 type ViewMode = "section" | "faculty" | "room" | "department" | "mobile";
 
@@ -136,6 +147,9 @@ export default function TimetablePage() {
 
   // Domain data
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [activeDays, setActiveDays] = useState<string[]>(DEFAULT_DAYS);
+  const [timelineCols, setTimelineCols] = useState<TimelineColumn[]>([]);
+
   const [offerings, setOfferings] = useState<SubjectOffering[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [faculty, setFaculty] = useState<Faculty[]>([]);
@@ -143,11 +157,11 @@ export default function TimetablePage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [entries, setEntries] = useState<TimetableEntry[]>([]);
 
-  // History stack for Undo / Redo (Section 13)
+  // History stack for Undo / Redo
   const [history, setHistory] = useState<TimetableEntry[][]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
-  // Views & Filters (Section 18)
+  // Views & Filters
   const [viewMode, setViewMode] = useState<ViewMode>("section");
   const [selectedSection, setSelectedSection] = useState<number | "ALL">("ALL");
   const [selectedFaculty, setSelectedFaculty] = useState<number | "ALL">("ALL");
@@ -158,7 +172,7 @@ export default function TimetablePage() {
   const [activeSlot, setActiveSlot] = useState<SlotDetail | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
-  // Drag & Drop Validation State (Section 12)
+  // Drag & Drop Validation State
   const [draggedEntry, setDraggedEntry] = useState<SlotDetail | null>(null);
   const [pendingMove, setPendingMove] = useState<{
     entry: SlotDetail;
@@ -167,7 +181,7 @@ export default function TimetablePage() {
     reason?: string;
   } | null>(null);
 
-  // AI Timetable Modification (Section 14)
+  // AI Timetable Modification
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiModifying, setAiModifying] = useState(false);
   const [aiProposedChanges, setAiProposedChanges] = useState<{
@@ -219,23 +233,83 @@ export default function TimetablePage() {
       setSections(loadedSections);
       setEntries(loadedEntries);
 
+      // 1. Determine Active Days from Saved Config or Defaults
+      let daysToUse = DEFAULT_DAYS;
+      const savedConfigStr = localStorage.getItem("timett_time_slot_config");
+      if (savedConfigStr) {
+        try {
+          const parsedConfig = JSON.parse(savedConfigStr);
+          if (parsedConfig.selectedDays && parsedConfig.selectedDays.length > 0) {
+            daysToUse = parsedConfig.selectedDays;
+          }
+        } catch (e) {
+          console.error("Config parse error", e);
+        }
+      }
+      setActiveDays(daysToUse);
+      setActiveMobileDay(daysToUse[0] || "Monday");
+
+      // 2. Determine Horizontal Time Columns from Saved Timeline or Database Slots
+      let colsToUse: TimelineColumn[] = [];
+      const savedTimelineStr = localStorage.getItem("timett_active_timeline");
+      if (savedTimelineStr) {
+        try {
+          const parsedTimeline = JSON.parse(savedTimelineStr);
+          if (Array.isArray(parsedTimeline) && parsedTimeline.length > 0) {
+            colsToUse = parsedTimeline;
+          }
+        } catch (e) {
+          console.error("Timeline parse error", e);
+        }
+      }
+
+      if (colsToUse.length === 0) {
+        // Fallback: derive from backend slots
+        const uniquePeriodMap = new Map<string, { start: string; end: string }>();
+        loadedSlots.forEach((s) => {
+          const key = `${s.start_time} - ${s.end_time}`;
+          if (!uniquePeriodMap.has(key)) {
+            uniquePeriodMap.set(key, { start: s.start_time, end: s.end_time });
+          }
+        });
+
+        if (uniquePeriodMap.size > 0) {
+          let pIdx = 1;
+          uniquePeriodMap.forEach((v) => {
+            colsToUse.push({
+              type: "theory",
+              label: `Period ${pIdx++}`,
+              startTime: v.start,
+              endTime: v.end,
+              startTime24: v.start,
+              endTime24: v.end,
+              durationMinutes: 60,
+            });
+          });
+        } else {
+          DEFAULT_PERIODS.forEach((p, idx) => {
+            const [st, et] = p.split(" - ");
+            colsToUse.push({
+              type: "theory",
+              label: `Period ${idx + 1}`,
+              startTime: st,
+              endTime: et,
+              startTime24: st,
+              endTime24: et,
+              durationMinutes: 60,
+            });
+          });
+        }
+      }
+
+      setTimelineCols(colsToUse);
+
       // Initialize history stack
       setHistory([loadedEntries]);
       setHistoryIndex(0);
-
-      return {
-        slots: loadedSlots,
-        offerings: loadedOfferings,
-        subjects: loadedSubjects,
-        faculty: loadedFaculty,
-        rooms: loadedRooms,
-        sections: loadedSections,
-        entries: loadedEntries,
-      };
     } catch (err) {
-      console.error("Error fetching timetable resources", err);
-      setStatusMessage({ type: "error", text: "Failed to connect to backend server." });
-      return null;
+      console.error("Failed to load timetable", err);
+      setStatusMessage({ type: "error", text: "Failed to connect to timetable API." });
     } finally {
       setLoading(false);
     }
@@ -245,59 +319,44 @@ export default function TimetablePage() {
     fetchAllData();
   }, []);
 
-  // Keyboard Shortcuts for Undo / Redo (Section 13)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-        if (e.shiftKey) {
-          handleRedo();
-        } else {
-          handleUndo();
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [history, historyIndex]);
-
+  // Update history stack for undo / redo
   const updateEntriesWithHistory = (newEntries: TimetableEntry[]) => {
-    const nextHistory = history.slice(0, historyIndex + 1);
-    setHistory([...nextHistory, newEntries]);
-    setHistoryIndex(nextHistory.length);
+    const updatedHistory = history.slice(0, historyIndex + 1);
+    updatedHistory.push(newEntries);
+    setHistory(updatedHistory);
+    setHistoryIndex(updatedHistory.length - 1);
     setEntries(newEntries);
     setLifecycle("EDITING");
   };
 
   const handleUndo = () => {
     if (historyIndex > 0) {
-      const prev = history[historyIndex - 1];
-      setHistoryIndex(historyIndex - 1);
-      setEntries(prev);
+      const target = historyIndex - 1;
+      setHistoryIndex(target);
+      setEntries(history[target]);
+      setStatusMessage({ type: "info", text: "Reverted previous modification." });
     }
   };
 
   const handleRedo = () => {
     if (historyIndex < history.length - 1) {
-      const next = history[historyIndex + 1];
-      setHistoryIndex(historyIndex + 1);
-      setEntries(next);
+      const target = historyIndex + 1;
+      setHistoryIndex(target);
+      setEntries(history[target]);
+      setStatusMessage({ type: "info", text: "Redid modification." });
     }
   };
 
-  // Timetable Generator (Section 8)
+  // Run CP-SAT Solver
   const handleGenerate = async () => {
     setGenerating(true);
     setGenStepIndex(0);
-    setStatusMessage(null);
 
     const stepInterval = setInterval(() => {
       setGenStepIndex((prev) => (prev < solverSteps.length - 1 ? prev + 1 : prev));
     }, 450);
 
     try {
-      const current = await fetchAllData();
-      if (!current) throw new Error("Could not load backend data.");
-
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : null;
       const userInstId = user?.institution_id || 1;
@@ -331,7 +390,7 @@ export default function TimetablePage() {
     }
   };
 
-  // Drag and Drop & Hard Constraint Validation (Section 12)
+  // Drag and Drop & Hard Constraint Validation
   const handleDragStart = (detail: SlotDetail) => {
     setDraggedEntry(detail);
   };
@@ -339,21 +398,18 @@ export default function TimetablePage() {
   const handleDropOnSlot = (targetSlot: TimeSlot) => {
     if (!draggedEntry || draggedEntry.slotId === targetSlot.id) return;
 
-    // Perform lightweight Hard Constraint Validation
-    // 1. Check Faculty Clash
+    // Hard Constraint Validation
     const facultyClash = entries.find((e) => {
       if (e.time_slot_id !== targetSlot.id) return false;
       const off = offerings.find((o) => o.id === e.subject_offering_id);
       return off && off.faculty_id === draggedEntry.facultyId && e.id !== draggedEntry.entry?.id;
     });
 
-    // 2. Check Room Clash
     const roomClash = entries.find((e) => {
       if (e.time_slot_id !== targetSlot.id) return false;
       return e.room_id === draggedEntry.roomId && e.id !== draggedEntry.entry?.id;
     });
 
-    // 3. Check Section Clash
     const sectionClash = entries.find((e) => {
       if (e.time_slot_id !== targetSlot.id) return false;
       const off = offerings.find((o) => o.id === e.subject_offering_id);
@@ -402,7 +458,7 @@ export default function TimetablePage() {
     });
   };
 
-  // AI-Assisted Timetable Modification (Section 14)
+  // AI-Assisted Timetable Modification
   const handleAIModification = () => {
     if (!aiPrompt.trim()) return;
 
@@ -410,7 +466,6 @@ export default function TimetablePage() {
     setAiProposedChanges(null);
 
     setTimeout(() => {
-      // Simulate semantic parsing & candidate generation
       setAiProposedChanges([
         {
           subject: "Operating Systems (CS205)",
@@ -431,8 +486,6 @@ export default function TimetablePage() {
 
   const applyAIProposedChanges = () => {
     if (!aiProposedChanges) return;
-
-    // Apply change to entries
     setLifecycle("EDITING");
     setAiProposedChanges(null);
     setAiPrompt("");
@@ -442,7 +495,7 @@ export default function TimetablePage() {
     });
   };
 
-  // Finalize Schedule (Section 19)
+  // Finalize Schedule
   const handleFinalize = () => {
     setLifecycle("FINALIZED");
     setVersionTag("v1.0-FINAL");
@@ -452,7 +505,7 @@ export default function TimetablePage() {
     });
   };
 
-  // Export Handlers (Section 20)
+  // Export Handlers
   const handlePrint = () => {
     window.print();
   };
@@ -462,7 +515,6 @@ export default function TimetablePage() {
   };
 
   const handleExportWord = () => {
-    // Generate .docx downloadable content
     const header = "<html><head><meta charset='utf-8'><title>Timetable Export</title></head><body>";
     const title = `<h2>TIMETT Institutional Schedule - ${versionTag}</h2><p>Export Date: ${new Date().toLocaleDateString()}</p>`;
     const tableHtml = document.getElementById("timetable-export-grid")?.outerHTML || "<p>Timetable data</p>";
@@ -477,20 +529,13 @@ export default function TimetablePage() {
 
   const handleExportExcel = () => {
     let csv = "Day,Period,Subject,Code,Faculty,Room,Section\n";
-    DAYS.forEach((day) => {
-      DEFAULT_PERIODS.forEach((period) => {
-        const slot = timeSlots.find((s) => s.day_of_week === day && `${s.start_time} - ${s.end_time}` === period);
-        if (slot) {
-          const matching = entries.filter((e) => e.time_slot_id === slot.id);
-          matching.forEach((entry) => {
-            const off = offerings.find((o) => o.id === entry.subject_offering_id);
-            const sub = subjects.find((s) => s.id === off?.subject_id);
-            const fac = faculty.find((f) => f.id === off?.faculty_id);
-            const rm = rooms.find((r) => r.id === entry.room_id);
-            const sec = sections.find((s) => s.id === off?.section_id);
-            csv += `"${day}","${period}","${sub?.name || ''}","${sub?.code || ''}","${fac?.name || ''}","${rm?.name || ''}","${sec?.name || ''}"\n`;
-          });
-        }
+    activeDays.forEach((day) => {
+      timelineCols.forEach((col) => {
+        if (col.type === "break") return;
+        const cellEntries = getCellEntries(day, col);
+        cellEntries.forEach((entry) => {
+          csv += `"${day}","${col.label} (${col.startTime}-${col.endTime})","${entry.subject}","${entry.code}","${entry.faculty}","${entry.room}","${entry.section}"\n`;
+        });
       });
     });
     const blob = new Blob([csv], { type: "text/csv" });
@@ -502,10 +547,16 @@ export default function TimetablePage() {
   };
 
   // Helper to get matching cell entries for current view
-  const getCellEntries = (day: string, period: string) => {
+  const getCellEntries = (day: string, col: TimelineColumn) => {
+    // Find matching time slot
     const slot = timeSlots.find(
-      (s) => s.day_of_week === day && `${s.start_time} - ${s.end_time}` === period
+      (s) =>
+        s.day_of_week === day &&
+        (s.start_time === col.startTime24 ||
+          s.start_time === col.startTime ||
+          `${s.start_time} - ${s.end_time}` === `${col.startTime24} - ${col.endTime24}`)
     );
+
     if (!slot) return [];
 
     return entries
@@ -532,7 +583,9 @@ export default function TimetablePage() {
         const rm = rooms.find((r) => r.id === entry.room_id);
         const sec = sections.find((s) => s.id === off?.section_id);
 
-        const isLab = (sub?.name || "").toLowerCase().includes("lab") || (rm?.room_type || "").toLowerCase().includes("lab");
+        const isLab =
+          (sub?.name || "").toLowerCase().includes("lab") ||
+          (rm?.room_type || "").toLowerCase().includes("lab");
 
         return {
           entry,
@@ -542,7 +595,7 @@ export default function TimetablePage() {
           room: rm?.name || "Room",
           section: sec?.name || "Section",
           day,
-          period,
+          period: `${col.startTime} - ${col.endTime}`,
           slotId: slot.id,
           subjectId: sub?.id || 0,
           facultyId: fac?.id || 0,
@@ -562,21 +615,21 @@ export default function TimetablePage() {
           <p className="text-sm">Academic Year: 2026-2027 | Status: {lifecycle} ({versionTag})</p>
         </div>
 
-        {/* Workspace Page Header (Section 11) */}
+        {/* Workspace Page Header */}
         <div className="print:hidden">
           <PageHeader
             title="Interactive Timetable Workspace"
-            description="Explore conflict-free schedules, validate drag-and-drop moves, modify with AI, and export official timetables."
+            description="Explore conflict-free schedules with vertical days and horizontal time intervals, validate drag-and-drop moves, and export schedules."
             icon={CalendarDays}
           >
-            {/* Undo / Redo Controls (Section 13) */}
+            {/* Undo / Redo Controls */}
             <div className="flex items-center gap-1 border border-border rounded-xl p-1 bg-card/60">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleUndo}
                 disabled={historyIndex <= 0}
-                className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                className="size-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
                 title="Undo move (Ctrl+Z)"
               >
                 <RotateCcw className="size-3.5" />
@@ -586,7 +639,7 @@ export default function TimetablePage() {
                 size="icon"
                 onClick={handleRedo}
                 disabled={historyIndex >= history.length - 1}
-                className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                className="size-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
                 title="Redo move (Ctrl+Shift+Z)"
               >
                 <RotateCw className="size-3.5" />
@@ -603,11 +656,11 @@ export default function TimetablePage() {
               <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
             </Button>
 
-            {/* Lifecycle State Actions (Section 19) */}
+            {/* Lifecycle State Actions */}
             {lifecycle !== "FINALIZED" ? (
               <Button
                 onClick={handleFinalize}
-                className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 px-4 shadow-sm"
+                className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 px-4 shadow-sm cursor-pointer"
               >
                 <CheckCircle2 className="size-4" /> Finalize Schedule
               </Button>
@@ -615,7 +668,7 @@ export default function TimetablePage() {
               <Button
                 onClick={() => { setLifecycle("EDITING"); setVersionTag("v1.1-draft"); }}
                 variant="outline"
-                className="rounded-xl font-bold gap-2 px-4 border-primary/40 text-primary"
+                className="rounded-xl font-bold gap-2 px-4 border-primary/40 text-primary cursor-pointer"
               >
                 <Layers3 className="size-4" /> Create New Version
               </Button>
@@ -632,34 +685,34 @@ export default function TimetablePage() {
           </PageHeader>
         </div>
 
-        {/* Verification Status & Export Suite Bar (Section 10, 20) */}
+        {/* Verification Status & Export Suite Bar */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 rounded-2xl border border-border bg-card/60 p-4 print:hidden">
-          {/* Verification Badges (Section 10) */}
+          {/* Verification Badges */}
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <span className="font-bold text-foreground flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-500" /> Post-Gen Verification:
+              <ShieldCheck className="size-4 text-emerald-500" /> Schedule Architecture:
             </span>
             <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <Check className="size-3.5" /> 0 Faculty Conflicts
+              <Check className="size-3.5" /> {activeDays.length} Operating Days
             </span>
             <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <Check className="size-3.5" /> 0 Room Overlaps
+              <Check className="size-3.5" /> {timelineCols.filter((c) => c.type !== "break").length} Daily Periods
             </span>
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <Check className="size-3.5" /> 0 Section Clashes
+            <span className="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400 font-semibold">
+              <Check className="size-3.5" /> {timelineCols.filter((c) => c.type === "break").length} Recess Breaks
             </span>
             <Badge variant="outline" className="font-mono text-[10px] bg-primary/10 text-primary border-primary/30">
               {lifecycle} ({versionTag})
             </Badge>
           </div>
 
-          {/* Export Actions (Section 20) */}
+          {/* Export Actions */}
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handlePrint}
-              className="rounded-xl gap-1.5 text-xs font-semibold"
+              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
               title="Print Timetable"
             >
               <Printer className="size-3.5" /> Print
@@ -668,7 +721,7 @@ export default function TimetablePage() {
               variant="outline"
               size="sm"
               onClick={handleExportPDF}
-              className="rounded-xl gap-1.5 text-xs font-semibold"
+              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
               title="Export as PDF"
             >
               <FileDown className="size-3.5" /> PDF
@@ -677,7 +730,7 @@ export default function TimetablePage() {
               variant="outline"
               size="sm"
               onClick={handleExportWord}
-              className="rounded-xl gap-1.5 text-xs font-semibold"
+              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
               title="Export as Word (.doc)"
             >
               <FileText className="size-3.5" /> Word
@@ -686,7 +739,7 @@ export default function TimetablePage() {
               variant="outline"
               size="sm"
               onClick={handleExportExcel}
-              className="rounded-xl gap-1.5 text-xs font-semibold"
+              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
               title="Export as Excel (.csv)"
             >
               <FileSpreadsheet className="size-3.5" /> Excel
@@ -694,7 +747,7 @@ export default function TimetablePage() {
           </div>
         </div>
 
-        {/* AI-Assisted Timetable Modification Bar (Section 14) */}
+        {/* AI-Assisted Timetable Modification Bar */}
         <GlassPanel className="p-4 border-border shadow-sm print:hidden">
           <div className="flex items-center gap-3">
             <div className="flex size-8 items-center justify-center rounded-xl bg-[#8B5CF6]/15 text-[#8B5CF6]">
@@ -713,7 +766,7 @@ export default function TimetablePage() {
             <Button
               onClick={handleAIModification}
               disabled={aiModifying || !aiPrompt.trim()}
-              className="tt-gradient-btn rounded-xl gap-1.5 font-bold text-xs px-4"
+              className="tt-gradient-btn rounded-xl gap-1.5 font-bold text-xs px-4 cursor-pointer"
             >
               <Wand2 className={`size-3.5 ${aiModifying ? "animate-spin" : ""}`} />
               {aiModifying ? "Analyzing..." : "Propose Moves"}
@@ -721,7 +774,7 @@ export default function TimetablePage() {
           </div>
         </GlassPanel>
 
-        {/* View Switcher & Filter Bar (Section 18) */}
+        {/* View Switcher & Filter Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
           <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-2xl border border-border">
             <button
@@ -774,7 +827,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none"
+                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Sections (Overview)</option>
                   {sections.map((s) => (
@@ -790,7 +843,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedFaculty}
                   onChange={(e) => setSelectedFaculty(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none"
+                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Instructors</option>
                   {faculty.map((f) => (
@@ -806,7 +859,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedRoom}
                   onChange={(e) => setSelectedRoom(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none"
+                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Rooms & Labs</option>
                   {rooms.map((r) => (
@@ -818,53 +871,91 @@ export default function TimetablePage() {
           </div>
         </div>
 
-        {/* Main Desktop Grid Workspace (Section 11) */}
+        {/* MAIN DESKTOP GRID: DAYS ARE VERTICAL (ROWS) & TIME IS HORIZONTAL (COLUMNS) */}
         {viewMode !== "mobile" && (
           <GlassPanel id="timetable-export-grid" className="overflow-hidden p-0 shadow-sm border-border">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
+                {/* Horizontal Time Columns Header */}
                 <thead>
-                  <tr className="border-b border-border bg-card/60">
-                    <th className="p-4 text-xs font-bold text-muted-foreground w-28 uppercase tracking-wider text-center border-r border-border">
-                      Period / Time
+                  <tr className="border-b border-border bg-card/70">
+                    {/* Vertical Days Header Title */}
+                    <th className="p-4 text-xs font-bold text-foreground w-36 uppercase tracking-wider text-center border-r border-border bg-card sticky left-0 z-20 shadow-xs">
+                      Day / Period
                     </th>
-                    {DAYS.map((day) => (
-                      <th key={day} className="p-4 text-xs font-bold text-foreground uppercase tracking-wider text-center border-r border-border last:border-r-0">
-                        {day}
+
+                    {/* Dynamic Time Columns */}
+                    {timelineCols.map((col, cIdx) => (
+                      <th
+                        key={cIdx}
+                        className={`p-3.5 text-xs font-bold uppercase tracking-wider text-center border-r border-border min-w-[175px] ${
+                          col.type === "break"
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                            : "text-foreground bg-card/40"
+                        }`}
+                      >
+                        <span className="block font-bold text-xs text-foreground">
+                          {col.label}
+                        </span>
+                        <span className="block font-mono text-[11px] text-muted-foreground font-semibold mt-0.5">
+                          {col.startTime} &mdash; {col.endTime}
+                        </span>
                       </th>
                     ))}
                   </tr>
                 </thead>
+
+                {/* Vertical Day Rows */}
                 <tbody>
-                  {DEFAULT_PERIODS.map((period, periodIdx) => (
-                    <tr key={period} className="border-b border-border hover:bg-muted/10 transition-colors">
-                      {/* Period Header Column */}
-                      <td className="p-3 text-center border-r border-border bg-card/30">
-                        <span className="block font-mono text-xs font-bold text-foreground">
-                          {period}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">
-                          Period {periodIdx + 1}
+                  {activeDays.map((day) => (
+                    <tr key={day} className="border-b border-border hover:bg-muted/10 transition-colors">
+                      {/* Vertical Day Header Column (Sticky Left) */}
+                      <td className="p-4 text-center border-r border-border bg-card/80 sticky left-0 z-10 font-bold text-xs text-foreground shadow-xs">
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold text-xs shadow-xs">
+                          {day}
                         </span>
                       </td>
 
-                      {/* Day Columns */}
-                      {DAYS.map((day) => {
-                        const cellEntries = getCellEntries(day, period);
+                      {/* Period Cells Along the Horizontal Axis */}
+                      {timelineCols.map((col, cIdx) => {
+                        if (col.type === "break") {
+                          return (
+                            <td
+                              key={cIdx}
+                              className="p-3 border-r border-border bg-amber-500/5 text-center align-middle"
+                            >
+                              <div className="flex flex-col items-center justify-center gap-1 text-amber-700 dark:text-amber-300 py-4">
+                                <Coffee className="size-4 opacity-70" />
+                                <span className="text-[11px] font-bold tracking-wide">
+                                  {col.label}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground font-mono">
+                                  {col.durationMinutes} min
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        }
+
+                        const cellEntries = getCellEntries(day, col);
                         const slot = timeSlots.find(
-                          (s) => s.day_of_week === day && `${s.start_time} - ${s.end_time}` === period
+                          (s) =>
+                            s.day_of_week === day &&
+                            (s.start_time === col.startTime24 ||
+                              s.start_time === col.startTime ||
+                              `${s.start_time} - ${s.end_time}` === `${col.startTime24} - ${col.endTime24}`)
                         );
 
                         return (
                           <td
-                            key={day}
+                            key={cIdx}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={() => slot && handleDropOnSlot(slot)}
-                            className="p-2 border-r border-border last:border-r-0 align-top min-w-[170px] h-28 bg-card/10 hover:bg-primary/5 transition-colors"
+                            className="p-2.5 border-r border-border last:border-r-0 align-top min-w-[175px] h-32 bg-card/10 hover:bg-primary/5 transition-colors"
                           >
                             {cellEntries.length === 0 ? (
                               <div className="h-full flex items-center justify-center border border-dashed border-border/40 rounded-xl text-[11px] text-muted-foreground/40 select-none">
-                                Free Slot
+                                Free Period
                               </div>
                             ) : (
                               <div className="space-y-2">
@@ -910,209 +1001,205 @@ export default function TimetablePage() {
           </GlassPanel>
         )}
 
-        {/* Responsive Mobile Day & Timeline View (Section 15) */}
+        {/* Responsive Mobile Day & Timeline View */}
         {viewMode === "mobile" && (
           <div className="space-y-4 md:hidden">
             {/* Day Selector Pills */}
             <div className="flex items-center justify-between gap-1 overflow-x-auto pb-2">
-              {DAYS.map((day) => (
+              {activeDays.map((day) => (
                 <button
                   key={day}
                   onClick={() => setActiveMobileDay(day)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     activeMobileDay === day
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-card border border-border text-muted-foreground"
                   }`}
                 >
-                  {day.slice(0, 3)}
+                  {day}
                 </button>
               ))}
             </div>
 
-            {/* Timeline Cards */}
+            {/* Day Schedule Cards */}
             <div className="space-y-3">
-              {DEFAULT_PERIODS.map((period) => {
-                const cellEntries = getCellEntries(activeMobileDay, period);
+              {timelineCols.map((col, idx) => {
+                if (col.type === "break") {
+                  return (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Coffee className="size-4 text-amber-600 dark:text-amber-400" />
+                        <span className="text-xs font-bold text-amber-800 dark:text-amber-200">
+                          {col.label}
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-mono text-muted-foreground">
+                        {col.startTime} - {col.endTime}
+                      </span>
+                    </div>
+                  );
+                }
+
+                const cellEntries = getCellEntries(activeMobileDay, col);
+
                 return (
-                  <div key={period} className="rounded-2xl border border-border bg-card p-4 space-y-2">
-                    <div className="flex items-center justify-between text-xs border-b border-border pb-2">
-                      <span className="font-mono font-bold text-foreground">{period}</span>
-                      <span className="text-muted-foreground">{activeMobileDay}</span>
+                  <GlassPanel key={idx} className="p-4 border-border shadow-xs">
+                    <div className="flex items-center justify-between border-b border-border pb-2 mb-3">
+                      <span className="font-bold text-xs text-foreground">
+                        {col.label}
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {col.startTime} &mdash; {col.endTime}
+                      </span>
                     </div>
 
                     {cellEntries.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic py-1">No classes scheduled</p>
+                      <p className="text-xs text-muted-foreground/60 italic">No classes scheduled</p>
                     ) : (
-                      cellEntries.map((item, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => setActiveSlot(item)}
-                          className="p-3 rounded-xl bg-primary/10 border border-primary/20 space-y-1 cursor-pointer"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-mono text-xs font-bold text-primary">{item.code}</span>
-                            <Badge variant="outline" className="text-[10px]">{item.section}</Badge>
+                      <div className="space-y-2">
+                        {cellEntries.map((item, cIdx) => (
+                          <div
+                            key={cIdx}
+                            onClick={() => setActiveSlot(item)}
+                            className="p-3 rounded-xl border border-[#8B5CF6]/30 bg-[#8B5CF6]/10"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-mono font-bold text-xs text-[#8B5CF6]">
+                                {item.code}
+                              </span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-card border border-border">
+                                {item.section}
+                              </span>
+                            </div>
+                            <p className="text-xs font-bold text-foreground">{item.subject}</p>
+                            <p className="text-[11px] text-muted-foreground mt-1">
+                              {item.faculty} &bull; {item.room}
+                            </p>
                           </div>
-                          <p className="font-bold text-sm text-foreground">{item.subject}</p>
-                          <p className="text-xs text-muted-foreground">Instructor: {item.faculty}</p>
-                          <p className="text-xs text-muted-foreground">Room: {item.room}</p>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
-                  </div>
+                  </GlassPanel>
                 );
               })}
             </div>
           </div>
         )}
 
-        {/* Drag & Drop Hard Constraint Validation Modal (Section 12) */}
-        <Dialog open={!!pendingMove} onOpenChange={() => setPendingMove(null)}>
-          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+        {/* Modal: Slot Inspection / Override */}
+        <Dialog open={!!activeSlot} onOpenChange={(o) => !o && setActiveSlot(null)}>
+          <DialogContent className="sm:max-w-[450px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 mb-1">
-                {pendingMove?.isValid ? (
-                  <CheckCircle2 className="size-5 text-emerald-500" />
-                ) : (
-                  <AlertCircle className="size-5 text-red-500" />
-                )}
-                <span className="tt-eyebrow">
-                  {pendingMove?.isValid ? "Move Validation Passed" : "Hard Constraint Collision"}
-                </span>
+              <div className="flex items-center gap-2 text-primary mb-1">
+                <CalendarDays className="size-4" />
+                <span className="tt-eyebrow">Academic Period Detail</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">
-                {pendingMove?.isValid ? "Confirm Schedule Adjustment" : "Cannot Move Class"}
+                {activeSlot?.code} &mdash; {activeSlot?.subject}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                {pendingMove?.isValid
-                  ? "The proposed schedule move satisfies all mandatory invariants."
-                  : pendingMove?.reason}
-              </DialogDescription>
-            </DialogHeader>
-
-            {pendingMove && (
-              <div className="p-3 rounded-2xl bg-muted/40 border border-border space-y-2 text-xs">
-                <div className="flex items-center justify-between font-semibold">
-                  <span>Subject:</span>
-                  <span className="font-bold text-foreground">{pendingMove.entry.subject} ({pendingMove.entry.code})</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>From:</span>
-                  <span className="font-mono text-muted-foreground">{pendingMove.entry.day} ({pendingMove.entry.period})</span>
-                </div>
-                <div className="flex items-center justify-between text-primary font-semibold">
-                  <span>To:</span>
-                  <span className="font-mono font-bold">{pendingMove.targetSlot.day_of_week} ({pendingMove.targetSlot.start_time} - {pendingMove.targetSlot.end_time})</span>
-                </div>
-              </div>
-            )}
-
-            <DialogFooter className="pt-2">
-              <Button variant="ghost" onClick={() => setPendingMove(null)} className="rounded-xl">
-                Cancel
-              </Button>
-              {pendingMove?.isValid && (
-                <Button onClick={applyPendingMove} className="tt-gradient-btn rounded-xl font-bold">
-                  Apply Change
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* AI-Assisted Proposed Moves Preview (Section 14) */}
-        <Dialog open={!!aiProposedChanges} onOpenChange={() => setAiProposedChanges(null)}>
-          <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
-                <Sparkles className="size-4" />
-                <span className="tt-eyebrow">AI Optimization Preview</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                Proposed Timetable Adjustments
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Review candidate moves calculated by the AI modifier before applying to official schedule.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-2.5 pt-2">
-              {aiProposedChanges?.map((item, idx) => (
-                <div key={idx} className="p-3 rounded-2xl bg-muted/40 border border-border text-xs space-y-1">
-                  <div className="flex items-center justify-between font-bold text-foreground">
-                    <span>{item.subject}</span>
-                    <Badge variant="outline" className="text-[10px]">{item.faculty}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground font-mono text-[11px] pt-1">
-                    <span className="line-through text-red-400">{item.from}</span>
-                    <ArrowRight className="size-3 text-primary" />
-                    <span className="text-emerald-500 font-bold">{item.to}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <DialogFooter className="pt-3">
-              <Button variant="ghost" onClick={() => setAiProposedChanges(null)} className="rounded-xl">
-                Reject
-              </Button>
-              <Button onClick={applyAIProposedChanges} className="tt-gradient-btn rounded-xl font-bold">
-                Apply Changes
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Interactive Class Detail Modal (Section 11) */}
-        <Dialog open={!!activeSlot} onOpenChange={() => setActiveSlot(null)}>
-          <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
-                <BookOpen className="size-4" />
-                <span className="tt-eyebrow">{activeSlot?.isLab ? "Practical Lab" : "Lecture Period"}</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                {activeSlot?.subject}
-              </DialogTitle>
-              <DialogDescription className="font-mono text-xs text-[#8B5CF6] dark:text-[#A78BFA] font-bold">
-                Course Code: {activeSlot?.code}
+                Scheduled session parameters and faculty/room binding.
               </DialogDescription>
             </DialogHeader>
 
             {activeSlot && (
               <div className="space-y-3 pt-2 text-xs">
-                <div className="p-3 rounded-2xl bg-muted/40 border border-border space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Instructor:</span>
-                    <span className="font-bold text-foreground">{activeSlot.faculty}</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                    <span className="text-muted-foreground block text-[10px] uppercase font-bold">Assigned Faculty</span>
+                    <span className="font-semibold text-foreground text-sm">{activeSlot.faculty}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Assigned Facility:</span>
-                    <span className="font-bold text-foreground">{activeSlot.room}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Student Cohort:</span>
-                    <span className="font-bold text-foreground">{activeSlot.section}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Allocated Time:</span>
-                    <span className="font-mono font-bold text-foreground">{activeSlot.day} ({activeSlot.period})</span>
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                    <span className="text-muted-foreground block text-[10px] uppercase font-bold">Room / Venue</span>
+                    <span className="font-semibold text-foreground text-sm">{activeSlot.room}</span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                  <p className="font-bold text-xs mb-1">Constraint Satisfaction</p>
-                  <p className="text-[11px] leading-relaxed">
-                    Satisfies 100% hard invariants (Single-Instructor Binding, Room Non-Collision, and Section Availability).
-                  </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                    <span className="text-muted-foreground block text-[10px] uppercase font-bold">Student Cohort</span>
+                    <span className="font-semibold text-foreground text-sm">Section {activeSlot.section}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                    <span className="text-muted-foreground block text-[10px] uppercase font-bold">Timing Slot</span>
+                    <span className="font-semibold text-foreground text-sm">{activeSlot.day} ({activeSlot.period})</span>
+                  </div>
                 </div>
               </div>
             )}
 
             <DialogFooter className="pt-2">
-              <Button onClick={() => setActiveSlot(null)} className="rounded-xl font-semibold w-full">
-                Close Inspector
+              <Button
+                variant="outline"
+                onClick={() => setActiveSlot(null)}
+                className="rounded-xl border-border bg-card"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal: Drag & Drop Constraint Validation Dialog */}
+        <Dialog open={!!pendingMove} onOpenChange={(o) => !o && setPendingMove(null)}>
+          <DialogContent className="sm:max-w-[460px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-primary mb-1">
+                <MoveHorizontal className="size-4" />
+                <span className="tt-eyebrow">Interactive Schedule Move</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Move {pendingMove?.entry.code} Session?
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Verify constraint safety before committing schedule relocation.
+              </DialogDescription>
+            </DialogHeader>
+
+            {pendingMove && (
+              <div className="space-y-4 pt-2 text-xs">
+                <div className="p-3 rounded-2xl bg-muted/40 border border-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Current Slot:</span>
+                    <span className="font-bold text-foreground">{pendingMove.entry.day} ({pendingMove.entry.period})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Target Slot:</span>
+                    <span className="font-bold text-primary">{pendingMove.targetSlot.day_of_week} ({pendingMove.targetSlot.start_time} - {pendingMove.targetSlot.end_time})</span>
+                  </div>
+                </div>
+
+                {pendingMove.isValid ? (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-semibold">
+                    <CheckCircle2 className="size-4 shrink-0" />
+                    <span>Valid move! No faculty, room, or section conflicts detected.</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 font-semibold">
+                    <AlertCircle className="size-4 shrink-0" />
+                    <span>{pendingMove.reason}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setPendingMove(null)}
+                className="rounded-xl border-border bg-card"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!pendingMove?.isValid}
+                onClick={applyPendingMove}
+                className="tt-gradient-btn rounded-xl font-bold"
+              >
+                Confirm Move
               </Button>
             </DialogFooter>
           </DialogContent>

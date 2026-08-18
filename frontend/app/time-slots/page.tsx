@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Clock, CalendarDays, RefreshCw, Wand2, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, Clock, CalendarDays, RefreshCw, Wand2, Sparkles } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -41,20 +41,30 @@ interface TimeSlot {
 export default function TimeSlotsPage() {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Create Modal
   const [open, setOpen] = useState(false);
-
   const [dayOfWeek, setDayOfWeek] = useState("Monday");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Edit Modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
+  const [editDayOfWeek, setEditDayOfWeek] = useState("Monday");
+  const [editStartTime, setEditStartTime] = useState("09:00");
+  const [editEndTime, setEditEndTime] = useState("10:00");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/time-slots/`);
-      if (res.ok) {
+      const res = await fetch(`${API_BASE}/time-slots/`).catch(() => null);
+      if (res && res.ok) {
         setSlots(await res.json());
       }
     } catch (err) {
@@ -96,6 +106,47 @@ export default function TimeSlotsPage() {
       setError(err instanceof Error ? err.message : "Error creating time slot");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (slot: TimeSlot) => {
+    setEditingSlot(slot);
+    setEditDayOfWeek(slot.day_of_week);
+    setEditStartTime(slot.start_time);
+    setEditEndTime(slot.end_time);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateSlot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSlot || !editStartTime.trim() || !editEndTime.trim()) return;
+
+    setSubmittingEdit(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/time-slots/${editingSlot.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          day_of_week: editDayOfWeek,
+          start_time: editStartTime.trim(),
+          end_time: editEndTime.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update time slot");
+      }
+
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating time slot");
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -164,17 +215,17 @@ export default function TimeSlotsPage() {
             size="icon"
             onClick={fetchData}
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
-            title="Refresh time slots"
+            title="Refresh slots"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
           </Button>
 
           <Button
             variant="outline"
-            className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground cursor-pointer"
+            className="h-10 rounded-xl gap-2 font-bold px-4 border-border bg-card/80 hover:bg-muted cursor-pointer"
             onClick={handleAutoGenerateStandard}
           >
-            <Wand2 className="size-4 text-cyan-500" />
+            <Wand2 className="size-4 text-purple-600 dark:text-purple-400" />
             Auto-Populate 5-Day Grid
           </Button>
 
@@ -185,24 +236,24 @@ export default function TimeSlotsPage() {
                 Add Time Slot
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                   <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Discrete Scheduling Period</span>
+                  <span className="tt-eyebrow">Temporal Period Node</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
                   Create Time Slot
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Select day of week and 24h start/end lecture times.
+                  Select day of week and configure start/end timestamps.
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleAddSlot} className="space-y-4 pt-2">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Day of Week *
+                    Day of the Week *
                   </label>
                   <select
                     className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -223,24 +274,23 @@ export default function TimeSlotsPage() {
                       Start Time (24h) *
                     </label>
                     <Input
-                      placeholder="09:00"
+                      type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
                       required
-                      className="rounded-xl border-border bg-muted/40 font-mono"
+                      className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
                     />
                   </div>
-
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1 block">
                       End Time (24h) *
                     </label>
                     <Input
-                      placeholder="10:00"
+                      type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
                       required
-                      className="rounded-xl border-border bg-muted/40 font-mono"
+                      className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
                     />
                   </div>
                 </div>
@@ -261,12 +311,96 @@ export default function TimeSlotsPage() {
           </Dialog>
         </PageHeader>
 
+        {/* Edit Time Slot Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Slot</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Edit Time Slot
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update day of week or period start/end time.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateSlot} className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Day of the Week *
+                </label>
+                <select
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  value={editDayOfWeek}
+                  onChange={(e) => setEditDayOfWeek(e.target.value)}
+                >
+                  {DAYS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Start Time (24h) *
+                  </label>
+                  <Input
+                    type="time"
+                    value={editStartTime}
+                    onChange={(e) => setEditStartTime(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    End Time (24h) *
+                  </label>
+                  <Input
+                    type="time"
+                    value={editEndTime}
+                    onChange={(e) => setEditEndTime(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
+                  />
+                </div>
+              </div>
+
+              {editError && <p className="text-xs text-red-500">{editError}</p>}
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editStartTime.trim() || !editEndTime.trim()}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
+                  {submittingEdit ? "Updating..." : "Update Time Slot"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
-              <h3 className="text-base font-bold text-foreground">Discrete Time Slot Blocks</h3>
+              <h3 className="text-base font-bold text-foreground">Active Time Grid Intervals</h3>
               <p className="text-xs text-muted-foreground">
-                {slots.length} {slots.length === 1 ? "slot" : "slots"} defined for OR-Tools optimizer
+                {slots.length} {slots.length === 1 ? "interval" : "intervals"} defined
               </p>
             </div>
           </div>
@@ -302,7 +436,7 @@ export default function TimeSlotsPage() {
                           #{index + 1}
                         </TableCell>
                         <TableCell>
-                          <span className="inline-flex items-center rounded-lg bg-sky-500/10 border border-sky-500/30 px-3 py-1 font-bold text-xs text-sky-700 dark:text-sky-300">
+                          <span className="inline-flex items-center rounded-lg bg-purple-500/10 border border-purple-500/30 px-3 py-1 font-bold text-xs text-purple-700 dark:text-purple-300">
                             {slot.day_of_week}
                           </span>
                         </TableCell>
@@ -310,15 +444,26 @@ export default function TimeSlotsPage() {
                           {slot.start_time} — {slot.end_time}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                            onClick={() => handleDelete(slot.id)}
-                            title="Delete slot"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditModal(slot)}
+                              title="Edit time slot"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDelete(slot.id)}
+                              title="Delete slot"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, BookOpen, Users, GraduationCap, RefreshCw, Layers, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, BookOpen, Users, GraduationCap, RefreshCw, Layers, Sparkles } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -47,7 +47,6 @@ interface Subject {
 interface Faculty {
   id: number;
   name: string;
-  designation?: string;
 }
 
 interface Section {
@@ -67,8 +66,9 @@ export default function OfferingsPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Create Modal
   const [open, setOpen] = useState(false);
-
   const [subjectId, setSubjectId] = useState<number | "">("");
   const [facultyId, setFacultyId] = useState<number | "">("");
   const [sectionId, setSectionId] = useState<number | "">("");
@@ -77,23 +77,34 @@ export default function OfferingsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Edit Modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingOffering, setEditingOffering] = useState<SubjectOffering | null>(null);
+  const [editSubjectId, setEditSubjectId] = useState<number | "">("");
+  const [editFacultyId, setEditFacultyId] = useState<number | "">("");
+  const [editSectionId, setEditSectionId] = useState<number | "">("");
+  const [editSemesterId, setEditSemesterId] = useState<number | "">("");
+  const [editWeeklyHours, setEditWeeklyHours] = useState(3);
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       const [offRes, subRes, facRes, secRes, semRes] = await Promise.all([
-        fetch(`${API_BASE}/subject-offerings/`),
-        fetch(`${API_BASE}/subjects/`),
-        fetch(`${API_BASE}/faculty/`),
-        fetch(`${API_BASE}/sections/`),
-        fetch(`${API_BASE}/semesters/`),
+        fetch(`${API_BASE}/subject-offerings/`).catch(() => null),
+        fetch(`${API_BASE}/subjects/`).catch(() => null),
+        fetch(`${API_BASE}/faculty/`).catch(() => null),
+        fetch(`${API_BASE}/sections/`).catch(() => null),
+        fetch(`${API_BASE}/semesters/`).catch(() => null),
       ]);
 
-      const offs = offRes.ok ? await offRes.json() : [];
-      const subs = subRes.ok ? await subRes.json() : [];
-      const facs = facRes.ok ? await facRes.json() : [];
-      const secs = secRes.ok ? await secRes.json() : [];
-      const sems = semRes.ok ? await semRes.json() : [];
+      const offs = (offRes && offRes.ok) ? await offRes.json() : [];
+      const subs = (subRes && subRes.ok) ? await subRes.json() : [];
+      const facs = (facRes && facRes.ok) ? await facRes.json() : [];
+      const secs = (secRes && secRes.ok) ? await secRes.json() : [];
+      const sems = (semRes && semRes.ok) ? await semRes.json() : [];
 
       setOfferings(offs);
       setSubjects(subs);
@@ -101,10 +112,10 @@ export default function OfferingsPage() {
       setSections(secs);
       setSemesters(sems);
 
-      if (subs.length > 0) setSubjectId(subs[0].id);
-      if (facs.length > 0) setFacultyId(facs[0].id);
-      if (secs.length > 0) setSectionId(secs[0].id);
-      if (sems.length > 0) setSemesterId(sems[0].id);
+      if (subs.length > 0 && !subjectId) setSubjectId(subs[0].id);
+      if (facs.length > 0 && !facultyId) setFacultyId(facs[0].id);
+      if (secs.length > 0 && !sectionId) setSectionId(secs[0].id);
+      if (sems.length > 0 && !semesterId) setSemesterId(sems[0].id);
     } catch (err) {
       console.error(err);
       setError("Failed to connect to backend API.");
@@ -151,6 +162,51 @@ export default function OfferingsPage() {
     }
   };
 
+  const openEditModal = (off: SubjectOffering) => {
+    setEditingOffering(off);
+    setEditSubjectId(off.subject_id);
+    setEditFacultyId(off.faculty_id);
+    setEditSectionId(off.section_id);
+    setEditSemesterId(off.semester_id);
+    setEditWeeklyHours(off.weekly_hours);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateOffering = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOffering || !editSubjectId || !editFacultyId || !editSectionId || !editSemesterId) return;
+
+    setSubmittingEdit(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/subject-offerings/${editingOffering.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject_id: Number(editSubjectId),
+          faculty_id: Number(editFacultyId),
+          section_id: Number(editSectionId),
+          semester_id: Number(editSemesterId),
+          weekly_hours: Number(editWeeklyHours) || 3,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update course offering");
+      }
+
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating course offering");
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this course offering?")) return;
 
@@ -170,8 +226,8 @@ export default function OfferingsPage() {
     <AppShell>
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
-          title="Subject Offerings & Workloads"
-          description="Map courses to designated instructors, student sections, and weekly credit hours."
+          title="Subject Offerings"
+          description="Map courses to teaching faculty, target student sections, and weekly periods."
           icon={Layers}
         >
           <Button
@@ -191,23 +247,25 @@ export default function OfferingsPage() {
                 Add Course Offering
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[460px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                   <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Curriculum Load Mapping</span>
+                  <span className="tt-eyebrow">Faculty-Course Mapping</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
                   Create Subject Offering
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Assign a subject to an instructor for a specific section batch and semester.
+                  Bind a subject and section cohort to an instructor with weekly credit hours.
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleAddOffering} className="space-y-4 pt-2">
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Subject *</label>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Subject Course *
+                  </label>
                   <select
                     className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                     value={subjectId}
@@ -216,23 +274,7 @@ export default function OfferingsPage() {
                   >
                     {subjects.map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.code} - {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Faculty Member *</label>
-                  <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    value={facultyId}
-                    onChange={(e) => setFacultyId(Number(e.target.value))}
-                    required
-                  >
-                    {faculty.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.name} {f.designation ? `(${f.designation})` : ""}
+                        {s.code} — {s.name}
                       </option>
                     ))}
                   </select>
@@ -240,7 +282,27 @@ export default function OfferingsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">Section *</label>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Instructor *
+                    </label>
+                    <select
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      value={facultyId}
+                      onChange={(e) => setFacultyId(Number(e.target.value))}
+                      required
+                    >
+                      {faculty.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Student Section *
+                    </label>
                     <select
                       className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                       value={sectionId}
@@ -254,27 +316,141 @@ export default function OfferingsPage() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Target Semester *
+                    </label>
+                    <select
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      value={semesterId}
+                      onChange={(e) => setSemesterId(Number(e.target.value))}
+                      required
+                    >
+                      {semesters.map((sem) => (
+                        <option key={sem.id} value={sem.id}>
+                          {sem.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">Hours / Week *</label>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Weekly Sessions (Hrs) *
+                    </label>
                     <Input
                       type="number"
                       min="1"
-                      max="10"
+                      max="12"
                       value={weeklyHours}
-                      onChange={(e) => setWeeklyHours(parseInt(e.target.value, 10) || 1)}
+                      onChange={(e) => setWeeklyHours(parseInt(e.target.value, 10) || 3)}
                       required
-                      className="rounded-xl border-border bg-muted/40"
+                      className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
                     />
                   </div>
                 </div>
 
+                {error && <p className="text-xs text-red-500">{error}</p>}
+
+                <DialogFooter className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={submitting || !subjectId || !facultyId || !sectionId}
+                    className="tt-gradient-btn rounded-xl font-bold"
+                  >
+                    {submitting ? "Saving..." : "Save Offering"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </PageHeader>
+
+        {/* Edit Offering Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Mapping</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Edit Course Offering
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update course mapping, assigned instructor, section, or weekly lecture load.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateOffering} className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Subject Course *
+                </label>
+                <select
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  value={editSubjectId}
+                  onChange={(e) => setEditSubjectId(Number(e.target.value))}
+                  required
+                >
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.code} — {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Semester Term *</label>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Instructor *
+                  </label>
                   <select
                     className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    value={semesterId}
-                    onChange={(e) => setSemesterId(Number(e.target.value))}
+                    value={editFacultyId}
+                    onChange={(e) => setEditFacultyId(Number(e.target.value))}
+                    required
+                  >
+                    {faculty.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Student Section *
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    value={editSectionId}
+                    onChange={(e) => setEditSectionId(Number(e.target.value))}
+                    required
+                  >
+                    {sections.map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Target Semester *
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    value={editSemesterId}
+                    onChange={(e) => setEditSemesterId(Number(e.target.value))}
                     required
                   >
                     {semesters.map((sem) => (
@@ -285,35 +461,58 @@ export default function OfferingsPage() {
                   </select>
                 </div>
 
-                {error && <p className="text-xs text-red-500">{error}</p>}
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Weekly Sessions (Hrs) *
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={editWeeklyHours}
+                    onChange={(e) => setEditWeeklyHours(parseInt(e.target.value, 10) || 3)}
+                    required
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
+                  />
+                </div>
+              </div>
 
-                <DialogFooter className="pt-2">
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="tt-gradient-btn rounded-xl font-bold"
-                  >
-                    {submitting ? "Saving..." : "Save Course Offering"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </PageHeader>
+              {editError && <p className="text-xs text-red-500">{editError}</p>}
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editSubjectId || !editFacultyId || !editSectionId}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
+                  {submittingEdit ? "Updating..." : "Update Offering"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
-              <h3 className="text-base font-bold text-foreground">Active Curriculum Allocations</h3>
+              <h3 className="text-base font-bold text-foreground">Active Subject Offerings</h3>
               <p className="text-xs text-muted-foreground">
-                {offerings.length} {offerings.length === 1 ? "offering" : "offerings"} mapped for optimization
+                {offerings.length} {offerings.length === 1 ? "course mapping" : "course mappings"} configured
               </p>
             </div>
           </div>
 
           <div className="p-4 sm:p-6">
             {loading ? (
-              <LoadingState text="Loading course offerings..." />
+              <LoadingState text="Loading course mappings..." />
             ) : offerings.length === 0 ? (
               <EmptyState
                 icon={Layers}
@@ -362,15 +561,26 @@ export default function OfferingsPage() {
                             {off.weekly_hours} hrs
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDelete(off.id)}
-                              title="Delete offering"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                onClick={() => openEditModal(off)}
+                                title="Edit offering"
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                                onClick={() => handleDelete(off.id)}
+                                title="Delete offering"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

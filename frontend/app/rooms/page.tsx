@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, DoorOpen, Users, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, DoorOpen, Users, RefreshCw, Sparkles } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -33,28 +33,57 @@ interface Room {
   id: number;
   name: string;
   capacity: number;
-  room_type?: string | null;
+  room_type?: string;
   institution_id: number;
 }
 
+const ROOM_TYPES = [
+  { value: "Classroom", label: "Lecture Classroom" },
+  { value: "Lab", label: "Computer / Tech Lab" },
+  { value: "Seminar Hall", label: "Seminar / Audio-Visual Hall" },
+  { value: "Auditorium", label: "Large Auditorium" },
+];
+
 const ROOM_TYPE_STYLES: Record<string, { bg: string; text: string }> = {
-  Classroom: { bg: "bg-cyan-500/10 border-cyan-500/30", text: "text-cyan-700 dark:text-cyan-300" },
-  "Computer Lab": { bg: "bg-violet-500/10 border-violet-500/30", text: "text-violet-700 dark:text-violet-300" },
-  "Hardware Lab": { bg: "bg-purple-500/10 border-purple-500/30", text: "text-purple-700 dark:text-purple-300" },
-  "Seminar Hall": { bg: "bg-indigo-500/10 border-indigo-500/30", text: "text-indigo-700 dark:text-indigo-300" },
+  Classroom: {
+    bg: "bg-[#8B5CF6]/10 border-[#8B5CF6]/20",
+    text: "text-[#8B5CF6] dark:text-[#A78BFA]",
+  },
+  Lab: {
+    bg: "bg-[#8B5CF6]/15 border-[#8B5CF6]/30",
+    text: "text-[#7C3AED] dark:text-[#C4B5FD]",
+  },
+  "Seminar Hall": {
+    bg: "bg-[#6D28D9]/15 border-[#6D28D9]/30",
+    text: "text-[#6D28D9] dark:text-[#DDD6FE]",
+  },
+  Auditorium: {
+    bg: "bg-[#5B21B6]/20 border-[#5B21B6]/35",
+    text: "text-[#5B21B6] dark:text-[#EDE9FE]",
+  },
 };
 
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [institutionId, setInstitutionId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
+  
+  // Create Modal
   const [open, setOpen] = useState(false);
-
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("60");
   const [roomType, setRoomType] = useState("Classroom");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit Modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCapacity, setEditCapacity] = useState("60");
+  const [editRoomType, setEditRoomType] = useState("Classroom");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -66,8 +95,8 @@ export default function RoomsPage() {
       setInstitutionId(userInstId);
 
       const roomUrl = `${API_BASE}/rooms/?institution_id=${userInstId}`;
-      const roomRes = await fetch(roomUrl);
-      if (roomRes.ok) {
+      const roomRes = await fetch(roomUrl).catch(() => null);
+      if (roomRes && roomRes.ok) {
         setRooms(await roomRes.json());
       }
     } catch (err) {
@@ -114,6 +143,48 @@ export default function RoomsPage() {
       setError(err instanceof Error ? err.message : "Error creating room");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (room: Room) => {
+    setEditingRoom(room);
+    setEditName(room.name);
+    setEditCapacity(room.capacity.toString());
+    setEditRoomType(room.room_type || "Classroom");
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRoom || !editName.trim() || !editCapacity) return;
+
+    setSubmittingEdit(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/rooms/${editingRoom.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          capacity: parseInt(editCapacity, 10) || 60,
+          room_type: editRoomType,
+          institution_id: editingRoom.institution_id || institutionId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update room");
+      }
+
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating room");
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -181,38 +252,39 @@ export default function RoomsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Space Type *
+                    Facility Type *
                   </label>
                   <select
                     className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                     value={roomType}
                     onChange={(e) => setRoomType(e.target.value)}
                   >
-                    <option value="Classroom">Lecture Classroom</option>
-                    <option value="Computer Lab">Computer Laboratory</option>
-                    <option value="Hardware Lab">Hardware / Electronics Lab</option>
-                    <option value="Seminar Hall">Seminar Hall / Auditorium</option>
+                    {ROOM_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Seating Capacity *
+                    Seating Capacity (Students) *
                   </label>
                   <Input
                     type="number"
                     min="1"
-                    placeholder="e.g. 60"
+                    max="500"
                     value={capacity}
                     onChange={(e) => setCapacity(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
                   />
                 </div>
 
@@ -221,7 +293,7 @@ export default function RoomsPage() {
                 <DialogFooter className="pt-2">
                   <Button
                     type="submit"
-                    disabled={submitting || !name.trim()}
+                    disabled={submitting || !name.trim() || !capacity}
                     className="tt-gradient-btn rounded-xl font-bold"
                   >
                     {submitting ? "Saving..." : "Save Room"}
@@ -232,10 +304,95 @@ export default function RoomsPage() {
           </Dialog>
         </PageHeader>
 
+        {/* Edit Room Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Infrastructure</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Edit Room / Lab
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update space name, seat capacity, or facility category.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateRoom} className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Room Name / Identifier *
+                </label>
+                <Input
+                  placeholder="e.g. CS Lab 204 or Lecture Hall A"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40 focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Facility Type *
+                </label>
+                <select
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  value={editRoomType}
+                  onChange={(e) => setEditRoomType(e.target.value)}
+                >
+                  {ROOM_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Seating Capacity (Students) *
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="500"
+                  value={editCapacity}
+                  onChange={(e) => setEditCapacity(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
+                />
+              </div>
+
+              {editError && <p className="text-xs text-red-500">{editError}</p>}
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editName.trim() || !editCapacity}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
+                  {submittingEdit ? "Updating..." : "Update Room"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
-              <h3 className="text-base font-bold text-foreground">Configured Physical Spaces</h3>
+              <h3 className="text-base font-bold text-foreground">Infrastructure Spaces</h3>
               <p className="text-xs text-muted-foreground">
                 {rooms.length} {rooms.length === 1 ? "space" : "spaces"} active for timetable slot allocation
               </p>
@@ -287,15 +444,26 @@ export default function RoomsPage() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDelete(room.id)}
-                              title="Delete room"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                onClick={() => openEditModal(room)}
+                                title="Edit room"
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                                onClick={() => handleDelete(room.id)}
+                                title="Delete room"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

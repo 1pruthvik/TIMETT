@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, GraduationCap, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, GraduationCap, RefreshCw, Sparkles } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -44,12 +44,21 @@ export default function SectionsPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Create Modal
   const [open, setOpen] = useState(false);
-
   const [name, setName] = useState("");
   const [departmentId, setDepartmentId] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit Modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<Section | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -61,18 +70,18 @@ export default function SectionsPage() {
       const userInstId = user?.institution_id;
 
       const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
-      const deptRes = await fetch(deptUrl);
-      if (deptRes.ok) {
+      const deptRes = await fetch(deptUrl).catch(() => null);
+      if (deptRes && deptRes.ok) {
         const depts = await deptRes.json();
         setDepartments(depts);
-        if (depts.length > 0) {
+        if (depts.length > 0 && !departmentId) {
           setDepartmentId(userDeptId || depts[0].id);
         }
       }
 
       const secUrl = userDeptId ? `${API_BASE}/sections/?department_id=${userDeptId}` : `${API_BASE}/sections/`;
-      const secRes = await fetch(secUrl);
-      if (secRes.ok) {
+      const secRes = await fetch(secUrl).catch(() => null);
+      if (secRes && secRes.ok) {
         setSections(await secRes.json());
       }
     } catch (err) {
@@ -116,6 +125,45 @@ export default function SectionsPage() {
       setError(err instanceof Error ? err.message : "Error creating section");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (sec: Section) => {
+    setEditingSection(sec);
+    setEditName(sec.name);
+    setEditDepartmentId(sec.department_id);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSection || !editName.trim() || !editDepartmentId) return;
+
+    setSubmittingEdit(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/sections/${editingSection.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          department_id: Number(editDepartmentId),
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update section");
+      }
+
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating section");
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -166,30 +214,30 @@ export default function SectionsPage() {
                   <span className="tt-eyebrow">New Student Cohort</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
-                  Create Section Batch
+                  Create Section / Batch
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Define a class section (e.g. CSE-A, 6th Sem Batch B, or Year 3 - Sec 1).
+                  Enter section name (e.g. CSE-A, CSE-B, or Year 3 Sec 1).
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleAddSection} className="space-y-4 pt-2">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Section Name *
+                    Section Identifier *
                   </label>
                   <Input
-                    placeholder="e.g. CSE-A or 4th Sem Batch 1"
+                    placeholder="e.g. CSE-A"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Department Assignment *
+                    Department *
                   </label>
                   <select
                     className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -210,7 +258,7 @@ export default function SectionsPage() {
                 <DialogFooter className="pt-2">
                   <Button
                     type="submit"
-                    disabled={submitting || !name.trim()}
+                    disabled={submitting || !name.trim() || !departmentId}
                     className="tt-gradient-btn rounded-xl font-bold"
                   >
                     {submitting ? "Saving..." : "Save Section"}
@@ -221,12 +269,83 @@ export default function SectionsPage() {
           </Dialog>
         </PageHeader>
 
+        {/* Edit Section Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Student Cohort</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Edit Section / Batch
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update section identifier or departmental mapping.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateSection} className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Section Identifier *
+                </label>
+                <Input
+                  placeholder="e.g. CSE-A"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40 focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Department *
+                </label>
+                <select
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  value={editDepartmentId}
+                  onChange={(e) => setEditDepartmentId(Number(e.target.value))}
+                  required
+                >
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {editError && <p className="text-xs text-red-500">{editError}</p>}
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editName.trim() || !editDepartmentId}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
+                  {submittingEdit ? "Updating..." : "Update Section"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
-              <h3 className="text-base font-bold text-foreground">Registered Student Sections</h3>
+              <h3 className="text-base font-bold text-foreground">Registered Student Batches</h3>
               <p className="text-xs text-muted-foreground">
-                {sections.length} {sections.length === 1 ? "section" : "sections"} active in curriculum
+                {sections.length} {sections.length === 1 ? "section" : "sections"} configured
               </p>
             </div>
           </div>
@@ -271,15 +390,26 @@ export default function SectionsPage() {
                             {deptName}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDelete(sec.id)}
-                              title="Delete section"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                onClick={() => openEditModal(sec)}
+                                title="Edit section"
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                                onClick={() => handleDelete(sec.id)}
+                                title="Delete section"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

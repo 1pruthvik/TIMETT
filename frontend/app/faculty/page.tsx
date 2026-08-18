@@ -36,6 +36,7 @@ import {
   Layers,
   Search,
   BookMarked,
+  Info,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -67,7 +68,7 @@ interface Subject {
   id: number;
   name: string;
   code: string;
-  department_id?: number;
+  department_id: number;
 }
 
 interface Section {
@@ -112,6 +113,33 @@ interface FacultyLoadAssignment {
   weekly_hours: number;
 }
 
+function isSubjectForSemester(
+  subName: string,
+  subCode: string,
+  semName: string,
+  metaSem?: string
+): boolean {
+  if (metaSem && metaSem.toLowerCase() === semName.toLowerCase()) return true;
+
+  const normSub = (subName + " " + subCode).trim().toLowerCase();
+  const normSem = semName.trim().toLowerCase();
+
+  if (normSub.includes(normSem)) return true;
+
+  const digits = normSem.match(/\d+/);
+  if (digits) {
+    const d = digits[0];
+    const codeDigits = subCode.match(/\d+/);
+    if (codeDigits && codeDigits[0].startsWith(d)) {
+      return true;
+    }
+    const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${d}([A-Za-z]|\\s|$)`, "i");
+    return pattern.test(normSub);
+  }
+
+  return false;
+}
+
 export default function FacultyPage() {
   const [faculty, setFaculty] = useState<FacultyMember[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -152,12 +180,26 @@ export default function FacultyPage() {
   const [savingAvail, setSavingAvail] = useState(false);
 
   const getSubjectHours = (subId: number | ""): number => {
-    if (!subId) return 4;
-    const meta = subjectMetaMap[Number(subId)];
+    if (!subId) return 0;
+    const numId = Number(subId);
+    const meta = subjectMetaMap[numId];
     if (meta?.weeklyHours) return meta.weeklyHours;
-    const sub = subjects.find((s) => s.id === Number(subId));
-    if (sub?.name.toLowerCase().includes("lab")) return 3;
+    const sub = subjects.find((s) => s.id === numId);
+    if (!sub) return 0;
+    if (sub.name.toLowerCase().includes("lab")) return 3;
     return 4;
+  };
+
+  const getFilteredSubjects = (deptId: number, semName: string) => {
+    return subjects.filter((s) => {
+      // Must belong strictly to the handling department
+      if (s.department_id !== deptId) return false;
+      const meta = subjectMetaMap[s.id];
+      if (meta?.semesterName) {
+        return meta.semesterName.toLowerCase() === semName.toLowerCase();
+      }
+      return isSubjectForSemester(s.name, s.code, semName);
+    });
   };
 
   const fetchData = async () => {
@@ -226,19 +268,15 @@ export default function FacultyPage() {
         setFacultyLoads(JSON.parse(savedLoads));
       }
 
-      // Default initial assignment row
+      // Default initial assignment row (initialized with empty selection and 0 hrs)
       if (depts.length > 0 && assignments.length === 0) {
         const defaultSem = sems.length > 0 ? sems[0].name : "Semester 1";
-        const deptSubs = subs.filter((s) => !s.department_id || s.department_id === depts[0].id);
-        const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subs.length > 0 ? subs[0].id : "");
-        const initHours = loadedMeta[Number(firstSubId)]?.weeklyHours || 4;
-
         setAssignments([
           {
             handling_department_id: depts[0].id,
             semester_name: defaultSem,
-            subject_id: firstSubId,
-            weekly_hours: initHours,
+            subject_id: "",
+            weekly_hours: 0,
           },
         ]);
       }
@@ -262,17 +300,14 @@ export default function FacultyPage() {
   const addAssignmentRow = () => {
     const defaultDept = departments.length > 0 ? departments[0].id : 1;
     const defaultSem = availableSemesters[0] || "Semester 1";
-    const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === defaultDept);
-    const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : "");
-    const hours = getSubjectHours(firstSubId);
 
     setAssignments((prev) => [
       ...prev,
       {
         handling_department_id: defaultDept,
         semester_name: defaultSem,
-        subject_id: firstSubId,
-        weekly_hours: hours,
+        subject_id: "",
+        weekly_hours: 0,
       },
     ]);
   };
@@ -290,13 +325,12 @@ export default function FacultyPage() {
       const next = [...prev];
       const updated = { ...next[index], [field]: value };
 
-      if (field === "handling_department_id") {
-        const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === Number(value));
-        const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : "";
-        updated.subject_id = firstSubId;
-        updated.weekly_hours = getSubjectHours(firstSubId);
+      if (field === "handling_department_id" || field === "semester_name") {
+        // Reset subject when department or semester changes
+        updated.subject_id = "";
+        updated.weekly_hours = 0;
       } else if (field === "subject_id") {
-        updated.weekly_hours = getSubjectHours(Number(value));
+        updated.weekly_hours = getSubjectHours(value);
       }
 
       next[index] = updated;
@@ -307,17 +341,14 @@ export default function FacultyPage() {
   const addEditAssignmentRow = () => {
     const defaultDept = departments.length > 0 ? departments[0].id : 1;
     const defaultSem = availableSemesters[0] || "Semester 1";
-    const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === defaultDept);
-    const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : "");
-    const hours = getSubjectHours(firstSubId);
 
     setEditAssignments((prev) => [
       ...prev,
       {
         handling_department_id: defaultDept,
         semester_name: defaultSem,
-        subject_id: firstSubId,
-        weekly_hours: hours,
+        subject_id: "",
+        weekly_hours: 0,
       },
     ]);
   };
@@ -335,13 +366,11 @@ export default function FacultyPage() {
       const next = [...prev];
       const updated = { ...next[index], [field]: value };
 
-      if (field === "handling_department_id") {
-        const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === Number(value));
-        const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : "";
-        updated.subject_id = firstSubId;
-        updated.weekly_hours = getSubjectHours(firstSubId);
+      if (field === "handling_department_id" || field === "semester_name") {
+        updated.subject_id = "";
+        updated.weekly_hours = 0;
       } else if (field === "subject_id") {
-        updated.weekly_hours = getSubjectHours(Number(value));
+        updated.weekly_hours = getSubjectHours(value);
       }
 
       next[index] = updated;
@@ -361,7 +390,7 @@ export default function FacultyPage() {
 
     const validAssignments = assignments.filter((a) => a.subject_id !== "");
     if (validAssignments.length === 0) {
-      setError("Please add at least one subject handling assignment.");
+      setError("Please select at least one subject handling assignment.");
       return;
     }
 
@@ -400,7 +429,7 @@ export default function FacultyPage() {
         JSON.stringify(updatedLoads)
       );
 
-      // 3. Create SubjectOfferings in background for the solver
+      // 3. Create SubjectOfferings in background for solver
       for (const item of validAssignments) {
         const matchingSec = sections.find((s) => s.department_id === item.handling_department_id) || sections[0];
         const defaultSemId = academicSemesters[0]?.id || 1;
@@ -439,7 +468,6 @@ export default function FacultyPage() {
 
     const existingLoads = facultyLoads[fac.id] || [];
     if (existingLoads.length > 0) {
-      // Ensure hours match subject curriculum
       const syncedLoads = existingLoads.map((l) => ({
         ...l,
         weekly_hours: getSubjectHours(l.subject_id),
@@ -448,14 +476,12 @@ export default function FacultyPage() {
     } else {
       const defaultDept = fac.department_id || (departments.length > 0 ? departments[0].id : 1);
       const defaultSem = availableSemesters[0] || "Semester 1";
-      const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === defaultDept);
-      const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : "");
       setEditAssignments([
         {
           handling_department_id: defaultDept,
           semester_name: defaultSem,
-          subject_id: firstSubId,
-          weekly_hours: getSubjectHours(firstSubId),
+          subject_id: "",
+          weekly_hours: 0,
         },
       ]);
     }
@@ -672,7 +698,7 @@ export default function FacultyPage() {
                   </select>
                 </div>
 
-                {/* Handled Course Allocations with Auto-Calculated Hours */}
+                {/* Handled Course Allocations */}
                 <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -696,8 +722,9 @@ export default function FacultyPage() {
 
                   <div className="space-y-2.5">
                     {assignments.map((item, idx) => {
-                      const deptSubjects = subjects.filter(
-                        (s) => !s.department_id || s.department_id === item.handling_department_id
+                      const filteredSubs = getFilteredSubjects(
+                        item.handling_department_id,
+                        item.semester_name
                       );
 
                       return (
@@ -745,7 +772,7 @@ export default function FacultyPage() {
                             </select>
                           </div>
 
-                          {/* Subject */}
+                          {/* Subject strictly filtered by department and semester */}
                           <div className="flex-1 w-full">
                             <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
                               Subject Handled
@@ -754,27 +781,29 @@ export default function FacultyPage() {
                               className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
                               value={item.subject_id}
                               onChange={(e) =>
-                                updateAssignment(idx, "subject_id", Number(e.target.value))
+                                updateAssignment(
+                                  idx,
+                                  "subject_id",
+                                  e.target.value ? Number(e.target.value) : ""
+                                )
                               }
                             >
                               <option value="">-- Select Subject --</option>
-                              {deptSubjects.length > 0 ? (
-                                deptSubjects.map((s) => (
+                              {filteredSubs.length > 0 ? (
+                                filteredSubs.map((s) => (
                                   <option key={s.id} value={s.id}>
                                     {s.code} - {s.name}
                                   </option>
                                 ))
                               ) : (
-                                subjects.map((s) => (
-                                  <option key={s.id} value={s.id}>
-                                    {s.code} - {s.name}
-                                  </option>
-                                ))
+                                <option value="" disabled>
+                                  No subjects in this department / semester
+                                </option>
                               )}
                             </select>
                           </div>
 
-                          {/* Fixed Hours Display (Auto-Fetched) */}
+                          {/* Fixed Hours Display */}
                           <div className="w-full sm:w-28">
                             <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
                               Periods/Wk
@@ -899,7 +928,10 @@ export default function FacultyPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {deptFaculty.map((fac) => {
                           const assignedLoads = facultyLoads[fac.id] || [];
-                          const totalHours = assignedLoads.reduce((sum, l) => sum + (l.weekly_hours || getSubjectHours(l.subject_id)), 0);
+                          const totalHours = assignedLoads.reduce(
+                            (sum, l) => sum + (l.weekly_hours || getSubjectHours(l.subject_id)),
+                            0
+                          );
 
                           return (
                             <div
@@ -1061,7 +1093,7 @@ export default function FacultyPage() {
                 </select>
               </div>
 
-              {/* Handled Teaching Loads with Fixed Auto-Fetched Hours */}
+              {/* Handled Teaching Loads */}
               <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1085,8 +1117,9 @@ export default function FacultyPage() {
 
                 <div className="space-y-2.5">
                   {editAssignments.map((item, idx) => {
-                    const deptSubjects = subjects.filter(
-                      (s) => !s.department_id || s.department_id === item.handling_department_id
+                    const filteredSubs = getFilteredSubjects(
+                      item.handling_department_id,
+                      item.semester_name
                     );
 
                     return (
@@ -1143,22 +1176,24 @@ export default function FacultyPage() {
                             className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
                             value={item.subject_id}
                             onChange={(e) =>
-                              updateEditAssignment(idx, "subject_id", Number(e.target.value))
+                              updateEditAssignment(
+                                idx,
+                                "subject_id",
+                                e.target.value ? Number(e.target.value) : ""
+                              )
                             }
                           >
                             <option value="">-- Select Subject --</option>
-                            {deptSubjects.length > 0 ? (
-                              deptSubjects.map((s) => (
+                            {filteredSubs.length > 0 ? (
+                              filteredSubs.map((s) => (
                                 <option key={s.id} value={s.id}>
                                   {s.code} - {s.name}
                                 </option>
                               ))
                             ) : (
-                              subjects.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.code} - {s.name}
-                                </option>
-                              ))
+                              <option value="" disabled>
+                                No subjects in this department / semester
+                              </option>
                             )}
                           </select>
                         </div>

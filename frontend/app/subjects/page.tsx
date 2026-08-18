@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Pencil, BookOpen, RefreshCw, Sparkles } from "lucide-react";
@@ -16,18 +15,16 @@ import { Plus, Trash2, Pencil, BookOpen, RefreshCw, Sparkles } from "lucide-reac
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 interface Subject { id: number; name: string; code: string; department_id: number; }
-interface Department { id: number; name: string; }
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [defaultDeptId, setDefaultDeptId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   
   // Create Modal
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [departmentId, setDepartmentId] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,61 +33,87 @@ export default function SubjectsPage() {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [editName, setEditName] = useState("");
   const [editCode, setEditCode] = useState("");
-  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
   const [submittingEdit, setSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
   const fetchData = async () => {
-    setLoading(true); setError("");
+    setLoading(true);
+    setError("");
     try {
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : null;
       const userInstId = user?.institution_id || 1;
+      const userDeptId = user?.department_id;
+
       const deptUrl = `${API_BASE}/departments/?institution_id=${userInstId}`;
       const deptRes = await fetch(deptUrl).catch(() => null);
       if (deptRes && deptRes.ok) {
         const depts = await deptRes.json();
-        setDepartments(depts);
-        if (depts.length > 0 && !departmentId) setDepartmentId(depts[0].id);
+        if (depts.length > 0) {
+          setDefaultDeptId(userDeptId || depts[0].id);
+        }
       }
+
       const subUrl = `${API_BASE}/subjects/?institution_id=${userInstId}`;
       const subRes = await fetch(subUrl).catch(() => null);
-      if (subRes && subRes.ok) setSubjects(await subRes.json());
-    } catch (err) { console.error(err); setError("Failed to connect to backend API."); }
-    finally { setLoading(false); }
+      if (subRes && subRes.ok) {
+        setSubjects(await subRes.json());
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to connect to backend API.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleAddSubject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !code.trim() || !departmentId) return;
-    setSubmitting(true); setError("");
+    if (!name.trim() || !code.trim()) return;
+    setSubmitting(true);
+    setError("");
     try {
       const res = await fetch(`${API_BASE}/subjects/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), code: code.trim().toUpperCase(), department_id: Number(departmentId) })
+        body: JSON.stringify({
+          name: name.trim(),
+          code: code.trim().toUpperCase(),
+          department_id: defaultDeptId,
+        }),
       });
-      if (!res.ok) { const errData = await res.json(); throw new Error(errData.detail || "Failed to add subject"); }
-      setName(""); setCode(""); setOpen(false); await fetchData();
-    } catch (err) { setError(err instanceof Error ? err.message : "Error creating subject"); }
-    finally { setSubmitting(false); }
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to add subject");
+      }
+      setName("");
+      setCode("");
+      setOpen(false);
+      await fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error creating subject");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const openEditModal = (subject: Subject) => {
     setEditingSubject(subject);
     setEditName(subject.name);
     setEditCode(subject.code);
-    setEditDepartmentId(subject.department_id);
     setEditError("");
     setEditOpen(true);
   };
 
   const handleUpdateSubject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingSubject || !editName.trim() || !editCode.trim() || !editDepartmentId) return;
-    setSubmittingEdit(true); setEditError("");
+    if (!editingSubject || !editName.trim() || !editCode.trim()) return;
+    setSubmittingEdit(true);
+    setEditError("");
     try {
       const res = await fetch(`${API_BASE}/subjects/${editingSubject.id}`, {
         method: "PUT",
@@ -98,8 +121,8 @@ export default function SubjectsPage() {
         body: JSON.stringify({
           name: editName.trim(),
           code: editCode.trim().toUpperCase(),
-          department_id: Number(editDepartmentId)
-        })
+          department_id: editingSubject.department_id || defaultDeptId,
+        }),
       });
       if (!res.ok) {
         const errData = await res.json();
@@ -119,16 +142,29 @@ export default function SubjectsPage() {
     try {
       const res = await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
       if (res.ok) setSubjects((prev) => prev.filter((s) => s.id !== id));
-    } catch (err) { console.error("Failed to delete subject", err); }
+    } catch (err) {
+      console.error("Failed to delete subject", err);
+    }
   };
 
   return (
     <AppShell>
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
-        <PageHeader title="Subject Management" description="Add courses, curriculum codes, and department mappings." icon={BookOpen}>
-          <Button variant="outline" size="icon" onClick={fetchData} className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer" title="Refresh">
+        <PageHeader
+          title="Subject Management"
+          description="Configure curriculum subjects and course codes for scheduling."
+          icon={BookOpen}
+        >
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchData}
+            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Refresh subjects"
+          >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
           </Button>
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
@@ -142,26 +178,38 @@ export default function SubjectsPage() {
                   <span className="tt-eyebrow">New Course Record</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">Add New Subject</DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">Enter subject name, course code, and assign department.</DialogDescription>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Enter course name and subject code (e.g. Data Structures & Algorithms, CS201).
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleAddSubject} className="space-y-4 pt-2">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Subject Name *</label>
-                  <Input placeholder="e.g. Data Structures & Algorithms" value={name} onChange={(e) => setName(e.target.value)} required className="rounded-xl border-border bg-muted/40" />
+                  <Input
+                    placeholder="e.g. Data Structures & Algorithms"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40"
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Subject Code *</label>
-                  <Input placeholder="e.g. CS201" value={code} onChange={(e) => setCode(e.target.value)} required className="rounded-xl border-border bg-muted/40 font-mono" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Department *</label>
-                  <select className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" value={departmentId} onChange={(e) => setDepartmentId(Number(e.target.value))} required>
-                    {departments.map((dept) => (<option key={dept.id} value={dept.id}>{dept.name}</option>))}
-                  </select>
+                  <Input
+                    placeholder="e.g. CS201"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40 font-mono"
+                  />
                 </div>
                 {error && <p className="text-xs text-red-500">{error}</p>}
                 <DialogFooter className="pt-2">
-                  <Button type="submit" disabled={submitting || !name.trim() || !code.trim()} className="tt-gradient-btn rounded-xl font-bold">
+                  <Button
+                    type="submit"
+                    disabled={submitting || !name.trim() || !code.trim()}
+                    className="tt-gradient-btn rounded-xl font-bold"
+                  >
                     {submitting ? "Saving..." : "Save Subject"}
                   </Button>
                 </DialogFooter>
@@ -179,27 +227,41 @@ export default function SubjectsPage() {
                 <span className="tt-eyebrow">Modify Course</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">Edit Subject</DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">Update course details, subject code, or department.</DialogDescription>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update course name or subject code.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdateSubject} className="space-y-4 pt-2">
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Subject Name *</label>
-                <Input placeholder="e.g. Data Structures & Algorithms" value={editName} onChange={(e) => setEditName(e.target.value)} required className="rounded-xl border-border bg-muted/40" />
+                <Input
+                  placeholder="e.g. Data Structures & Algorithms"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40"
+                />
               </div>
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Subject Code *</label>
-                <Input placeholder="e.g. CS201" value={editCode} onChange={(e) => setEditCode(e.target.value)} required className="rounded-xl border-border bg-muted/40 font-mono" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Department *</label>
-                <select className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" value={editDepartmentId} onChange={(e) => setEditDepartmentId(Number(e.target.value))} required>
-                  {departments.map((dept) => (<option key={dept.id} value={dept.id}>{dept.name}</option>))}
-                </select>
+                <Input
+                  placeholder="e.g. CS201"
+                  value={editCode}
+                  onChange={(e) => setEditCode(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40 font-mono"
+                />
               </div>
               {editError && <p className="text-xs text-red-500">{editError}</p>}
               <DialogFooter className="pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="rounded-xl">Cancel</Button>
-                <Button type="submit" disabled={submittingEdit || !editName.trim() || !editCode.trim()} className="tt-gradient-btn rounded-xl font-bold">
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="rounded-xl">
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editName.trim() || !editCode.trim()}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
                   {submittingEdit ? "Updating..." : "Update Subject"}
                 </Button>
               </DialogFooter>
@@ -211,12 +273,20 @@ export default function SubjectsPage() {
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
               <h3 className="text-base font-bold text-foreground">Course Catalog</h3>
-              <p className="text-xs text-muted-foreground">{subjects.length} {subjects.length === 1 ? "subject" : "subjects"} in curriculum</p>
+              <p className="text-xs text-muted-foreground">
+                {subjects.length} {subjects.length === 1 ? "subject" : "subjects"} in curriculum
+              </p>
             </div>
           </div>
           <div className="p-4 sm:p-6">
-            {loading ? <LoadingState text="Loading course records..." /> : subjects.length === 0 ? (
-              <EmptyState icon={BookOpen} title="No subjects found" description='Add subjects like Operating Systems, Mathematics, or DBMS using the "Add Subject" button.' />
+            {loading ? (
+              <LoadingState text="Loading course records..." />
+            ) : subjects.length === 0 ? (
+              <EmptyState
+                icon={BookOpen}
+                title="No subjects found"
+                description='Add subjects like Operating Systems, Mathematics, or DBMS using the "Add Subject" button.'
+              />
             ) : (
               <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                 <Table>
@@ -225,32 +295,45 @@ export default function SubjectsPage() {
                       <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Code</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Subject Name</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Department</TableHead>
                       <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {subjects.map((sub, index) => {
-                      const deptName = departments.find((d) => d.id === sub.department_id)?.name || `Dept #${sub.department_id}`;
-                      return (
-                        <TableRow key={sub.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">#{index + 1}</TableCell>
-                          <TableCell><span className="rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 px-2 py-0.5 font-mono text-xs font-bold text-[#8B5CF6] dark:text-[#A78BFA]">{sub.code}</span></TableCell>
-                          <TableCell className="font-bold text-foreground text-sm">{sub.name}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-medium">{deptName}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="icon" className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer" onClick={() => openEditModal(sub)} title="Edit subject">
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer" onClick={() => handleDelete(sub.id)} title="Delete subject">
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                    {subjects.map((sub, index) => (
+                      <TableRow key={sub.id} className="border-border hover:bg-muted/20 transition-colors">
+                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">
+                          #{index + 1}
+                        </TableCell>
+                        <TableCell>
+                          <span className="rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 px-2.5 py-0.5 font-mono text-xs font-bold text-[#8B5CF6] dark:text-[#A78BFA]">
+                            {sub.code}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-bold text-foreground text-sm">{sub.name}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditModal(sub)}
+                              title="Edit subject"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDelete(sub.id)}
+                              title="Delete subject"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>

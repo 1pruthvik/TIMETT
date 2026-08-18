@@ -139,17 +139,24 @@
   body {
     @apply bg-background text-foreground transition-colors duration-500 overflow-x-hidden;
     font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    letter-spacing: -0.012em;
+    letter-spacing: 0.025em;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6, .font-heading {
     font-family: var(--font-outfit), var(--font-jakarta), sans-serif;
-    letter-spacing: -0.025em;
+    letter-spacing: 0.02em;
   }
-  code, kbd, samp, pre {
+  p, span, label, td, th {
+    letter-spacing: 0.02em;
+  }
+  button, input, select, textarea {
+    letter-spacing: 0.025em;
+  }
+  code, kbd, samp, pre, .font-mono {
     font-family: var(--font-jetbrains), monospace;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.05em;
   }
   html {
     @apply font-sans;

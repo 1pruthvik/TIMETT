@@ -413,7 +413,7 @@ export default function RoomsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                      <TableHead className="text-xs font-bold text-muted-foreground">#</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Room / Lab Name</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Type Category</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Student Capacity</TableHead>

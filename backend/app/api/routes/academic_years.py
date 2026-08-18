@@ -102,6 +102,9 @@ def update_academic_year(
     return item
 
 
+from app.models.semester import Semester
+from app.models.subject_offering import SubjectOffering
+
 @router.delete("/{academic_year_id}", status_code=204)
 def delete_academic_year(
     academic_year_id: int,
@@ -118,6 +121,12 @@ def delete_academic_year(
             status_code=404,
             detail="Academic year not found",
         )
+
+    # Clean child semesters and offerings
+    semesters = db.query(Semester).filter(Semester.academic_year_id == academic_year_id).all()
+    for sem in semesters:
+        db.query(SubjectOffering).filter(SubjectOffering.semester_id == sem.id).delete(synchronize_session=False)
+        db.delete(sem)
 
     db.delete(item)
     db.commit()

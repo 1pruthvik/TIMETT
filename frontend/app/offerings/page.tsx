@@ -537,7 +537,7 @@ export default function OfferingsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                      <TableHead className="text-xs font-bold text-muted-foreground">#</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Subject</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Assigned Faculty</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Section</TableHead>

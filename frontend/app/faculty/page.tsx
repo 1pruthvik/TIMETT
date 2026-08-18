@@ -726,7 +726,7 @@ export default function FacultyPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                      <TableHead className="text-xs font-bold text-muted-foreground">#</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Instructor Name</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Designation</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Allocated Courses</TableHead>

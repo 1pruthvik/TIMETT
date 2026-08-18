@@ -35,6 +35,7 @@ import {
   Clock,
   Layers,
   Search,
+  BookMarked,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -98,6 +99,12 @@ interface AvailabilityRecord {
   end_time: string;
 }
 
+interface SubjectMeta {
+  semesterName: string;
+  subjectType: "Theory" | "Lab" | "Elective";
+  weeklyHours: number;
+}
+
 interface FacultyLoadAssignment {
   handling_department_id: number;
   semester_name: string;
@@ -111,6 +118,7 @@ export default function FacultyPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [academicSemesters, setAcademicSemesters] = useState<AcademicSemester[]>([]);
+  const [subjectMetaMap, setSubjectMetaMap] = useState<Record<number, SubjectMeta>>({});
   const [offerings, setOfferings] = useState<SubjectOffering[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -142,6 +150,15 @@ export default function FacultyPage() {
   const [activeFaculty, setActiveFaculty] = useState<FacultyMember | null>(null);
   const [availMap, setAvailMap] = useState<Record<string, boolean>>({});
   const [savingAvail, setSavingAvail] = useState(false);
+
+  const getSubjectHours = (subId: number | ""): number => {
+    if (!subId) return 4;
+    const meta = subjectMetaMap[Number(subId)];
+    if (meta?.weeklyHours) return meta.weeklyHours;
+    const sub = subjects.find((s) => s.id === Number(subId));
+    if (sub?.name.toLowerCase().includes("lab")) return 3;
+    return 4;
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -195,6 +212,14 @@ export default function FacultyPage() {
         setOfferings(await offRes.json());
       }
 
+      // Load subject metadata for periods per week
+      let loadedMeta: Record<number, SubjectMeta> = {};
+      const savedMeta = localStorage.getItem(`timett_subject_meta_${userInstId}`);
+      if (savedMeta) {
+        loadedMeta = JSON.parse(savedMeta);
+        setSubjectMetaMap(loadedMeta);
+      }
+
       // Load saved teaching loads from localStorage
       const savedLoads = localStorage.getItem(`timett_faculty_loads_${userInstId}`);
       if (savedLoads) {
@@ -205,12 +230,15 @@ export default function FacultyPage() {
       if (depts.length > 0 && assignments.length === 0) {
         const defaultSem = sems.length > 0 ? sems[0].name : "Semester 1";
         const deptSubs = subs.filter((s) => !s.department_id || s.department_id === depts[0].id);
+        const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subs.length > 0 ? subs[0].id : "");
+        const initHours = loadedMeta[Number(firstSubId)]?.weeklyHours || 4;
+
         setAssignments([
           {
             handling_department_id: depts[0].id,
             semester_name: defaultSem,
-            subject_id: deptSubs.length > 0 ? deptSubs[0].id : (subs.length > 0 ? subs[0].id : ""),
-            weekly_hours: 3,
+            subject_id: firstSubId,
+            weekly_hours: initHours,
           },
         ]);
       }
@@ -235,14 +263,16 @@ export default function FacultyPage() {
     const defaultDept = departments.length > 0 ? departments[0].id : 1;
     const defaultSem = availableSemesters[0] || "Semester 1";
     const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === defaultDept);
+    const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : "");
+    const hours = getSubjectHours(firstSubId);
 
     setAssignments((prev) => [
       ...prev,
       {
         handling_department_id: defaultDept,
         semester_name: defaultSem,
-        subject_id: deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : ""),
-        weekly_hours: 3,
+        subject_id: firstSubId,
+        weekly_hours: hours,
       },
     ]);
   };
@@ -260,10 +290,13 @@ export default function FacultyPage() {
       const next = [...prev];
       const updated = { ...next[index], [field]: value };
 
-      // If handling department changed, reset subject to one in that handling department
       if (field === "handling_department_id") {
         const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === Number(value));
-        updated.subject_id = deptSubs.length > 0 ? deptSubs[0].id : "";
+        const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : "";
+        updated.subject_id = firstSubId;
+        updated.weekly_hours = getSubjectHours(firstSubId);
+      } else if (field === "subject_id") {
+        updated.weekly_hours = getSubjectHours(Number(value));
       }
 
       next[index] = updated;
@@ -275,14 +308,16 @@ export default function FacultyPage() {
     const defaultDept = departments.length > 0 ? departments[0].id : 1;
     const defaultSem = availableSemesters[0] || "Semester 1";
     const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === defaultDept);
+    const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : "");
+    const hours = getSubjectHours(firstSubId);
 
     setEditAssignments((prev) => [
       ...prev,
       {
         handling_department_id: defaultDept,
         semester_name: defaultSem,
-        subject_id: deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : ""),
-        weekly_hours: 3,
+        subject_id: firstSubId,
+        weekly_hours: hours,
       },
     ]);
   };
@@ -302,13 +337,20 @@ export default function FacultyPage() {
 
       if (field === "handling_department_id") {
         const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === Number(value));
-        updated.subject_id = deptSubs.length > 0 ? deptSubs[0].id : "";
+        const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : "";
+        updated.subject_id = firstSubId;
+        updated.weekly_hours = getSubjectHours(firstSubId);
+      } else if (field === "subject_id") {
+        updated.weekly_hours = getSubjectHours(Number(value));
       }
 
       next[index] = updated;
       return next;
     });
   };
+
+  const totalAddHours = assignments.reduce((sum, a) => sum + (a.weekly_hours || 0), 0);
+  const totalEditHours = editAssignments.reduce((sum, a) => sum + (a.weekly_hours || 0), 0);
 
   const handleAddFacultyWithSubjects = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,7 +389,7 @@ export default function FacultyPage() {
 
       const createdFaculty: FacultyMember = await facRes.json();
 
-      // 2. Persist Teaching Loads (Handling Department, Semester, Subject, Hours)
+      // 2. Persist Teaching Loads
       const updatedLoads = {
         ...facultyLoads,
         [createdFaculty.id]: validAssignments,
@@ -360,7 +402,6 @@ export default function FacultyPage() {
 
       // 3. Create SubjectOfferings in background for the solver
       for (const item of validAssignments) {
-        // Find default section in handling department or first available section
         const matchingSec = sections.find((s) => s.department_id === item.handling_department_id) || sections[0];
         const defaultSemId = academicSemesters[0]?.id || 1;
 
@@ -373,7 +414,7 @@ export default function FacultyPage() {
               faculty_id: createdFaculty.id,
               section_id: matchingSec.id,
               semester_id: defaultSemId,
-              weekly_hours: item.weekly_hours || 3,
+              weekly_hours: item.weekly_hours || 4,
             }),
           }).catch(() => null);
         }
@@ -398,17 +439,23 @@ export default function FacultyPage() {
 
     const existingLoads = facultyLoads[fac.id] || [];
     if (existingLoads.length > 0) {
-      setEditAssignments(existingLoads);
+      // Ensure hours match subject curriculum
+      const syncedLoads = existingLoads.map((l) => ({
+        ...l,
+        weekly_hours: getSubjectHours(l.subject_id),
+      }));
+      setEditAssignments(syncedLoads);
     } else {
       const defaultDept = fac.department_id || (departments.length > 0 ? departments[0].id : 1);
       const defaultSem = availableSemesters[0] || "Semester 1";
       const deptSubs = subjects.filter((s) => !s.department_id || s.department_id === defaultDept);
+      const firstSubId = deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : "");
       setEditAssignments([
         {
           handling_department_id: defaultDept,
           semester_name: defaultSem,
-          subject_id: deptSubs.length > 0 ? deptSubs[0].id : (subjects.length > 0 ? subjects[0].id : ""),
-          weekly_hours: 3,
+          subject_id: firstSubId,
+          weekly_hours: getSubjectHours(firstSubId),
         },
       ]);
     }
@@ -547,7 +594,7 @@ export default function FacultyPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Faculty & Workload Assignments"
-          description="Manage institutional faculty categorized by Home Department and assign semester-wise teaching hours across handling departments."
+          description="Manage institutional faculty categorized by Home Department and assign courses with automatic curriculum hours calculation."
           icon={Users}
         >
           <Button
@@ -567,17 +614,17 @@ export default function FacultyPage() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Instructor Profile</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
-                  Add Faculty & Assign Teaching Hours
+                  Add Faculty & Assign Teaching Loads
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Specify the faculty&apos;s home department, and declare the handling departments, semesters, subjects, and weekly hours they teach.
+                  Specify the faculty&apos;s home department, and select handling departments, semesters, and subjects. (Hours per week are automatically fetched from the subject curriculum).
                 </DialogDescription>
               </DialogHeader>
 
@@ -625,7 +672,7 @@ export default function FacultyPage() {
                   </select>
                 </div>
 
-                {/* Course Allocations Without Section Selection */}
+                {/* Handled Course Allocations with Auto-Calculated Hours */}
                 <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -633,7 +680,7 @@ export default function FacultyPage() {
                         Handled Teaching Loads
                       </p>
                       <p className="text-[11px] text-muted-foreground">
-                        Select handling department, semester, subject, and weekly hours ready to take
+                        Select department, semester & subject (Periods/Wk are fixed from subject)
                       </p>
                     </div>
                     <Button
@@ -727,28 +774,21 @@ export default function FacultyPage() {
                             </select>
                           </div>
 
-                          {/* Hours / Week */}
-                          <div className="w-full sm:w-20">
+                          {/* Fixed Hours Display (Auto-Fetched) */}
+                          <div className="w-full sm:w-28">
                             <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                              Hrs/Wk
+                              Periods/Wk
                             </label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="30"
-                              className="h-8 text-xs rounded-lg border-border bg-muted/40 font-mono"
-                              value={item.weekly_hours}
-                              onChange={(e) =>
-                                updateAssignment(idx, "weekly_hours", parseInt(e.target.value, 10) || 1)
-                              }
-                            />
+                            <div className="h-8 px-2.5 rounded-lg border border-border bg-muted/60 flex items-center justify-center font-mono font-bold text-xs text-foreground">
+                              {item.weekly_hours} hrs/wk
+                            </div>
                           </div>
 
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 sm:mt-4 cursor-pointer"
+                            className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 sm:mt-4 cursor-pointer shrink-0"
                             onClick={() => removeAssignmentRow(idx)}
                           >
                             <Trash2 className="size-4" />
@@ -756,6 +796,17 @@ export default function FacultyPage() {
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Total Hours Banner */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                    <span className="font-semibold text-foreground flex items-center gap-1.5">
+                      <Clock className="size-4 text-primary" />
+                      Total Cumulative Faculty Workload:
+                    </span>
+                    <Badge className="bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-0.5">
+                      {totalAddHours} Hours / Week
+                    </Badge>
                   </div>
                 </div>
 
@@ -827,7 +878,7 @@ export default function FacultyPage() {
                       <div>
                         <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
                         <p className="text-xs text-muted-foreground">
-                          Faculty Instructors & Handled Workloads
+                          Faculty Instructors & Total Weekly Workloads
                         </p>
                       </div>
                     </div>
@@ -848,7 +899,7 @@ export default function FacultyPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {deptFaculty.map((fac) => {
                           const assignedLoads = facultyLoads[fac.id] || [];
-                          const totalHours = assignedLoads.reduce((sum, l) => sum + (l.weekly_hours || 0), 0);
+                          const totalHours = assignedLoads.reduce((sum, l) => sum + (l.weekly_hours || getSubjectHours(l.subject_id)), 0);
 
                           return (
                             <div
@@ -863,15 +914,20 @@ export default function FacultyPage() {
                                   </p>
                                 </div>
 
-                                <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/20">
-                                  {totalHours > 0 ? `${totalHours} hrs/wk` : "Load Pending"}
-                                </Badge>
+                                <div className="text-right">
+                                  <Badge className="bg-primary/15 text-primary border border-primary/30 font-mono font-bold text-xs px-2.5 py-1">
+                                    {totalHours > 0 ? `${totalHours} hrs/week` : "0 hrs/week"}
+                                  </Badge>
+                                  <span className="text-[10px] text-muted-foreground block mt-0.5">
+                                    Total Teaching Load
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Handling Course Loads */}
                               <div className="space-y-1.5 pt-1">
                                 <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-                                  Handled Courses & Semesters:
+                                  Handled Courses & Fixed Curriculum Hours:
                                 </span>
                                 {assignedLoads.length === 0 ? (
                                   <span className="text-xs text-muted-foreground italic block">
@@ -882,6 +938,7 @@ export default function FacultyPage() {
                                     {assignedLoads.map((load, lIdx) => {
                                       const sub = subjects.find((s) => s.id === load.subject_id);
                                       const targetDept = departments.find((d) => d.id === load.handling_department_id);
+                                      const hours = load.weekly_hours || getSubjectHours(load.subject_id);
 
                                       return (
                                         <Badge
@@ -897,7 +954,7 @@ export default function FacultyPage() {
                                           <span className="text-muted-foreground">•</span>
                                           <span className="font-semibold">{sub ? `${sub.code} - ${sub.name}` : "Subject"}</span>
                                           <span className="rounded-md bg-primary/10 text-primary font-mono text-[10px] px-1 py-0.2">
-                                            {load.weekly_hours}h
+                                            {hours} hrs/wk
                                           </span>
                                         </Badge>
                                       );
@@ -951,7 +1008,7 @@ export default function FacultyPage() {
 
         {/* Edit Faculty Modal */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                 <Pencil className="size-4" />
@@ -1004,7 +1061,7 @@ export default function FacultyPage() {
                 </select>
               </div>
 
-              {/* Handled Teaching Loads */}
+              {/* Handled Teaching Loads with Fixed Auto-Fetched Hours */}
               <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1012,7 +1069,7 @@ export default function FacultyPage() {
                       Handled Teaching Loads
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      Handling department, semester, subject, and weekly hours
+                      Handling department, semester & subject (Periods/Wk are fixed from subject)
                     </p>
                   </div>
                   <Button
@@ -1106,28 +1163,21 @@ export default function FacultyPage() {
                           </select>
                         </div>
 
-                        {/* Hours / Week */}
-                        <div className="w-full sm:w-20">
+                        {/* Fixed Hours Display */}
+                        <div className="w-full sm:w-28">
                           <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                            Hrs/Wk
+                            Periods/Wk
                           </label>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="30"
-                            className="h-8 text-xs rounded-lg border-border bg-muted/40 font-mono"
-                            value={item.weekly_hours}
-                            onChange={(e) =>
-                              updateEditAssignment(idx, "weekly_hours", parseInt(e.target.value, 10) || 1)
-                            }
-                          />
+                          <div className="h-8 px-2.5 rounded-lg border border-border bg-muted/60 flex items-center justify-center font-mono font-bold text-xs text-foreground">
+                            {item.weekly_hours} hrs/wk
+                          </div>
                         </div>
 
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 sm:mt-4 cursor-pointer"
+                          className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 sm:mt-4 cursor-pointer shrink-0"
                           onClick={() => removeEditAssignmentRow(idx)}
                         >
                           <Trash2 className="size-4" />
@@ -1135,6 +1185,17 @@ export default function FacultyPage() {
                       </div>
                     );
                   })}
+                </div>
+
+                {/* Total Edit Hours Banner */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <Clock className="size-4 text-primary" />
+                    Total Cumulative Faculty Workload:
+                  </span>
+                  <Badge className="bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-0.5">
+                    {totalEditHours} Hours / Week
+                  </Badge>
                 </div>
               </div>
 

@@ -35,7 +35,22 @@ def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
         db.refresh(dept)
         data.department_id = dept.id
 
-    item = Subject(**data.model_dump())
+    code_clean = data.code.strip().upper()
+    existing = db.query(Subject).filter(
+        Subject.department_id == data.department_id,
+        Subject.code == code_clean,
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A subject with code '{code_clean}' already exists in this department.",
+        )
+
+    item = Subject(
+        department_id=data.department_id,
+        name=data.name.strip(),
+        code=code_clean,
+    )
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -77,9 +92,21 @@ def update_subject(
     if not item:
         raise HTTPException(status_code=404, detail="Subject not found")
 
+    code_clean = data.code.strip().upper()
+    existing = db.query(Subject).filter(
+        Subject.department_id == data.department_id,
+        Subject.code == code_clean,
+        Subject.id != subject_id,
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A subject with code '{code_clean}' already exists in this department.",
+        )
+
     item.department_id = data.department_id
-    item.name = data.name
-    item.code = data.code
+    item.name = data.name.strip()
+    item.code = code_clean
 
     db.commit()
     db.refresh(item)

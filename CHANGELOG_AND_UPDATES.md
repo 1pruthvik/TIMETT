@@ -127,12 +127,56 @@ Reordered the primary management navigation in `components/layout/app-sidebar.ts
   - Removed canvas dot grid artifacts across dark and light modes.
   - Fully styled native and custom `<select>` dropdowns for both themes.
 
+### 3.4 Faculty Management & Workload Allocation Overhaul
+- **Home Department Categorization**:
+  - Rebuilt the faculty roster grouped by **Home Department** where professors and lecturers belong.
+- **Removed Manual Section Selection**:
+  - Eliminated manual section assignment from instructor registration; section allotment is dynamically handled by the timetable solver.
+- **Handled Teaching Loads**:
+  - Allows assigning multiple teaching loads specifying: *Handling Department*, *Semester*, *Subject Handled*, and *Weekly Hours*.
+- **Auto-Fetched Subject Hours**:
+  - Selecting a subject automatically retrieves its defined curriculum **Periods/Week** as a fixed, read-only value (`0 hrs/wk` when unselected).
+  - Features real-time calculation and display of the professor's **Total Cumulative Workload** (e.g. `12 hrs/week`).
+- **Strict Department & Semester Subject Filtering**:
+  - Dropdowns strictly filter courses registered under the chosen handling department and semester without global leakage.
+
+### 3.5 Time Slots Architecture Studio
+- **Sidebar Repositioning**:
+  - Moved **Time Slots** directly above **Constraints** in the Academic Setup navigation flow.
+- **Step 1: Institutional Working Days**:
+  - Set total working days in a week with quick shortcuts (`5 Days: Mon-Fri`, `6 Days: Mon-Sat`) and interactive day toggle badges.
+- **Step 2: 12-Hour Clock Selection**:
+  - Interactive 12-hour clock picker with synchronized **Hour (1–12)**, **Minute (00–55)**, and **AM / PM** toggles for Institutional Start and End times.
+- **Step 3: Academic Session Durations (Hours : Minutes : Seconds)**:
+  - Dedicated **(H:M:S) Selection Window** with 3 scrollable columns and presets for *Theory Class Duration* and *Lab Session Duration*.
+- **Step 4: Daily Breaks & Recess Intervals**:
+  - Dynamic break manager (Tea, Lunch, Recess) with 12-hour start time selector and (H:M:S) duration window.
+- **Live Generated Schedule Preview**:
+  - Real-time generated timeline with full vertical expansion without internal scrollbars.
+  - Single primary **"Save & Apply Daily Grid"** action in the header that provisions slots to the database and stores the active schedule architecture.
+
+### 3.6 Timetable Grid: Vertical Days & Horizontal Time
+- **Vertical Days (Rows)**:
+  - Days (`Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`) rendered as **vertical rows** along the left axis with sticky frozen headers.
+- **Horizontal Time Intervals (Columns)**:
+  - Time intervals (`09:00 - 10:00 (P1)`, `10:00 - 11:00 (P2)`, `11:00 - 11:15 (Break)`, `11:15 - 12:15 (P3)`, `12:15 - 01:15 (Lunch)`, etc.) rendered across the **horizontal table header**.
+- **Integrated Break / Recess Columns**:
+  - Morning tea and lunch breaks span across all day rows with dedicated recess badges.
+- **Seamless Drag-and-Drop**:
+  - Full interactive slot manipulation and constraint checking across the new horizontal/vertical orientation.
+
 ---
 
 ## 📊 4. Git Commits Timeline (Recent 48h)
 
 | Commit Hash | Component | Summary |
 | :--- | :--- | :--- |
+| `031c034` | **Timetable** | Render days vertically as rows and time horizontally as columns, remove duplicate apply button, expand draft schedule to full length without scrolling |
+| `ec078ac` | **Time Slots** | Complete time slots architecture studio with 12h clock picker, HMS duration selection window, daily breaks, and sidebar reordering |
+| `b28f964` | **Faculty** | Strictly filter subjects by handling department & semester and default unselected hours to 0 |
+| `a9718f4` | **Faculty** | Auto-fetch fixed hours/wk from subject periods and calculate total weekly workload of faculty |
+| `f4de2f3` | **Faculty** | Categorize faculties by home department and configure handling department, semester, subject, and weekly hours without section selection |
+| `8fc1c92` | **Subjects** | Ensure unassigned/existing subjects are always visible and display informative duplicate message |
 | `c8f8963` | **Sidebar** | Reordered navigation to: *Academic Terms ➔ Departments ➔ Rooms & Labs ➔ Subjects ➔ Faculty* |
 | `9709ae1` | **Rooms & Labs** | Segregated theory sections by semester under each department with individual room number inputs |
 | `5cf9c60` | **Rooms & Labs** | Enabled direct typing/entering of room numbers with instant auto-save and room provisioning |

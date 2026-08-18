@@ -51,8 +51,17 @@ def create_semester(
 
 
 @router.get("/", response_model=list[SemesterResponse])
-def get_semesters(db: Session = Depends(get_db)):
-    return db.query(Semester).all()
+def get_semesters(
+    institution_id: int | None = None,
+    academic_year_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Semester)
+    if academic_year_id:
+        query = query.filter(Semester.academic_year_id == academic_year_id)
+    elif institution_id:
+        query = query.join(AcademicYear).filter(AcademicYear.institution_id == institution_id)
+    return query.all()
 
 
 @router.get("/{semester_id}", response_model=SemesterResponse)

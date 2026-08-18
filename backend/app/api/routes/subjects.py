@@ -43,10 +43,17 @@ def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[SubjectResponse])
-def get_subjects(department_id: int | None = None, db: Session = Depends(get_db)):
+def get_subjects(
+    department_id: int | None = None,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Subject)
     if department_id:
-        return db.query(Subject).filter(Subject.department_id == department_id).all()
-    return db.query(Subject).all()
+        query = query.filter(Subject.department_id == department_id)
+    elif institution_id:
+        query = query.join(Department).filter(Department.institution_id == institution_id)
+    return query.all()
 
 
 @router.get("/{subject_id}", response_model=SubjectResponse)

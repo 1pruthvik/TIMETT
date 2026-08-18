@@ -92,12 +92,25 @@ export default function OfferingsPage() {
     setLoading(true);
     setError("");
     try {
+      let instId = 1;
+      let deptId: number | null = null;
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          if (user.institution_id) instId = user.institution_id;
+          if (user.department_id) deptId = user.department_id;
+        } catch {
+          // ignore
+        }
+      }
+
       const [offRes, subRes, facRes, secRes, semRes] = await Promise.all([
-        fetch(`${API_BASE}/subject-offerings/`).catch(() => null),
-        fetch(`${API_BASE}/subjects/`).catch(() => null),
-        fetch(`${API_BASE}/faculty/`).catch(() => null),
-        fetch(`${API_BASE}/sections/`).catch(() => null),
-        fetch(`${API_BASE}/semesters/`).catch(() => null),
+        fetch(`${API_BASE}/subject-offerings/?institution_id=${instId}${deptId ? `&department_id=${deptId}` : ""}`).catch(() => null),
+        fetch(`${API_BASE}/subjects/?institution_id=${instId}${deptId ? `&department_id=${deptId}` : ""}`).catch(() => null),
+        fetch(`${API_BASE}/faculty/?institution_id=${instId}${deptId ? `&department_id=${deptId}` : ""}`).catch(() => null),
+        fetch(`${API_BASE}/sections/?institution_id=${instId}${deptId ? `&department_id=${deptId}` : ""}`).catch(() => null),
+        fetch(`${API_BASE}/semesters/?institution_id=${instId}`).catch(() => null),
       ]);
 
       const offs = (offRes && offRes.ok) ? await offRes.json() : [];

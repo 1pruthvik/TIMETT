@@ -82,14 +82,14 @@ const managementItems: NavItemDef[] = [
     icon: Users,
   },
   {
-    title: "Constraints",
-    url: "/constraints",
-    icon: Sliders,
-  },
-  {
     title: "Time Slots",
     url: "/time-slots",
     icon: Clock,
+  },
+  {
+    title: "Constraints",
+    url: "/constraints",
+    icon: Sliders,
   },
   {
     title: "Versions",

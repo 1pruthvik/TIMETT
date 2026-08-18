@@ -34,7 +34,7 @@ import {
   RefreshCw,
   Sparkles,
   GraduationCap,
-  CheckCircle2,
+  FlaskConical,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -50,6 +50,14 @@ interface Section {
   name: string;
   department_id: number;
   student_count?: number;
+}
+
+interface Room {
+  id: number;
+  name: string;
+  capacity: number;
+  room_type?: string;
+  institution_id: number;
 }
 
 interface SemesterConfig {
@@ -71,22 +79,26 @@ const DEFAULT_SEMESTERS: SemesterConfig[] = [
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [institutionId, setInstitutionId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
 
   // Create Department Modal
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [deptLabCount, setDeptLabCount] = useState("3");
   const [semesterConfigs, setSemesterConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Edit Department Modal (Title + Semester Section Counts)
+  // Edit Department Modal (Title + Total Dept Labs + Semester Section Counts)
   const [editOpen, setEditOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [editName, setEditName] = useState("");
+  const [editDeptLabCount, setEditDeptLabCount] = useState("3");
   const [editConfigs, setEditConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
   const [customSectionName, setCustomSectionName] = useState("");
+  const [customLabName, setCustomLabName] = useState("");
   const [submittingEdit, setSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -99,9 +111,10 @@ export default function DepartmentsPage() {
       const userInstId = user?.institution_id || 1;
       setInstitutionId(userInstId);
 
-      const [deptRes, secRes] = await Promise.all([
+      const [deptRes, secRes, roomRes] = await Promise.all([
         fetch(`${API_BASE}/departments/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
+        fetch(`${API_BASE}/rooms/?institution_id=${userInstId}`).catch(() => null),
       ]);
 
       if (deptRes && deptRes.ok) {
@@ -109,6 +122,9 @@ export default function DepartmentsPage() {
       }
       if (secRes && secRes.ok) {
         setSections(await secRes.json());
+      }
+      if (roomRes && roomRes.ok) {
+        setRooms(await roomRes.json());
       }
     } catch (err) {
       console.error(err);
@@ -178,7 +194,24 @@ export default function DepartmentsPage() {
         }
       }
 
+      // Provision department-wide physical laboratories
+      const numLabs = parseInt(deptLabCount) || 0;
+      for (let j = 1; j <= numLabs; j++) {
+        const labName = `${deptShort} Lab ${j}`;
+        await fetch(`${API_BASE}/rooms/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: labName,
+            capacity: 35,
+            room_type: "Lab",
+            institution_id: institutionId,
+          }),
+        }).catch(() => null);
+      }
+
       setName("");
+      setDeptLabCount("3");
       setSemesterConfigs(DEFAULT_SEMESTERS);
       setOpen(false);
       await fetchData();
@@ -203,8 +236,14 @@ export default function DepartmentsPage() {
       };
     });
 
+    // Compute department labs count
+    const deptShort = dept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4);
+    const deptLabs = rooms.filter((r) => r.room_type === "Lab" && (r.name.startsWith(deptShort) || r.name.includes(dept.name)));
+    setEditDeptLabCount(deptLabs.length > 0 ? deptLabs.length.toString() : "3");
+
     setEditConfigs(updatedConfigs);
     setCustomSectionName("");
+    setCustomLabName("");
     setEditError("");
     setEditOpen(true);
   };
@@ -232,6 +271,30 @@ export default function DepartmentsPage() {
     }
   };
 
+  const handleAddCustomLabToDept = async () => {
+    if (!editingDept || !customLabName.trim()) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/rooms/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: customLabName.trim(),
+          capacity: 35,
+          room_type: "Lab",
+          institution_id: institutionId,
+        }),
+      });
+
+      if (res.ok) {
+        setCustomLabName("");
+        await fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleDeleteSectionFromDept = async (secId: number) => {
     try {
       const res = await fetch(`${API_BASE}/sections/${secId}`, {
@@ -239,6 +302,19 @@ export default function DepartmentsPage() {
       });
       if (res.ok) {
         setSections((prev) => prev.filter((s) => s.id !== secId));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteLabFromDept = async (roomId: number) => {
+    try {
+      const res = await fetch(`${API_BASE}/rooms/${roomId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setRooms((prev) => prev.filter((r) => r.id !== roomId));
       }
     } catch (err) {
       console.error(err);
@@ -290,6 +366,25 @@ export default function DepartmentsPage() {
         }
       }
 
+      // 3. Sync department labs
+      const numLabs = parseInt(editDeptLabCount) || 0;
+      for (let j = 1; j <= numLabs; j++) {
+        const labName = `${deptShort} Lab ${j}`;
+        const exists = rooms.find((r) => r.name === labName && r.room_type === "Lab");
+        if (!exists) {
+          await fetch(`${API_BASE}/rooms/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: labName,
+              capacity: 35,
+              room_type: "Lab",
+              institution_id: institutionId,
+            }),
+          }).catch(() => null);
+        }
+      }
+
       setEditOpen(false);
       await fetchData();
     } catch (err) {
@@ -314,13 +409,15 @@ export default function DepartmentsPage() {
   };
 
   const activeDeptSections = editingDept ? sections.filter((s) => s.department_id === editingDept.id) : [];
+  const editingDeptShort = editingDept ? editingDept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4) : "";
+  const activeDeptLabs = editingDept ? rooms.filter((r) => r.room_type === "Lab" && (r.name.startsWith(editingDeptShort) || r.name.includes(editingDept.name))) : [];
 
   return (
     <AppShell>
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
-          title="Departments & Semester Section Hierarchy"
-          description="Create academic departments and configure the number of student sections for each semester."
+          title="Departments & Structure"
+          description="Create academic departments, define total department laboratories, and set student section counts per semester."
           icon={Building2}
         >
           <Button
@@ -339,32 +436,51 @@ export default function DepartmentsPage() {
                 <Plus className="size-4" /> Add Department
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[540px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Academic Department Setup</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
-                  Create Department & Semester Structure
+                  Create Department Structure
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Enter department title and specify the number of student sections for each semester.
+                  Specify department title, total department labs, and number of student sections per semester.
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleAddDepartment} className="space-y-4 pt-2">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Department Title *
-                  </label>
-                  <Input
-                    placeholder="e.g. Computer Science & Engineering"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="rounded-xl border-border bg-muted/40 focus:border-primary"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Department Title *
+                    </label>
+                    <Input
+                      placeholder="e.g. Computer Science & Engineering"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="rounded-xl border-border bg-muted/40 focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1">
+                      <FlaskConical className="size-3.5 text-amber-500" />
+                      Department Labs
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="20"
+                      placeholder="3"
+                      value={deptLabCount}
+                      onChange={(e) => setDeptLabCount(e.target.value)}
+                      required
+                      className="rounded-xl border-border bg-muted/40 font-mono text-center font-bold"
+                    />
+                  </div>
                 </div>
 
                 {/* Semester Section Structure Table */}
@@ -409,7 +525,7 @@ export default function DepartmentsPage() {
                     disabled={submitting || !name.trim()}
                     className="tt-gradient-btn rounded-xl font-bold w-full"
                   >
-                    {submitting ? "Provisioning Department..." : "Create Department & Sections"}
+                    {submitting ? "Provisioning Department..." : "Create Department Structure"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -419,31 +535,49 @@ export default function DepartmentsPage() {
 
         {/* Edit Department Modal */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[540px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Department & Structure</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Department & Sections
+                Edit Department Structure
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Update department title, adjust section counts per semester, or add custom sections.
+                Update department title, total department labs, and section counts per semester.
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleUpdateDepartment} className="space-y-4 pt-2">
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Department Title *
-                </label>
-                <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  required
-                  className="rounded-xl border-border bg-muted/40"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Department Title *
+                  </label>
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1">
+                    <FlaskConical className="size-3.5 text-amber-500" />
+                    Department Labs
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="20"
+                    value={editDeptLabCount}
+                    onChange={(e) => setEditDeptLabCount(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40 font-mono text-center font-bold"
+                  />
+                </div>
               </div>
 
               {/* Semester Sections Matrix inside Edit Modal */}
@@ -480,30 +614,78 @@ export default function DepartmentsPage() {
                 </div>
               </div>
 
+              {/* Active Department Laboratories List */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <FlaskConical className="size-4 text-amber-500" />
+                  Department Physical Laboratories ({activeDeptLabs.length})
+                </label>
+
+                {activeDeptLabs.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 p-2 rounded-xl border border-border bg-card/60">
+                    {activeDeptLabs.map((lab) => (
+                      <div
+                        key={lab.id}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs font-semibold"
+                      >
+                        <span>{lab.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLabFromDept(lab.id)}
+                          className="text-muted-foreground hover:text-red-500 ml-1 cursor-pointer"
+                          title="Remove lab space"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">No specialized labs registered yet.</p>
+                )}
+
+                {/* Add Custom Lab */}
+                <div className="flex items-center gap-2 pt-1">
+                  <Input
+                    placeholder="e.g. Advanced AI Lab or CAD/CAM Lab"
+                    value={customLabName}
+                    onChange={(e) => setCustomLabName(e.target.value)}
+                    className="h-8 text-xs rounded-xl"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAddCustomLabToDept}
+                    disabled={!customLabName.trim()}
+                    size="sm"
+                    className="h-8 rounded-xl text-xs font-bold px-3 shrink-0"
+                  >
+                    <Plus className="size-3.5 mr-1" /> Add Lab
+                  </Button>
+                </div>
+              </div>
+
               {/* Current Active Sections in this Department */}
               <div className="space-y-2 pt-2 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-foreground">
-                    Active Sections in Department ({activeDeptSections.length})
-                  </label>
-                </div>
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <GraduationCap className="size-4 text-[#8B5CF6]" />
+                  Active Student Sections ({activeDeptSections.length})
+                </label>
 
                 {activeDeptSections.length > 0 ? (
-                  <div className="max-h-36 overflow-y-auto rounded-xl border border-border bg-card/60 p-2 space-y-1.5">
+                  <div className="flex flex-wrap gap-1.5 p-2 rounded-xl border border-border bg-card/60 max-h-32 overflow-y-auto">
                     {activeDeptSections.map((sec) => (
                       <div
                         key={sec.id}
-                        className="flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-lg bg-muted/40 text-xs"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-300 text-xs font-semibold"
                       >
-                        <span className="font-bold text-foreground">{sec.name}</span>
-
+                        <span>{sec.name}</span>
                         <button
                           type="button"
                           onClick={() => handleDeleteSectionFromDept(sec.id)}
-                          className="text-muted-foreground hover:text-red-500 p-1 cursor-pointer"
+                          className="text-muted-foreground hover:text-red-500 ml-1 cursor-pointer"
                           title="Remove section"
                         >
-                          <Trash2 className="size-3.5" />
+                          <Trash2 className="size-3" />
                         </button>
                       </div>
                     ))}
@@ -540,7 +722,7 @@ export default function DepartmentsPage() {
                   disabled={submittingEdit || !editName.trim()}
                   className="tt-gradient-btn rounded-xl font-bold w-full"
                 >
-                  {submittingEdit ? "Updating Structure..." : "Update Department & Sync Sections"}
+                  {submittingEdit ? "Updating Structure..." : "Update Department & Sync Structure"}
                 </Button>
               </DialogFooter>
             </form>
@@ -552,7 +734,7 @@ export default function DepartmentsPage() {
             <div>
               <h3 className="text-base font-bold text-foreground">Institutional Departments</h3>
               <p className="text-xs text-muted-foreground">
-                {departments.length} {departments.length === 1 ? "department" : "departments"} registered with active semester sections
+                {departments.length} {departments.length === 1 ? "department" : "departments"} registered with configured laboratories and semester sections
               </p>
             </div>
           </div>
@@ -564,7 +746,7 @@ export default function DepartmentsPage() {
               <EmptyState
                 icon={Building2}
                 title="No departments found"
-                description='Click "Add Department" above to create departments and configure sections per semester.'
+                description='Click "Add Department" above to create departments with labs and semester sections.'
               />
             ) : (
               <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
@@ -573,13 +755,16 @@ export default function DepartmentsPage() {
                     <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
                       <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Department Title</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Configured Sections</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Department Labs</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Semester Sections</TableHead>
                       <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {departments.map((dept, index) => {
                       const deptSections = sections.filter((s) => s.department_id === dept.id);
+                      const deptShort = dept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4);
+                      const deptLabs = rooms.filter((r) => r.room_type === "Lab" && (r.name.startsWith(deptShort) || r.name.includes(dept.name)));
 
                       return (
                         <TableRow key={dept.id} className="border-border hover:bg-muted/20 transition-colors">
@@ -590,7 +775,14 @@ export default function DepartmentsPage() {
                             {dept.name}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 font-semibold">
+                            <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30 font-semibold gap-1">
+                              <FlaskConical className="size-3" />
+                              {deptLabs.length} Labs
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 font-semibold gap-1">
+                              <GraduationCap className="size-3" />
                               {deptSections.length} Sections
                             </Badge>
                           </TableCell>
@@ -601,7 +793,7 @@ export default function DepartmentsPage() {
                                 size="icon"
                                 className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
                                 onClick={() => openEditModal(dept)}
-                                title="Edit department and sections"
+                                title="Edit department, labs, and sections"
                               >
                                 <Pencil className="size-4" />
                               </Button>

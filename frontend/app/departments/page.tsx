@@ -33,11 +33,9 @@ import {
   Building2,
   RefreshCw,
   Sparkles,
-  Layers,
   GraduationCap,
-  DoorOpen,
-  CheckCircle2,
   Sliders,
+  CheckCircle2,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -81,17 +79,11 @@ export default function DepartmentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Manage Department Sections Modal
-  const [manageOpen, setManageOpen] = useState(false);
-  const [selectedDept, setSelectedDept] = useState<Department | null>(null);
-  const [manageConfigs, setManageConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
-  const [submittingManage, setSubmittingManage] = useState(false);
-  const [manageSuccess, setManageSuccess] = useState("");
-
-  // Edit Modal
+  // Edit Department Modal (Title + Semester Section & Lab Counts)
   const [editOpen, setEditOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [editName, setEditName] = useState("");
+  const [editConfigs, setEditConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
   const [submittingEdit, setSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -131,9 +123,9 @@ export default function DepartmentsPage() {
     index: number,
     field: "sectionCount" | "labCount",
     val: number,
-    isManage = false
+    isEdit = false
   ) => {
-    const updater = isManage ? setManageConfigs : setSemesterConfigs;
+    const updater = isEdit ? setEditConfigs : setSemesterConfigs;
     updater((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: Math.max(0, Math.min(10, val)) };
@@ -208,70 +200,23 @@ export default function DepartmentsPage() {
     }
   };
 
-  const openManageModal = (dept: Department) => {
-    setSelectedDept(dept);
-    setManageConfigs(DEFAULT_SEMESTERS);
-    setManageSuccess("");
-    setManageOpen(true);
-  };
-
-  const handleSaveDepartmentSections = async () => {
-    if (!selectedDept) return;
-    setSubmittingManage(true);
-    setManageSuccess("");
-
-    try {
-      const deptShort = selectedDept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4) || "SEC";
-      const letters = ["A", "B", "C", "D", "E", "F", "G"];
-
-      for (const conf of manageConfigs) {
-        for (let i = 0; i < conf.sectionCount; i++) {
-          const secLabel = `${deptShort} ${conf.semNumber}${letters[i] || i + 1}`;
-          // Check if already exists
-          const exists = sections.find((s) => s.department_id === selectedDept.id && s.name === secLabel);
-          if (!exists) {
-            await fetch(`${API_BASE}/sections/`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: secLabel,
-                department_id: selectedDept.id,
-                student_count: 60,
-              }),
-            }).catch(() => null);
-          }
-        }
-
-        for (let j = 0; j < conf.labCount; j++) {
-          const labLabel = `${deptShort} Sem ${conf.semNumber} Lab ${j + 1}`;
-          const exists = sections.find((s) => s.department_id === selectedDept.id && s.name === labLabel);
-          if (!exists) {
-            await fetch(`${API_BASE}/sections/`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: labLabel,
-                department_id: selectedDept.id,
-                student_count: 30,
-              }),
-            }).catch(() => null);
-          }
-        }
-      }
-
-      await fetchData();
-      setManageSuccess("Successfully generated and updated semester sections and lab cohorts!");
-      setTimeout(() => setManageOpen(false), 1200);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSubmittingManage(false);
-    }
-  };
-
   const openEditModal = (dept: Department) => {
     setEditingDept(dept);
     setEditName(dept.name);
+
+    // Compute existing sections/labs count per semester for this department
+    const deptSections = sections.filter((s) => s.department_id === dept.id);
+    const updatedConfigs: SemesterConfig[] = DEFAULT_SEMESTERS.map((sem) => {
+      const semSecs = deptSections.filter((s) => s.name.includes(`${sem.semNumber}`) && !s.name.toLowerCase().includes("lab"));
+      const semLabs = deptSections.filter((s) => s.name.includes(`${sem.semNumber}`) && s.name.toLowerCase().includes("lab"));
+      return {
+        semNumber: sem.semNumber,
+        sectionCount: semSecs.length > 0 ? semSecs.length : 2,
+        labCount: semLabs.length > 0 ? semLabs.length : 2,
+      };
+    });
+
+    setEditConfigs(updatedConfigs);
     setEditError("");
     setEditOpen(true);
   };
@@ -284,6 +229,7 @@ export default function DepartmentsPage() {
     setEditError("");
 
     try {
+      // 1. Update department name
       const res = await fetch(`${API_BASE}/departments/${editingDept.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -296,6 +242,44 @@ export default function DepartmentsPage() {
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.detail || "Failed to update department");
+      }
+
+      // 2. Sync sections & labs for the department
+      const deptShort = editName.trim().split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4) || "SEC";
+      const letters = ["A", "B", "C", "D", "E", "F", "G"];
+
+      for (const conf of editConfigs) {
+        for (let i = 0; i < conf.sectionCount; i++) {
+          const secLabel = `${deptShort} ${conf.semNumber}${letters[i] || i + 1}`;
+          const exists = sections.find((s) => s.department_id === editingDept.id && s.name === secLabel);
+          if (!exists) {
+            await fetch(`${API_BASE}/sections/`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: secLabel,
+                department_id: editingDept.id,
+                student_count: 60,
+              }),
+            }).catch(() => null);
+          }
+        }
+
+        for (let j = 0; j < conf.labCount; j++) {
+          const labLabel = `${deptShort} Sem ${conf.semNumber} Lab ${j + 1}`;
+          const exists = sections.find((s) => s.department_id === editingDept.id && s.name === labLabel);
+          if (!exists) {
+            await fetch(`${API_BASE}/sections/`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: labLabel,
+                department_id: editingDept.id,
+                student_count: 30,
+              }),
+            }).catch(() => null);
+          }
+        }
       }
 
       setEditOpen(false);
@@ -355,7 +339,7 @@ export default function DepartmentsPage() {
                   Create Department & Semester Structure
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Enter department name and specify number of sections & labs for each semester.
+                  Enter department title and specify the number of sections & labs for each semester.
                 </DialogDescription>
               </DialogHeader>
 
@@ -437,92 +421,20 @@ export default function DepartmentsPage() {
           </Dialog>
         </PageHeader>
 
-        {/* Manage Sections & Labs Modal */}
-        <Dialog open={manageOpen} onOpenChange={setManageOpen}>
-          <DialogContent className="sm:max-w-[500px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
-                <Sliders className="size-4" />
-                <span className="tt-eyebrow">Cohort Structure</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                Manage {selectedDept?.name} Sections
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Adjust section and lab generation counts per semester.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-3 pt-2">
-              <div className="rounded-2xl border border-border bg-muted/20 p-3 space-y-2">
-                {manageConfigs.map((sem, idx) => (
-                  <div
-                    key={sem.semNumber}
-                    className="flex items-center justify-between gap-4 p-2.5 rounded-xl bg-card border border-border text-xs"
-                  >
-                    <span className="font-bold text-foreground w-20">
-                      Semester {sem.semNumber}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Sections:</span>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="10"
-                        value={sem.sectionCount}
-                        onChange={(e) =>
-                          handleUpdateSemConfig(idx, "sectionCount", parseInt(e.target.value) || 0, true)
-                        }
-                        className="w-16 h-8 text-center font-bold text-xs rounded-lg"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Labs:</span>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="10"
-                        value={sem.labCount}
-                        onChange={(e) =>
-                          handleUpdateSemConfig(idx, "labCount", parseInt(e.target.value) || 0, true)
-                        }
-                        className="w-16 h-8 text-center font-bold text-xs rounded-lg"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {manageSuccess && (
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-                  <CheckCircle2 className="size-4" /> {manageSuccess}
-                </div>
-              )}
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button
-                onClick={handleSaveDepartmentSections}
-                disabled={submittingManage}
-                className="tt-gradient-btn rounded-xl font-bold w-full"
-              >
-                {submittingManage ? "Updating Cohorts..." : "Generate & Sync Sections"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Department Modal */}
+        {/* Edit Department Modal (Includes Title + Semester Sections & Labs) */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[540px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                 <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Department</span>
+                <span className="tt-eyebrow">Modify Department & Structure</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Department
+                Edit Department & Cohorts
               </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update department title and adjust section & lab counts per semester.
+              </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleUpdateDepartment} className="space-y-4 pt-2">
@@ -538,15 +450,63 @@ export default function DepartmentsPage() {
                 />
               </div>
 
+              {/* Semester Sections & Labs Matrix inside Edit Modal */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <GraduationCap className="size-4 text-[#8B5CF6]" />
+                  Configure Semester Sections & Labs
+                </label>
+                <div className="rounded-2xl border border-border bg-muted/20 p-3 space-y-2.5">
+                  {editConfigs.map((sem, idx) => (
+                    <div
+                      key={sem.semNumber}
+                      className="flex items-center justify-between gap-4 p-2 rounded-xl bg-card border border-border text-xs"
+                    >
+                      <span className="font-bold text-foreground w-20">
+                        Semester {sem.semNumber}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Sections:</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="10"
+                          value={sem.sectionCount}
+                          onChange={(e) =>
+                            handleUpdateSemConfig(idx, "sectionCount", parseInt(e.target.value) || 0, true)
+                          }
+                          className="w-16 h-8 text-center font-bold text-xs rounded-lg"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Labs:</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="10"
+                          value={sem.labCount}
+                          onChange={(e) =>
+                            handleUpdateSemConfig(idx, "labCount", parseInt(e.target.value) || 0, true)
+                          }
+                          className="w-16 h-8 text-center font-bold text-xs rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {editError && <p className="text-xs text-red-500">{editError}</p>}
 
               <DialogFooter className="pt-2">
                 <Button
                   type="submit"
                   disabled={submittingEdit || !editName.trim()}
-                  className="tt-gradient-btn rounded-xl font-bold"
+                  className="tt-gradient-btn rounded-xl font-bold w-full"
                 >
-                  {submittingEdit ? "Updating..." : "Update Title"}
+                  {submittingEdit ? "Updating Structure..." : "Update Department & Sync Cohorts"}
                 </Button>
               </DialogFooter>
             </form>
@@ -558,7 +518,7 @@ export default function DepartmentsPage() {
             <div>
               <h3 className="text-base font-bold text-foreground">Institutional Departments</h3>
               <p className="text-xs text-muted-foreground">
-                {departments.length} {departments.length === 1 ? "department" : "departments"} with configured semester cohorts
+                {departments.length} {departments.length === 1 ? "department" : "departments"} registered with active semester cohorts
               </p>
             </div>
           </div>
@@ -570,7 +530,7 @@ export default function DepartmentsPage() {
               <EmptyState
                 icon={Building2}
                 title="No departments found"
-                description='Click "Add Department" above to create departments and provision sections & labs.'
+                description='Click "Add Department" above to create departments and configure sections & labs.'
               />
             ) : (
               <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
@@ -579,8 +539,7 @@ export default function DepartmentsPage() {
                     <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
                       <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-xs font-bold text-muted-foreground">Department Title</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Active Cohorts</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Cohort Management</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Configured Cohorts</TableHead>
                       <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -608,17 +567,6 @@ export default function DepartmentsPage() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openManageModal(dept)}
-                              className="rounded-xl text-xs font-bold gap-1.5 border-[#8B5CF6]/30 text-[#8B5CF6] hover:bg-[#8B5CF6]/10"
-                            >
-                              <Sliders className="size-3.5" />
-                              Configure Semesters
-                            </Button>
-                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <Button
@@ -626,7 +574,7 @@ export default function DepartmentsPage() {
                                 size="icon"
                                 className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
                                 onClick={() => openEditModal(dept)}
-                                title="Edit department title"
+                                title="Edit department and cohorts"
                               >
                                 <Pencil className="size-4" />
                               </Button>

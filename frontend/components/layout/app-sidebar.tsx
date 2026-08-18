@@ -77,11 +77,6 @@ const managementItems: NavItemDef[] = [
     icon: BookOpen,
   },
   {
-    title: "Sections",
-    url: "/sections",
-    icon: GraduationCap,
-  },
-  {
     title: "Rooms & Labs",
     url: "/rooms",
     icon: DoorOpen,

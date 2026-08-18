@@ -67,9 +67,9 @@ const managementItems: NavItemDef[] = [
     icon: Building2,
   },
   {
-    title: "Faculty",
-    url: "/faculty",
-    icon: Users,
+    title: "Rooms & Labs",
+    url: "/rooms",
+    icon: DoorOpen,
   },
   {
     title: "Subjects",
@@ -77,9 +77,9 @@ const managementItems: NavItemDef[] = [
     icon: BookOpen,
   },
   {
-    title: "Rooms & Labs",
-    url: "/rooms",
-    icon: DoorOpen,
+    title: "Faculty",
+    url: "/faculty",
+    icon: Users,
   },
   {
     title: "Constraints",

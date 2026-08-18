@@ -10,6 +10,7 @@ export default function AuthCallbackPage() {
   const [status, setStatus] = useState("Authorizing your session...");
   const [error, setError] = useState("");
   const hasHandled = useRef(false);
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
   useEffect(() => {
     if (hasHandled.current) return;
@@ -27,7 +28,7 @@ export default function AuthCallbackPage() {
         // 1. GitHub Code Callback
         if (code) {
           setStatus("Authorizing with GitHub...");
-          const ghRes = await fetch("http://127.0.0.1:8000/auth/github/callback", {
+          const ghRes = await fetch(`${API_BASE}/auth/github/callback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ code }),
@@ -57,7 +58,7 @@ export default function AuthCallbackPage() {
           );
           const data = JSON.parse(jsonPayload);
 
-          const res = await fetch("http://127.0.0.1:8000/auth/oauth", {
+          const res = await fetch(`${API_BASE}/auth/oauth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -88,7 +89,7 @@ export default function AuthCallbackPage() {
           if (userInfoRes.ok) {
             const userInfo = await userInfoRes.json();
 
-            const res = await fetch("http://127.0.0.1:8000/auth/oauth", {
+            const res = await fetch(`${API_BASE}/auth/oauth`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

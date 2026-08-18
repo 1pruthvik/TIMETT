@@ -40,8 +40,8 @@ import {
   GraduationCap,
   FlaskConical,
   Building2,
-  Layers,
   Search,
+  Check,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -66,13 +66,6 @@ interface Section {
   department_id: number;
   student_count?: number;
 }
-
-const ROOM_TYPES = [
-  { value: "Classroom", label: "Lecture Classroom" },
-  { value: "Lab", label: "Computer / Tech Lab" },
-  { value: "Seminar Hall", label: "Seminar / Audio-Visual Hall" },
-  { value: "Auditorium", label: "Large Auditorium" },
-];
 
 function getDeptAcronym(name: string): string {
   if (!name.trim()) return "SEC";
@@ -108,40 +101,38 @@ export default function RoomsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Mappings: sectionId -> roomId, and labId -> targetPhysicalRoomId
-  const [sectionRoomMap, setSectionRoomMap] = useState<Record<number, number>>({});
-  const [labRoomMap, setLabRoomMap] = useState<Record<number, number>>({});
+  // Direct text room numbers for sections and labs
+  const [sectionRoomText, setSectionRoomText] = useState<Record<number, string>>({});
+  const [labRoomText, setLabRoomText] = useState<Record<number, string>>({});
   const [savedIndicator, setSavedIndicator] = useState("");
-
-  // Create Physical Space Modal
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [capacity, setCapacity] = useState("60");
-  const [roomType, setRoomType] = useState("Classroom");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  // Edit Room Modal
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editCapacity, setEditCapacity] = useState("60");
-  const [editRoomType, setEditRoomType] = useState("Classroom");
-  const [submittingEdit, setSubmittingEdit] = useState(false);
-  const [editError, setEditError] = useState("");
 
   // Edit Section Modal
   const [editSecOpen, setEditSecOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [editSecName, setEditSecName] = useState("");
   const [editSecCount, setEditSecCount] = useState("60");
-  const [editSecRoomId, setEditSecRoomId] = useState<number | "">("");
+  const [editSecRoomNumber, setEditSecRoomNumber] = useState("");
   const [submittingSecEdit, setSubmittingSecEdit] = useState(false);
   const [editSecError, setEditSecError] = useState("");
 
+  // Edit Lab Modal
+  const [editLabOpen, setEditLabOpen] = useState(false);
+  const [editingLab, setEditingLab] = useState<Room | null>(null);
+  const [editLabName, setEditLabName] = useState("");
+  const [editLabRoomNumber, setEditLabRoomNumber] = useState("");
+  const [editLabCapacity, setEditLabCapacity] = useState("35");
+  const [submittingLabEdit, setSubmittingLabEdit] = useState(false);
+  const [editLabError, setEditLabError] = useState("");
+
+  // Create Physical Space Modal
+  const [createSpaceOpen, setCreateSpaceOpen] = useState(false);
+  const [spaceName, setSpaceName] = useState("");
+  const [spaceType, setSpaceType] = useState("Classroom");
+  const [spaceCapacity, setSpaceCapacity] = useState("60");
+  const [submittingSpace, setSubmittingSpace] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : null;
@@ -154,28 +145,29 @@ export default function RoomsPage() {
         fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
       ]);
 
+      let allRooms: Room[] = [];
+      if (roomRes && roomRes.ok) {
+        allRooms = await roomRes.json();
+        setRooms(allRooms);
+      }
       if (deptRes && deptRes.ok) {
         setDepartments(await deptRes.json());
-      }
-      if (roomRes && roomRes.ok) {
-        setRooms(await roomRes.json());
       }
       if (secRes && secRes.ok) {
         setSections(await secRes.json());
       }
 
-      // Load saved mappings from localStorage
-      const savedSecMap = localStorage.getItem(`timett_section_room_map_${userInstId}`);
+      // Load saved text room numbers
+      const savedSecMap = localStorage.getItem(`timett_section_room_names_${userInstId}`);
       if (savedSecMap) {
-        setSectionRoomMap(JSON.parse(savedSecMap));
+        setSectionRoomText(JSON.parse(savedSecMap));
       }
-      const savedLabMap = localStorage.getItem(`timett_lab_room_map_${userInstId}`);
+      const savedLabMap = localStorage.getItem(`timett_lab_room_names_${userInstId}`);
       if (savedLabMap) {
-        setLabRoomMap(JSON.parse(savedLabMap));
+        setLabRoomText(JSON.parse(savedLabMap));
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to connect to backend API.");
     } finally {
       setLoading(false);
     }
@@ -185,105 +177,88 @@ export default function RoomsPage() {
     fetchData();
   }, []);
 
-  const handleLinkSectionRoom = (sectionId: number, roomId: number) => {
-    const updated = { ...sectionRoomMap, [sectionId]: roomId };
-    setSectionRoomMap(updated);
-    localStorage.setItem(`timett_section_room_map_${institutionId}`, JSON.stringify(updated));
-    setSavedIndicator("Section room mapping updated");
-    setTimeout(() => setSavedIndicator(""), 2200);
-  };
+  const ensureAndSaveRoom = async (
+    roomName: string,
+    type: "Classroom" | "Lab" = "Classroom"
+  ): Promise<Room | null> => {
+    const trimmed = roomName.trim();
+    if (!trimmed) return null;
 
-  const handleLinkLabRoom = (labId: number, targetRoomId: number) => {
-    const updated = { ...labRoomMap, [labId]: targetRoomId };
-    setLabRoomMap(updated);
-    localStorage.setItem(`timett_lab_room_map_${institutionId}`, JSON.stringify(updated));
-    setSavedIndicator("Lab facility room mapping updated");
-    setTimeout(() => setSavedIndicator(""), 2200);
-  };
-
-  const handleAddRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !capacity) return;
-
-    setSubmitting(true);
-    setError("");
+    const existing = rooms.find(
+      (r) => r.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (existing) return existing;
 
     try {
       const res = await fetch(`${API_BASE}/rooms/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim(),
-          capacity: parseInt(capacity) || 60,
-          room_type: roomType,
+          name: trimmed,
+          capacity: type === "Lab" ? 35 : 60,
+          room_type: type,
           institution_id: institutionId,
         }),
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to create room");
+      if (res.ok) {
+        const created: Room = await res.json();
+        setRooms((prev) => [...prev, created]);
+        return created;
       }
-
-      setName("");
-      setCapacity("60");
-      setRoomType("Classroom");
-      setOpen(false);
-      await fetchData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error creating space");
-    } finally {
-      setSubmitting(false);
+      console.error("Error creating physical room", err);
     }
+    return null;
   };
 
-  const openEditRoomModal = (room: Room) => {
-    setEditingRoom(room);
-    setEditName(room.name);
-    setEditCapacity(room.capacity.toString());
-    setEditRoomType(room.room_type || "Classroom");
-    setEditError("");
-    setEditOpen(true);
+  const handleSectionRoomChange = (secId: number, val: string) => {
+    setSectionRoomText((prev) => ({ ...prev, [secId]: val }));
   };
 
-  const handleUpdateRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingRoom || !editName.trim() || !editCapacity) return;
+  const handleSectionRoomBlur = async (secId: number, val: string) => {
+    const trimmed = val.trim();
+    const updated = { ...sectionRoomText, [secId]: trimmed };
+    setSectionRoomText(updated);
+    localStorage.setItem(
+      `timett_section_room_names_${institutionId}`,
+      JSON.stringify(updated)
+    );
 
-    setSubmittingEdit(true);
-    setEditError("");
-
-    try {
-      const res = await fetch(`${API_BASE}/rooms/${editingRoom.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          capacity: parseInt(editCapacity) || 60,
-          room_type: editRoomType,
-          institution_id: institutionId,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to update room");
-      }
-
-      setEditOpen(false);
-      await fetchData();
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Error updating room");
-    } finally {
-      setSubmittingEdit(false);
+    if (trimmed) {
+      await ensureAndSaveRoom(trimmed, "Classroom");
     }
+
+    setSavedIndicator("Room number saved");
+    setTimeout(() => setSavedIndicator(""), 2000);
+  };
+
+  const handleLabRoomChange = (labId: number, val: string) => {
+    setLabRoomText((prev) => ({ ...prev, [labId]: val }));
+  };
+
+  const handleLabRoomBlur = async (labId: number, val: string) => {
+    const trimmed = val.trim();
+    const updated = { ...labRoomText, [labId]: trimmed };
+    setLabRoomText(updated);
+    localStorage.setItem(
+      `timett_lab_room_names_${institutionId}`,
+      JSON.stringify(updated)
+    );
+
+    if (trimmed) {
+      await ensureAndSaveRoom(trimmed, "Lab");
+    }
+
+    setSavedIndicator("Lab room saved");
+    setTimeout(() => setSavedIndicator(""), 2000);
   };
 
   const openEditSectionModal = (sec: Section) => {
     setEditingSection(sec);
     setEditSecName(sec.name);
     setEditSecCount((sec.student_count || 60).toString());
-    setEditSecRoomId(sectionRoomMap[sec.id] || "");
+    setEditSecRoomNumber(sectionRoomText[sec.id] || "");
     setEditSecError("");
     setEditSecOpen(true);
   };
@@ -311,9 +286,17 @@ export default function RoomsPage() {
         throw new Error(errData.detail || "Failed to update section");
       }
 
-      // Update room link if changed
-      if (editSecRoomId !== "") {
-        handleLinkSectionRoom(editingSection.id, Number(editSecRoomId));
+      // Save room number text
+      const trimmedRoom = editSecRoomNumber.trim();
+      const updated = { ...sectionRoomText, [editingSection.id]: trimmedRoom };
+      setSectionRoomText(updated);
+      localStorage.setItem(
+        `timett_section_room_names_${institutionId}`,
+        JSON.stringify(updated)
+      );
+
+      if (trimmedRoom) {
+        await ensureAndSaveRoom(trimmedRoom, "Classroom");
       }
 
       setEditSecOpen(false);
@@ -322,6 +305,56 @@ export default function RoomsPage() {
       setEditSecError(err instanceof Error ? err.message : "Error updating section");
     } finally {
       setSubmittingSecEdit(false);
+    }
+  };
+
+  const openEditLabModal = (lab: Room) => {
+    setEditingLab(lab);
+    setEditLabName(lab.name);
+    setEditLabRoomNumber(labRoomText[lab.id] || lab.name);
+    setEditLabCapacity(lab.capacity.toString());
+    setEditLabError("");
+    setEditLabOpen(true);
+  };
+
+  const handleUpdateLab = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLab || !editLabName.trim()) return;
+
+    setSubmittingLabEdit(true);
+    setEditLabError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/rooms/${editingLab.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editLabName.trim(),
+          capacity: parseInt(editLabCapacity) || 35,
+          room_type: "Lab",
+          institution_id: institutionId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update lab");
+      }
+
+      const trimmedLabRoom = editLabRoomNumber.trim();
+      const updated = { ...labRoomText, [editingLab.id]: trimmedLabRoom };
+      setLabRoomText(updated);
+      localStorage.setItem(
+        `timett_lab_room_names_${institutionId}`,
+        JSON.stringify(updated)
+      );
+
+      setEditLabOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditLabError(err instanceof Error ? err.message : "Error updating lab");
+    } finally {
+      setSubmittingLabEdit(false);
     }
   };
 
@@ -340,23 +373,37 @@ export default function RoomsPage() {
     }
   };
 
-  const handleDeleteRoom = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this space?")) return;
+  const handleDeleteLab = async (labId: number) => {
+    if (!confirm("Are you sure you want to delete this laboratory?")) return;
     try {
-      const res = await fetch(`${API_BASE}/rooms/${id}`, {
+      const res = await fetch(`${API_BASE}/rooms/${labId}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        setRooms((prev) => prev.filter((r) => r.id !== id));
+        setRooms((prev) => prev.filter((r) => r.id !== labId));
+        await fetchData();
       }
     } catch (err) {
-      console.error("Failed to delete space", err);
+      console.error("Failed to delete lab", err);
     }
   };
 
-  // Filter classrooms & physical rooms for select options
-  const physicalClassrooms = rooms.filter((r) => r.room_type !== "Lab");
-  const physicalLabs = rooms.filter((r) => r.room_type === "Lab");
+  const handleCreateSpace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!spaceName.trim()) return;
+
+    setSubmittingSpace(true);
+    try {
+      await ensureAndSaveRoom(spaceName, spaceType as "Classroom" | "Lab");
+      setSpaceName("");
+      setCreateSpaceOpen(false);
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingSpace(false);
+    }
+  };
 
   const filteredDepartments = departments.filter((d) =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -367,7 +414,7 @@ export default function RoomsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Rooms & Laboratories Allocation"
-          description="View department structures, edit sections & labs, link room numbers, and manage physical infrastructure."
+          description="View department structures and directly enter physical room numbers for theory sections and laboratory spaces."
           icon={DoorOpen}
         >
           <Button
@@ -380,83 +427,72 @@ export default function RoomsPage() {
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
           </Button>
 
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={createSpaceOpen} onOpenChange={setCreateSpaceOpen}>
             <DialogTrigger asChild>
               <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
-                <Plus className="size-4" /> Add Room / Lab Space
+                <Plus className="size-4" /> Add Room Space
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                   <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Physical Facility Setup</span>
+                  <span className="tt-eyebrow">Physical Space Setup</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
-                  Register Room / Space
+                  Register Room Number
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Define a physical classroom, lecture hall, or lab space to link to sections.
-                </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleAddRoom} className="space-y-4 pt-2">
+              <form onSubmit={handleCreateSpace} className="space-y-4 pt-2">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
                     Room Number / Space Name *
                   </label>
                   <Input
-                    placeholder="e.g. Room 301, LH-102, or Lab 2"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Room 301, 302, LH-1, or Lab 4"
+                    value={spaceName}
+                    onChange={(e) => setSpaceName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40 focus:border-primary"
+                    className="rounded-xl border-border bg-muted/40"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Facility Type *
+                      Space Type
                     </label>
                     <select
+                      value={spaceType}
+                      onChange={(e) => setSpaceType(e.target.value)}
                       className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
-                      value={roomType}
-                      onChange={(e) => setRoomType(e.target.value)}
                     >
-                      {ROOM_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
-                        </option>
-                      ))}
+                      <option value="Classroom">Classroom</option>
+                      <option value="Lab">Laboratory</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Capacity (Seats) *
+                      Capacity
                     </label>
                     <Input
                       type="number"
-                      min="1"
-                      placeholder="60"
-                      value={capacity}
-                      onChange={(e) => setCapacity(e.target.value)}
-                      required
+                      value={spaceCapacity}
+                      onChange={(e) => setSpaceCapacity(e.target.value)}
                       className="rounded-xl border-border bg-muted/40 font-mono"
                     />
                   </div>
                 </div>
 
-                {error && <p className="text-xs text-red-500">{error}</p>}
-
                 <DialogFooter className="pt-2">
                   <Button
                     type="submit"
-                    disabled={submitting || !name.trim() || !capacity}
+                    disabled={submittingSpace || !spaceName.trim()}
                     className="tt-gradient-btn rounded-xl font-bold w-full"
                   >
-                    {submitting ? "Registering..." : "Register Physical Space"}
+                    {submittingSpace ? "Adding..." : "Add Room"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -464,7 +500,7 @@ export default function RoomsPage() {
           </Dialog>
         </PageHeader>
 
-        {/* Search & Live Status Bar */}
+        {/* Search & Status Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
             <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -483,22 +519,22 @@ export default function RoomsPage() {
               </div>
             )}
             <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
-              {physicalClassrooms.length} Classrooms
+              {rooms.filter((r) => r.room_type !== "Lab").length} Classrooms
             </Badge>
             <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
-              {physicalLabs.length} Labs
+              {rooms.filter((r) => r.room_type === "Lab").length} Labs
             </Badge>
           </div>
         </div>
 
-        {/* Hierarchical Departments List (User Required Format) */}
+        {/* Hierarchical Departments with Direct Room Number Entry */}
         {loading ? (
-          <LoadingState text="Loading departments, sections, and room allocations..." />
+          <LoadingState text="Loading departments and rooms..." />
         ) : departments.length === 0 ? (
           <EmptyState
             icon={Building2}
             title="No departments found"
-            description="Create academic departments first to configure and map rooms to sections & labs."
+            description="Create academic departments first to configure room numbers for sections & labs."
           />
         ) : (
           <div className="space-y-6">
@@ -508,7 +544,7 @@ export default function RoomsPage() {
 
               return (
                 <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
-                  {/* Department Card Header */}
+                  {/* Department Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
                     <div className="flex items-center gap-3">
                       <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#6D28D9]/20 border border-[#8B5CF6]/30 text-[#8B5CF6]">
@@ -517,7 +553,7 @@ export default function RoomsPage() {
                       <div>
                         <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
                         <p className="text-xs text-muted-foreground">
-                          Department Allocation Matrix
+                          Room Number Allocation
                         </p>
                       </div>
                     </div>
@@ -534,9 +570,9 @@ export default function RoomsPage() {
                     </div>
                   </div>
 
-                  {/* Department Body: Sections + Labs Columns */}
+                  {/* Department Body: Sections & Labs with Direct Room Number Inputs */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border bg-card/30">
-                    {/* 1. SECTIONS UNDER THIS DEPARTMENT */}
+                    {/* 1. SECTIONS WITH DIRECT ROOM NUMBER INPUT */}
                     <div className="p-5 space-y-3">
                       <div className="flex items-center justify-between pb-2 border-b border-border/60">
                         <div className="flex items-center gap-2">
@@ -546,97 +582,77 @@ export default function RoomsPage() {
                           </h4>
                         </div>
                         <span className="text-[11px] text-muted-foreground font-semibold">
-                          Link Room No. & Actions
+                          Enter Room No.
                         </span>
                       </div>
 
                       {deptSections.length === 0 ? (
                         <p className="text-xs text-muted-foreground italic py-3">
-                          No theory sections provisioned. Configure sections in Departments.
+                          No theory sections provisioned in this department.
                         </p>
                       ) : (
                         <div className="space-y-2">
-                          {deptSections.map((sec) => {
-                            const linkedRoomId = sectionRoomMap[sec.id];
-                            const linkedRoom = rooms.find((r) => r.id === linkedRoomId);
-
-                            return (
-                              <div
-                                key={sec.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors"
-                              >
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-sm text-foreground">
-                                      {sec.name}
-                                    </span>
-                                    {linkedRoom ? (
-                                      <Badge variant="outline" className="text-[10px] font-bold bg-primary/10 text-primary border-primary/30">
-                                        {linkedRoom.name}
-                                      </Badge>
-                                    ) : (
-                                      <span className="text-[10px] text-muted-foreground italic">
-                                        Dynamic Room
-                                      </span>
-                                    )}
-                                  </div>
-                                  <span className="text-[11px] text-muted-foreground block">
-                                    Strength: {sec.student_count || 60} students
-                                  </span>
-                                </div>
-
-                                <div className="w-full sm:w-60 flex items-center gap-1.5">
-                                  <select
-                                    value={sectionRoomMap[sec.id] || ""}
-                                    onChange={(e) =>
-                                      handleLinkSectionRoom(sec.id, Number(e.target.value))
-                                    }
-                                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                                  >
-                                    <option value="">Unassigned (Auto)</option>
-                                    {physicalClassrooms.length > 0 ? (
-                                      physicalClassrooms.map((rm) => (
-                                        <option key={rm.id} value={rm.id}>
-                                          {rm.name} ({rm.capacity} seats)
-                                        </option>
-                                      ))
-                                    ) : (
-                                      rooms.map((rm) => (
-                                        <option key={rm.id} value={rm.id}>
-                                          {rm.name} ({rm.capacity} seats)
-                                        </option>
-                                      ))
-                                    )}
-                                  </select>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => openEditSectionModal(sec)}
-                                    className="size-8 rounded-lg text-muted-foreground hover:text-primary shrink-0 cursor-pointer"
-                                    title="Edit section details"
-                                  >
-                                    <Pencil className="size-3.5" />
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteSection(sec.id)}
-                                    className="size-8 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
-                                    title="Delete section"
-                                  >
-                                    <Trash2 className="size-3.5" />
-                                  </Button>
-                                </div>
+                          {deptSections.map((sec) => (
+                            <div
+                              key={sec.id}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors"
+                            >
+                              <div className="space-y-0.5">
+                                <span className="font-bold text-sm text-foreground block">
+                                  {sec.name}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground block">
+                                  Strength: {sec.student_count || 60} students
+                                </span>
                               </div>
-                            );
-                          })}
+
+                              <div className="w-full sm:w-64 flex items-center gap-1.5">
+                                <div className="relative flex-1">
+                                  <Input
+                                    placeholder="Enter Room (e.g. 301)"
+                                    value={sectionRoomText[sec.id] || ""}
+                                    onChange={(e) =>
+                                      handleSectionRoomChange(sec.id, e.target.value)
+                                    }
+                                    onBlur={(e) =>
+                                      handleSectionRoomBlur(sec.id, e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        (e.target as HTMLInputElement).blur();
+                                      }
+                                    }}
+                                    className="h-9 text-xs rounded-xl bg-muted/40 font-semibold focus:border-primary font-mono"
+                                  />
+                                </div>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => openEditSectionModal(sec)}
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-primary shrink-0 cursor-pointer"
+                                  title="Edit section"
+                                >
+                                  <Pencil className="size-3.5" />
+                                </Button>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteSection(sec.id)}
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
+                                  title="Delete section"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
 
-                    {/* 2. LABS UNDER THIS DEPARTMENT */}
+                    {/* 2. LABS WITH DIRECT ROOM NUMBER INPUT */}
                     <div className="p-5 space-y-3">
                       <div className="flex items-center justify-between pb-2 border-b border-border/60">
                         <div className="flex items-center gap-2">
@@ -646,85 +662,72 @@ export default function RoomsPage() {
                           </h4>
                         </div>
                         <span className="text-[11px] text-muted-foreground font-semibold">
-                          Link Lab Space & Actions
+                          Enter Lab Room No.
                         </span>
                       </div>
 
                       {deptLabs.length === 0 ? (
                         <p className="text-xs text-muted-foreground italic py-3">
-                          No laboratories registered for this department. Add labs in Departments.
+                          No laboratories registered for this department.
                         </p>
                       ) : (
                         <div className="space-y-2">
-                          {deptLabs.map((lab) => {
-                            const linkedRoomId = labRoomMap[lab.id] || lab.id;
-                            const linkedRoom = rooms.find((r) => r.id === linkedRoomId);
-
-                            return (
-                              <div
-                                key={lab.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border hover:border-amber-500/40 transition-colors"
-                              >
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-sm text-foreground">
-                                      {lab.name}
-                                    </span>
-                                    <Badge variant="outline" className="text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30">
-                                      {lab.capacity} seats
-                                    </Badge>
-                                  </div>
-                                  <span className="text-[11px] text-muted-foreground block">
-                                    Physical Space: {linkedRoom?.name || lab.name}
-                                  </span>
-                                </div>
-
-                                <div className="w-full sm:w-60 flex items-center gap-1.5">
-                                  <select
-                                    value={labRoomMap[lab.id] || lab.id}
-                                    onChange={(e) =>
-                                      handleLinkLabRoom(lab.id, Number(e.target.value))
-                                    }
-                                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
-                                  >
-                                    <option value={lab.id}>{lab.name} (Default)</option>
-                                    {physicalLabs
-                                      .filter((r) => r.id !== lab.id)
-                                      .map((rm) => (
-                                        <option key={rm.id} value={rm.id}>
-                                          {rm.name} ({rm.capacity} seats)
-                                        </option>
-                                      ))}
-                                    {physicalClassrooms.map((rm) => (
-                                      <option key={rm.id} value={rm.id}>
-                                        {rm.name} (Classroom - {rm.capacity} seats)
-                                      </option>
-                                    ))}
-                                  </select>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => openEditRoomModal(lab)}
-                                    className="size-8 rounded-lg text-muted-foreground hover:text-primary shrink-0 cursor-pointer"
-                                    title="Edit lab details"
-                                  >
-                                    <Pencil className="size-3.5" />
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteRoom(lab.id)}
-                                    className="size-8 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
-                                    title="Delete lab space"
-                                  >
-                                    <Trash2 className="size-3.5" />
-                                  </Button>
-                                </div>
+                          {deptLabs.map((lab) => (
+                            <div
+                              key={lab.id}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border hover:border-amber-500/40 transition-colors"
+                            >
+                              <div className="space-y-0.5">
+                                <span className="font-bold text-sm text-foreground block">
+                                  {lab.name}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground block">
+                                  Capacity: {lab.capacity} seats
+                                </span>
                               </div>
-                            );
-                          })}
+
+                              <div className="w-full sm:w-64 flex items-center gap-1.5">
+                                <div className="relative flex-1">
+                                  <Input
+                                    placeholder="Enter Lab Room (e.g. Lab 2)"
+                                    value={labRoomText[lab.id] || lab.name}
+                                    onChange={(e) =>
+                                      handleLabRoomChange(lab.id, e.target.value)
+                                    }
+                                    onBlur={(e) =>
+                                      handleLabRoomBlur(lab.id, e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        (e.target as HTMLInputElement).blur();
+                                      }
+                                    }}
+                                    className="h-9 text-xs rounded-xl bg-muted/40 font-semibold focus:border-amber-500 font-mono"
+                                  />
+                                </div>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => openEditLabModal(lab)}
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-amber-500 shrink-0 cursor-pointer"
+                                  title="Edit lab"
+                                >
+                                  <Pencil className="size-3.5" />
+                                </Button>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteLab(lab.id)}
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
+                                  title="Delete lab"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -746,9 +749,6 @@ export default function RoomsPage() {
               <DialogTitle className="text-xl font-bold text-foreground">
                 Edit Section Details
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Update section name, student strength, and linked classroom.
-              </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleUpdateSection} className="space-y-4 pt-2">
@@ -766,6 +766,18 @@ export default function RoomsPage() {
 
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Room Number *
+                </label>
+                <Input
+                  placeholder="Enter Room Number (e.g. 301, LH-102)"
+                  value={editSecRoomNumber}
+                  onChange={(e) => setEditSecRoomNumber(e.target.value)}
+                  className="rounded-xl border-border bg-muted/40 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
                   Student Strength / Capacity *
                 </label>
                 <Input
@@ -778,24 +790,6 @@ export default function RoomsPage() {
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Designated Classroom / Room Number
-                </label>
-                <select
-                  value={editSecRoomId}
-                  onChange={(e) => setEditSecRoomId(e.target.value ? Number(e.target.value) : "")}
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
-                >
-                  <option value="">Unassigned (Dynamic Room)</option>
-                  {physicalClassrooms.map((rm) => (
-                    <option key={rm.id} value={rm.id}>
-                      {rm.name} ({rm.capacity} seats)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {editSecError && <p className="text-xs text-red-500">{editSecError}</p>}
 
               <DialogFooter className="pt-2">
@@ -804,81 +798,74 @@ export default function RoomsPage() {
                   disabled={submittingSecEdit || !editSecName.trim()}
                   className="tt-gradient-btn rounded-xl font-bold w-full"
                 >
-                  {submittingSecEdit ? "Saving Changes..." : "Save Section Changes"}
+                  {submittingSecEdit ? "Saving..." : "Save Section Changes"}
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
 
-        {/* Edit Room / Lab Space Modal */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+        {/* Edit Lab Modal */}
+        <Dialog open={editLabOpen} onOpenChange={setEditLabOpen}>
+          <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-amber-500 mb-1">
                 <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Physical Space</span>
+                <span className="tt-eyebrow">Modify Laboratory</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Room / Lab Space
+                Edit Laboratory Details
               </DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={handleUpdateRoom} className="space-y-4 pt-2">
+            <form onSubmit={handleUpdateLab} className="space-y-4 pt-2">
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Room Identifier *
+                  Laboratory Title *
                 </label>
                 <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  value={editLabName}
+                  onChange={(e) => setEditLabName(e.target.value)}
                   required
                   className="rounded-xl border-border bg-muted/40"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Facility Type *
-                  </label>
-                  <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
-                    value={editRoomType}
-                    onChange={(e) => setEditRoomType(e.target.value)}
-                  >
-                    {ROOM_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Capacity (Seats) *
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={editCapacity}
-                    onChange={(e) => setEditCapacity(e.target.value)}
-                    required
-                    className="rounded-xl border-border bg-muted/40 font-mono"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Physical Lab Room Number
+                </label>
+                <Input
+                  placeholder="Enter Lab Room (e.g. Lab 201, AI Space)"
+                  value={editLabRoomNumber}
+                  onChange={(e) => setEditLabRoomNumber(e.target.value)}
+                  className="rounded-xl border-border bg-muted/40 font-mono"
+                />
               </div>
 
-              {editError && <p className="text-xs text-red-500">{editError}</p>}
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Max Student Capacity *
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editLabCapacity}
+                  onChange={(e) => setEditLabCapacity(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40 font-mono"
+                />
+              </div>
+
+              {editLabError && <p className="text-xs text-red-500">{editLabError}</p>}
 
               <DialogFooter className="pt-2">
                 <Button
                   type="submit"
-                  disabled={submittingEdit || !editName.trim() || !editCapacity}
+                  disabled={submittingLabEdit || !editLabName.trim()}
                   className="tt-gradient-btn rounded-xl font-bold w-full"
                 >
-                  {submittingEdit ? "Updating..." : "Update Room"}
+                  {submittingLabEdit ? "Saving..." : "Save Lab Changes"}
                 </Button>
               </DialogFooter>
             </form>

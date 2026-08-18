@@ -42,6 +42,7 @@ import {
   Building2,
   Search,
   Check,
+  CalendarRange,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -65,6 +66,12 @@ interface Section {
   name: string;
   department_id: number;
   student_count?: number;
+}
+
+interface AcademicSemester {
+  id: number;
+  name: string;
+  academic_year_id: number;
 }
 
 function getDeptAcronym(name: string): string {
@@ -93,10 +100,68 @@ function getDeptLabs(dept: Department, allRooms: Room[]): Room[] {
   });
 }
 
+function isSectionForSemester(secName: string, semName: string): boolean {
+  const normSec = secName.trim().toLowerCase();
+  const normSem = semName.trim().toLowerCase();
+
+  if (normSec.includes(normSem)) return true;
+
+  const digits = normSem.match(/\d+/);
+  if (digits) {
+    const d = digits[0];
+    const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${d}([A-Za-z]|\\s|$)`, "i");
+    return pattern.test(normSec);
+  }
+
+  return false;
+}
+
+function groupSectionsBySemester(
+  deptSections: Section[],
+  academicSemesters: AcademicSemester[]
+): { semTitle: string; sections: Section[] }[] {
+  const groups: { semTitle: string; sections: Section[] }[] = [];
+  const assigned = new Set<number>();
+
+  // 1. Check user configured academic semesters first
+  if (academicSemesters.length > 0) {
+    for (const sem of academicSemesters) {
+      const matching = deptSections.filter(
+        (s) => !assigned.has(s.id) && isSectionForSemester(s.name, sem.name)
+      );
+      if (matching.length > 0) {
+        matching.forEach((s) => assigned.add(s.id));
+        groups.push({ semTitle: sem.name, sections: matching });
+      }
+    }
+  }
+
+  // 2. Check standard numbered semesters (1 through 8) for remaining
+  for (let num = 1; num <= 8; num++) {
+    const semName = `Semester ${num}`;
+    const matching = deptSections.filter(
+      (s) => !assigned.has(s.id) && isSectionForSemester(s.name, String(num))
+    );
+    if (matching.length > 0) {
+      matching.forEach((s) => assigned.add(s.id));
+      groups.push({ semTitle: semName, sections: matching });
+    }
+  }
+
+  // 3. Catch all other custom cohorts
+  const remaining = deptSections.filter((s) => !assigned.has(s.id));
+  if (remaining.length > 0) {
+    groups.push({ semTitle: "Other Sections", sections: remaining });
+  }
+
+  return groups;
+}
+
 export default function RoomsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [academicSemesters, setAcademicSemesters] = useState<AcademicSemester[]>([]);
   const [institutionId, setInstitutionId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -139,22 +204,24 @@ export default function RoomsPage() {
       const userInstId = user?.institution_id || 1;
       setInstitutionId(userInstId);
 
-      const [deptRes, roomRes, secRes] = await Promise.all([
+      const [deptRes, roomRes, secRes, semRes] = await Promise.all([
         fetch(`${API_BASE}/departments/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/rooms/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
+        fetch(`${API_BASE}/semesters/?institution_id=${userInstId}`).catch(() => null),
       ]);
 
-      let allRooms: Room[] = [];
       if (roomRes && roomRes.ok) {
-        allRooms = await roomRes.json();
-        setRooms(allRooms);
+        setRooms(await roomRes.json());
       }
       if (deptRes && deptRes.ok) {
         setDepartments(await deptRes.json());
       }
       if (secRes && secRes.ok) {
         setSections(await secRes.json());
+      }
+      if (semRes && semRes.ok) {
+        setAcademicSemesters(await semRes.json());
       }
 
       // Load saved text room numbers
@@ -414,7 +481,7 @@ export default function RoomsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Rooms & Laboratories Allocation"
-          description="View department structures and directly enter physical room numbers for theory sections and laboratory spaces."
+          description="View department structures, manage semester-segregated theory sections, and directly enter room numbers."
           icon={DoorOpen}
         >
           <Button
@@ -527,9 +594,9 @@ export default function RoomsPage() {
           </div>
         </div>
 
-        {/* Hierarchical Departments with Direct Room Number Entry */}
+        {/* Hierarchical Departments */}
         {loading ? (
-          <LoadingState text="Loading departments and rooms..." />
+          <LoadingState text="Loading departments and semester-segregated sections..." />
         ) : departments.length === 0 ? (
           <EmptyState
             icon={Building2}
@@ -541,6 +608,7 @@ export default function RoomsPage() {
             {filteredDepartments.map((dept) => {
               const deptSections = sections.filter((s) => s.department_id === dept.id);
               const deptLabs = getDeptLabs(dept, rooms);
+              const semesterGroups = groupSectionsBySemester(deptSections, academicSemesters);
 
               return (
                 <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
@@ -553,7 +621,7 @@ export default function RoomsPage() {
                       <div>
                         <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
                         <p className="text-xs text-muted-foreground">
-                          Room Number Allocation
+                          Department Allocation Matrix ({semesterGroups.length} Active Semesters)
                         </p>
                       </div>
                     </div>
@@ -570,15 +638,15 @@ export default function RoomsPage() {
                     </div>
                   </div>
 
-                  {/* Department Body: Sections & Labs with Direct Room Number Inputs */}
+                  {/* Department Body: Semester-Segregated Sections & Labs */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border bg-card/30">
-                    {/* 1. SECTIONS WITH DIRECT ROOM NUMBER INPUT */}
-                    <div className="p-5 space-y-3">
+                    {/* 1. SECTIONS SEGREGATED BY SEMESTER (User Requirement) */}
+                    <div className="p-5 space-y-4">
                       <div className="flex items-center justify-between pb-2 border-b border-border/60">
                         <div className="flex items-center gap-2">
                           <GraduationCap className="size-4 text-[#8B5CF6]" />
                           <h4 className="text-sm font-bold text-foreground">
-                            Theory Sections ({deptSections.length})
+                            Theory Sections by Semester ({deptSections.length})
                           </h4>
                         </div>
                         <span className="text-[11px] text-muted-foreground font-semibold">
@@ -591,60 +659,82 @@ export default function RoomsPage() {
                           No theory sections provisioned in this department.
                         </p>
                       ) : (
-                        <div className="space-y-2">
-                          {deptSections.map((sec) => (
+                        <div className="space-y-4">
+                          {semesterGroups.map((group) => (
                             <div
-                              key={sec.id}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors"
+                              key={group.semTitle}
+                              className="rounded-2xl border border-border/70 bg-card/50 p-3 space-y-2.5"
                             >
-                              <div className="space-y-0.5">
-                                <span className="font-bold text-sm text-foreground block">
-                                  {sec.name}
+                              {/* Semester Group Header Badge */}
+                              <div className="flex items-center justify-between pb-1.5 border-b border-border/40">
+                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                  <GraduationCap className="size-3.5 text-[#8B5CF6]" />
+                                  {group.semTitle}
                                 </span>
-                                <span className="text-[11px] text-muted-foreground block">
-                                  Strength: {sec.student_count || 60} students
-                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] font-semibold bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] border-[#8B5CF6]/20"
+                                >
+                                  {group.sections.length} {group.sections.length === 1 ? "Section" : "Sections"}
+                                </Badge>
                               </div>
 
-                              <div className="w-full sm:w-64 flex items-center gap-1.5">
-                                <div className="relative flex-1">
-                                  <Input
-                                    placeholder="Enter Room (e.g. 301)"
-                                    value={sectionRoomText[sec.id] || ""}
-                                    onChange={(e) =>
-                                      handleSectionRoomChange(sec.id, e.target.value)
-                                    }
-                                    onBlur={(e) =>
-                                      handleSectionRoomBlur(sec.id, e.target.value)
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        (e.target as HTMLInputElement).blur();
-                                      }
-                                    }}
-                                    className="h-9 text-xs rounded-xl bg-muted/40 font-semibold focus:border-primary font-mono"
-                                  />
-                                </div>
+                              {/* Section Items under this Semester */}
+                              <div className="space-y-2">
+                                {group.sections.map((sec) => (
+                                  <div
+                                    key={sec.id}
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors"
+                                  >
+                                    <div className="space-y-0.5">
+                                      <span className="font-bold text-xs text-foreground block">
+                                        {sec.name}
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground block">
+                                        Strength: {sec.student_count || 60} students
+                                      </span>
+                                    </div>
 
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => openEditSectionModal(sec)}
-                                  className="size-8 rounded-lg text-muted-foreground hover:text-primary shrink-0 cursor-pointer"
-                                  title="Edit section"
-                                >
-                                  <Pencil className="size-3.5" />
-                                </Button>
+                                    <div className="w-full sm:w-60 flex items-center gap-1.5">
+                                      <Input
+                                        placeholder="Room (e.g. 301)"
+                                        value={sectionRoomText[sec.id] || ""}
+                                        onChange={(e) =>
+                                          handleSectionRoomChange(sec.id, e.target.value)
+                                        }
+                                        onBlur={(e) =>
+                                          handleSectionRoomBlur(sec.id, e.target.value)
+                                        }
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                            (e.target as HTMLInputElement).blur();
+                                          }
+                                        }}
+                                        className="h-8 text-xs rounded-xl bg-muted/40 font-semibold focus:border-primary font-mono"
+                                      />
 
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDeleteSection(sec.id)}
-                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
-                                  title="Delete section"
-                                >
-                                  <Trash2 className="size-3.5" />
-                                </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => openEditSectionModal(sec)}
+                                        className="size-7 rounded-lg text-muted-foreground hover:text-primary shrink-0 cursor-pointer"
+                                        title="Edit section"
+                                      >
+                                        <Pencil className="size-3" />
+                                      </Button>
+
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleDeleteSection(sec.id)}
+                                        className="size-7 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
+                                        title="Delete section"
+                                      >
+                                        <Trash2 className="size-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           ))}
@@ -652,8 +742,8 @@ export default function RoomsPage() {
                       )}
                     </div>
 
-                    {/* 2. LABS WITH DIRECT ROOM NUMBER INPUT */}
-                    <div className="p-5 space-y-3">
+                    {/* 2. LABS UNDER THIS DEPARTMENT */}
+                    <div className="p-5 space-y-4">
                       <div className="flex items-center justify-between pb-2 border-b border-border/60">
                         <div className="flex items-center gap-2">
                           <FlaskConical className="size-4 text-amber-500" />
@@ -686,25 +776,23 @@ export default function RoomsPage() {
                                 </span>
                               </div>
 
-                              <div className="w-full sm:w-64 flex items-center gap-1.5">
-                                <div className="relative flex-1">
-                                  <Input
-                                    placeholder="Enter Lab Room (e.g. Lab 2)"
-                                    value={labRoomText[lab.id] || lab.name}
-                                    onChange={(e) =>
-                                      handleLabRoomChange(lab.id, e.target.value)
+                              <div className="w-full sm:w-60 flex items-center gap-1.5">
+                                <Input
+                                  placeholder="Lab Room (e.g. Lab 2)"
+                                  value={labRoomText[lab.id] || lab.name}
+                                  onChange={(e) =>
+                                    handleLabRoomChange(lab.id, e.target.value)
+                                  }
+                                  onBlur={(e) =>
+                                    handleLabRoomBlur(lab.id, e.target.value)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      (e.target as HTMLInputElement).blur();
                                     }
-                                    onBlur={(e) =>
-                                      handleLabRoomBlur(lab.id, e.target.value)
-                                    }
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        (e.target as HTMLInputElement).blur();
-                                      }
-                                    }}
-                                    className="h-9 text-xs rounded-xl bg-muted/40 font-semibold focus:border-amber-500 font-mono"
-                                  />
-                                </div>
+                                  }}
+                                  className="h-8 text-xs rounded-xl bg-muted/40 font-semibold focus:border-amber-500 font-mono"
+                                />
 
                                 <Button
                                   variant="ghost"

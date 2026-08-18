@@ -59,21 +59,7 @@ export function TechBackground() {
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* 1. Dot Matrix Grid */}
-      <div
-        className={`absolute inset-[-10%] transition-opacity duration-1000 ${
-          isDark ? "opacity-[0.05]" : "opacity-[0.08]"
-        }`}
-        style={{
-          transform: `translate3d(${layer1X * 0.3}px, ${layer1Y * 0.3}px, 0)`,
-          backgroundImage: isDark
-            ? "radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px)"
-            : "radial-gradient(circle, rgba(76,29,149,0.4) 1px, transparent 1px)",
-          backgroundSize: "36px 36px",
-        }}
-      />
-
-      {/* 2. Deep Imperial Violet & Purple Nebula (Top-Left) */}
+      {/* 1. Deep Imperial Violet & Purple Nebula (Top-Left) */}
       <div
         className={`absolute -top-[22%] -left-[12%] h-[95vh] w-[95vh] rounded-full blur-[140px] transition-all duration-1000 ${
           isDark
@@ -85,7 +71,7 @@ export function TechBackground() {
         }}
       />
 
-      {/* 3. Deep Royal Amethyst / Indigo Nebula (Top-Right) */}
+      {/* 2. Deep Royal Amethyst / Indigo Nebula (Top-Right) */}
       <div
         className={`absolute -top-[18%] -right-[12%] h-[90vh] w-[90vh] rounded-full blur-[140px] transition-all duration-1000 ${
           isDark
@@ -97,7 +83,7 @@ export function TechBackground() {
         }}
       />
 
-      {/* 4. Bottom Deep Indigo Void Nebula */}
+      {/* 3. Bottom Deep Indigo Void Nebula */}
       <div
         className={`absolute -bottom-[28%] left-[20%] h-[85vh] w-[85vh] rounded-full blur-[150px] transition-all duration-1000 ${
           isDark

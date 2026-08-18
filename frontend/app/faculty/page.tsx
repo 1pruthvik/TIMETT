@@ -136,42 +136,36 @@ export default function FacultyPage() {
     try {
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : null;
-      const userDeptId = user?.department_id;
-      const userInstId = user?.institution_id;
+      const userInstId = user?.institution_id || 1;
 
       let depts: Department[] = [];
-      const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
+      const deptUrl = `${API_BASE}/departments/?institution_id=${userInstId}`;
       const deptRes = await fetch(deptUrl);
       if (deptRes.ok) {
         depts = await deptRes.json();
       }
 
-      if (depts.length === 0) {
-        const allDeptRes = await fetch(`${API_BASE}/departments/`);
-        if (allDeptRes.ok) { depts = await allDeptRes.json(); }
-      }
-
       setDepartments(depts);
-      const currentDeptId = userDeptId || (depts.length > 0 ? depts[0].id : null);
-      if (currentDeptId) {
-        setDepartmentId(currentDeptId);
+      if (depts.length > 0 && !departmentId) {
+        setDepartmentId(depts[0].id);
       }
 
-      const facUrl = currentDeptId ? `${API_BASE}/faculty/?department_id=${currentDeptId}` : `${API_BASE}/faculty/`;
-      const subUrl = currentDeptId ? `${API_BASE}/subjects/?department_id=${currentDeptId}` : `${API_BASE}/subjects/`;
-      const secUrl = currentDeptId ? `${API_BASE}/sections/?department_id=${currentDeptId}` : `${API_BASE}/sections/`;
+      const facUrl = `${API_BASE}/faculty/?institution_id=${userInstId}`;
+      const subUrl = `${API_BASE}/subjects/?institution_id=${userInstId}`;
+      const secUrl = `${API_BASE}/sections/?institution_id=${userInstId}`;
+      const offUrl = `${API_BASE}/subject-offerings/?institution_id=${userInstId}`;
 
       const [facRes, subRes, secRes, offRes] = await Promise.all([
-        fetch(facUrl),
-        fetch(subUrl),
-        fetch(secUrl),
-        fetch(`${API_BASE}/subject-offerings/`),
+        fetch(facUrl).catch(() => null),
+        fetch(subUrl).catch(() => null),
+        fetch(secUrl).catch(() => null),
+        fetch(offUrl).catch(() => null),
       ]);
 
-      const facs: FacultyMember[] = facRes.ok ? await facRes.json() : [];
-      const subs: Subject[] = subRes.ok ? await subRes.json() : [];
-      const secs: Section[] = secRes.ok ? await secRes.json() : [];
-      const offs: SubjectOffering[] = offRes.ok ? await offRes.json() : [];
+      const facs: FacultyMember[] = (facRes && facRes.ok) ? await facRes.json() : [];
+      const subs: Subject[] = (subRes && subRes.ok) ? await subRes.json() : [];
+      const secs: Section[] = (secRes && secRes.ok) ? await secRes.json() : [];
+      const offs: SubjectOffering[] = (offRes && offRes.ok) ? await offRes.json() : [];
 
       setFaculty(facs);
       setSubjects(subs);

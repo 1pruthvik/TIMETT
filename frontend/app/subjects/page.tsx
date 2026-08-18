@@ -45,16 +45,15 @@ export default function SubjectsPage() {
     try {
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : null;
-      const userDeptId = user?.department_id;
-      const userInstId = user?.institution_id;
-      const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
+      const userInstId = user?.institution_id || 1;
+      const deptUrl = `${API_BASE}/departments/?institution_id=${userInstId}`;
       const deptRes = await fetch(deptUrl).catch(() => null);
       if (deptRes && deptRes.ok) {
         const depts = await deptRes.json();
         setDepartments(depts);
-        if (depts.length > 0 && !departmentId) setDepartmentId(userDeptId || depts[0].id);
+        if (depts.length > 0 && !departmentId) setDepartmentId(depts[0].id);
       }
-      const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
+      const subUrl = `${API_BASE}/subjects/?institution_id=${userInstId}`;
       const subRes = await fetch(subUrl).catch(() => null);
       if (subRes && subRes.ok) setSubjects(await subRes.json());
     } catch (err) { console.error(err); setError("Failed to connect to backend API."); }

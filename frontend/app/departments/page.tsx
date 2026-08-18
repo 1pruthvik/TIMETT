@@ -76,6 +76,38 @@ const DEFAULT_SEMESTERS: SemesterConfig[] = [
   { semNumber: 8, sectionCount: 2 },
 ];
 
+function getDeptAcronym(name: string): string {
+  if (!name.trim()) return "SEC";
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) {
+    return words[0].toUpperCase().slice(0, 4);
+  }
+  return words.map((w) => w[0]).join("").toUpperCase().slice(0, 4);
+}
+
+function getDeptLabs(dept: Department, allRooms: Room[]): Room[] {
+  const acronym = getDeptAcronym(dept.name).toLowerCase();
+  const fullName = dept.name.toLowerCase();
+
+  return allRooms.filter((r) => {
+    if (r.room_type !== "Lab") return false;
+    const roomName = r.name.toLowerCase();
+    return (
+      roomName.includes(fullName) ||
+      roomName.startsWith(acronym) ||
+      roomName.includes(` ${acronym} `) ||
+      roomName.includes(`${acronym}-`) ||
+      roomName.includes(`${acronym} `)
+    );
+  });
+}
+
+function isSectionInSem(secName: string, semNumber: number): boolean {
+  const norm = secName.trim();
+  const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${semNumber}([A-Za-z]|\\s|$)`, "i");
+  return pattern.test(norm);
+}
+
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
@@ -91,11 +123,11 @@ export default function DepartmentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Edit Department Modal (Title + Total Dept Labs + Semester Section Counts)
+  // Edit Department Modal
   const [editOpen, setEditOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [editName, setEditName] = useState("");
-  const [editDeptLabCount, setEditDeptLabCount] = useState("3");
+  const [editDeptLabCount, setEditDeptLabCount] = useState("0");
   const [editConfigs, setEditConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
   const [customSectionName, setCustomSectionName] = useState("");
   const [customLabName, setCustomLabName] = useState("");
@@ -176,7 +208,7 @@ export default function DepartmentsPage() {
       const newDept: Department = await res.json();
 
       // Automatically generate Sections for the department
-      const deptShort = newDept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4) || "SEC";
+      const deptShort = getDeptAcronym(newDept.name);
       const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
       for (const conf of semesterConfigs) {
@@ -226,20 +258,19 @@ export default function DepartmentsPage() {
     setEditingDept(dept);
     setEditName(dept.name);
 
-    // Compute existing sections count per semester for this department
+    // Compute EXACT existing sections count per semester for this department (no hardcoded fallback)
     const deptSections = sections.filter((s) => s.department_id === dept.id);
     const updatedConfigs: SemesterConfig[] = DEFAULT_SEMESTERS.map((sem) => {
-      const semSecs = deptSections.filter((s) => s.name.includes(`${sem.semNumber}`));
+      const semSecs = deptSections.filter((s) => isSectionInSem(s.name, sem.semNumber));
       return {
         semNumber: sem.semNumber,
-        sectionCount: semSecs.length > 0 ? semSecs.length : 2,
+        sectionCount: semSecs.length, // EXACT MATCH with database!
       };
     });
 
-    // Compute department labs count
-    const deptShort = dept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4);
-    const deptLabs = rooms.filter((r) => r.room_type === "Lab" && (r.name.startsWith(deptShort) || r.name.includes(dept.name)));
-    setEditDeptLabCount(deptLabs.length > 0 ? deptLabs.length.toString() : "3");
+    // Compute EXACT department labs count from database
+    const deptLabs = getDeptLabs(dept, rooms);
+    setEditDeptLabCount(deptLabs.length.toString()); // EXACT MATCH with database!
 
     setEditConfigs(updatedConfigs);
     setCustomSectionName("");
@@ -345,14 +376,20 @@ export default function DepartmentsPage() {
       }
 
       // 2. Sync sections for the department
-      const deptShort = editName.trim().split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4) || "SEC";
+      const deptShort = getDeptAcronym(editName.trim());
       const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
       for (const conf of editConfigs) {
-        for (let i = 0; i < conf.sectionCount; i++) {
-          const secLabel = `${deptShort} ${conf.semNumber}${letters[i] || i + 1}`;
-          const exists = sections.find((s) => s.department_id === editingDept.id && s.name === secLabel);
-          if (!exists) {
+        const currentSemSecs = sections.filter(
+          (s) => s.department_id === editingDept.id && isSectionInSem(s.name, conf.semNumber)
+        );
+
+        // If target count is greater than current count, create the missing sections
+        if (conf.sectionCount > currentSemSecs.length) {
+          const needed = conf.sectionCount - currentSemSecs.length;
+          for (let i = 0; i < needed; i++) {
+            const letterIdx = currentSemSecs.length + i;
+            const secLabel = `${deptShort} ${conf.semNumber}${letters[letterIdx] || letterIdx + 1}`;
             await fetch(`${API_BASE}/sections/`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -367,11 +404,14 @@ export default function DepartmentsPage() {
       }
 
       // 3. Sync department labs
-      const numLabs = parseInt(editDeptLabCount) || 0;
-      for (let j = 1; j <= numLabs; j++) {
-        const labName = `${deptShort} Lab ${j}`;
-        const exists = rooms.find((r) => r.name === labName && r.room_type === "Lab");
-        if (!exists) {
+      const targetNumLabs = parseInt(editDeptLabCount) || 0;
+      const currentDeptLabs = getDeptLabs(editingDept, rooms);
+
+      if (targetNumLabs > currentDeptLabs.length) {
+        const neededLabs = targetNumLabs - currentDeptLabs.length;
+        for (let j = 1; j <= neededLabs; j++) {
+          const labIdx = currentDeptLabs.length + j;
+          const labName = `${deptShort} Lab ${labIdx}`;
           await fetch(`${API_BASE}/rooms/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -409,15 +449,14 @@ export default function DepartmentsPage() {
   };
 
   const activeDeptSections = editingDept ? sections.filter((s) => s.department_id === editingDept.id) : [];
-  const editingDeptShort = editingDept ? editingDept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4) : "";
-  const activeDeptLabs = editingDept ? rooms.filter((r) => r.room_type === "Lab" && (r.name.startsWith(editingDeptShort) || r.name.includes(editingDept.name))) : [];
+  const activeDeptLabs = editingDept ? getDeptLabs(editingDept, rooms) : [];
 
   return (
     <AppShell>
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Departments & Structure"
-          description="Create academic departments, define total department laboratories, and set student section counts per semester."
+          description="Create academic departments, define total department laboratories, and configure student section counts per semester."
           icon={Building2}
         >
           <Button
@@ -763,8 +802,7 @@ export default function DepartmentsPage() {
                   <TableBody>
                     {departments.map((dept, index) => {
                       const deptSections = sections.filter((s) => s.department_id === dept.id);
-                      const deptShort = dept.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 4);
-                      const deptLabs = rooms.filter((r) => r.room_type === "Lab" && (r.name.startsWith(deptShort) || r.name.includes(dept.name)));
+                      const deptLabs = getDeptLabs(dept, rooms);
 
                       return (
                         <TableRow key={dept.id} className="border-border hover:bg-muted/20 transition-colors">

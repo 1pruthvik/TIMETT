@@ -103,6 +103,8 @@ def update_semester(
     return item
 
 
+from app.models.subject_offering import SubjectOffering
+
 @router.delete("/{semester_id}", status_code=204)
 def delete_semester(
     semester_id: int,
@@ -115,6 +117,9 @@ def delete_semester(
             status_code=404,
             detail="Semester not found",
         )
+
+    # Clean child offerings
+    db.query(SubjectOffering).filter(SubjectOffering.semester_id == semester_id).delete(synchronize_session=False)
 
     db.delete(item)
     db.commit()

@@ -467,15 +467,17 @@ export default function AcademicTermsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                        <TableHead className="text-xs font-bold text-muted-foreground">ID</TableHead>
+                        <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                         <TableHead className="text-xs font-bold text-muted-foreground">Year Range</TableHead>
                         <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {academicYears.map((yr) => (
+                      {academicYears.map((yr, index) => (
                         <TableRow key={yr.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">#{yr.id}</TableCell>
+                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
+                            #{index + 1}
+                          </TableCell>
                           <TableCell className="font-bold text-foreground">{yr.name}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
@@ -527,15 +529,17 @@ export default function AcademicTermsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                        <TableHead className="text-xs font-bold text-muted-foreground">ID</TableHead>
+                        <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                         <TableHead className="text-xs font-bold text-muted-foreground">Semester Term</TableHead>
                         <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {semesters.map((sem) => (
+                      {semesters.map((sem, index) => (
                         <TableRow key={sem.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">#{sem.id}</TableCell>
+                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
+                            #{index + 1}
+                          </TableCell>
                           <TableCell className="font-bold text-foreground">{sem.name}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">

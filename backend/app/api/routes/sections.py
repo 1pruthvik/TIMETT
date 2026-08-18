@@ -43,10 +43,17 @@ def create_section(data: SectionCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[SectionResponse])
-def get_sections(department_id: int | None = None, db: Session = Depends(get_db)):
+def get_sections(
+    department_id: int | None = None,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Section)
     if department_id:
-        return db.query(Section).filter(Section.department_id == department_id).all()
-    return db.query(Section).all()
+        query = query.filter(Section.department_id == department_id)
+    elif institution_id:
+        query = query.join(Department).filter(Department.institution_id == institution_id)
+    return query.all()
 
 
 @router.get("/{section_id}", response_model=SectionResponse)

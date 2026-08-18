@@ -9,6 +9,8 @@ from app.db.database import SessionLocal
 from app.models.user import User
 from app.models.institution import Institution
 from app.models.department import Department
+from app.models.academic_year import AcademicYear
+from app.models.semester import Semester
 from app.schemas.auth import (
     AuthResponse,
     LoginRequest,
@@ -51,6 +53,21 @@ def get_or_create_user_tenant(user: User, db: Session):
         db.add(dept)
         db.commit()
         db.refresh(dept)
+
+    # Initialize tenant's isolated Academic Year & Semester if not exists
+    yr = db.query(AcademicYear).filter(AcademicYear.institution_id == inst.id).first()
+    if not yr:
+        yr = AcademicYear(name="2026 - 2027", institution_id=inst.id)
+        db.add(yr)
+        db.commit()
+        db.refresh(yr)
+
+    sem = db.query(Semester).filter(Semester.academic_year_id == yr.id).first()
+    if not sem:
+        sem = Semester(name="Semester 1", academic_year_id=yr.id)
+        db.add(sem)
+        db.commit()
+        db.refresh(sem)
 
     return inst.id, dept.id
 

@@ -43,10 +43,17 @@ def create_faculty(data: FacultyCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[FacultyResponse])
-def get_faculty(department_id: int | None = None, db: Session = Depends(get_db)):
+def get_faculty(
+    department_id: int | None = None,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Faculty)
     if department_id:
-        return db.query(Faculty).filter(Faculty.department_id == department_id).all()
-    return db.query(Faculty).all()
+        query = query.filter(Faculty.department_id == department_id)
+    elif institution_id:
+        query = query.join(Department).filter(Department.institution_id == institution_id)
+    return query.all()
 
 
 @router.get("/{faculty_id}", response_model=FacultyResponse)

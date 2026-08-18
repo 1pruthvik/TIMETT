@@ -25,9 +25,25 @@ def create(data: SubjectOfferingCreate, db: Session = Depends(get_db)):
     return item
 
 
+from app.models.subject import Subject
+from app.models.semester import Semester
+from app.models.academic_year import AcademicYear
+
 @router.get("/", response_model=list[SubjectOfferingResponse])
-def get_all(db: Session = Depends(get_db)):
-    return db.query(SubjectOffering).all()
+def get_all(
+    semester_id: int | None = None,
+    department_id: int | None = None,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(SubjectOffering)
+    if semester_id:
+        query = query.filter(SubjectOffering.semester_id == semester_id)
+    if department_id:
+        query = query.join(Subject, SubjectOffering.subject_id == Subject.id).filter(Subject.department_id == department_id)
+    elif institution_id:
+        query = query.join(Semester, SubjectOffering.semester_id == Semester.id).join(AcademicYear, Semester.academic_year_id == AcademicYear.id).filter(AcademicYear.institution_id == institution_id)
+    return query.all()
 
 
 @router.get("/{item_id}", response_model=SubjectOfferingResponse)

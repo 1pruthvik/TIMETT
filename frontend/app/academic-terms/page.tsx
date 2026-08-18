@@ -45,6 +45,7 @@ export default function AcademicTermsPage() {
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
+  const [institutionId, setInstitutionId] = useState<number>(1);
 
   // Year Modal
   const [yearOpen, setYearOpen] = useState(false);
@@ -77,8 +78,20 @@ export default function AcademicTermsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const yrPromise = fetch(`${API_BASE}/academic-years/`).catch(() => null);
-      const semPromise = fetch(`${API_BASE}/semesters/`).catch(() => null);
+      let instId = 1;
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          if (user.institution_id) instId = user.institution_id;
+        } catch {
+          // ignore
+        }
+      }
+      setInstitutionId(instId);
+
+      const yrPromise = fetch(`${API_BASE}/academic-years/?institution_id=${instId}`).catch(() => null);
+      const semPromise = fetch(`${API_BASE}/semesters/?institution_id=${instId}`).catch(() => null);
 
       const [yrRes, semRes] = await Promise.all([yrPromise, semPromise]);
 
@@ -110,7 +123,7 @@ export default function AcademicTermsPage() {
       const res = await fetch(`${API_BASE}/academic-years/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ institution_id: 1, name: yearName.trim() }),
+        body: JSON.stringify({ institution_id: institutionId, name: yearName.trim() }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -142,7 +155,7 @@ export default function AcademicTermsPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          institution_id: editingYear.institution_id || 1,
+          institution_id: editingYear.institution_id || institutionId,
           name: editYearName.trim(),
         }),
       });

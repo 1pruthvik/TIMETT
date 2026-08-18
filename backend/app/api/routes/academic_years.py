@@ -28,13 +28,16 @@ def create_academic_year(
 ):
     inst = db.query(Institution).filter(Institution.id == data.institution_id).first()
     if not inst:
-        inst = Institution(name="College Workspace")
-        db.add(inst)
-        db.commit()
-        db.refresh(inst)
+        inst = db.query(Institution).first()
+        if not inst:
+            inst = Institution(name="College Workspace")
+            db.add(inst)
+            db.commit()
+            db.refresh(inst)
+        data.institution_id = inst.id
 
     item = AcademicYear(
-        institution_id=inst.id,
+        institution_id=data.institution_id,
         name=data.name,
     )
 

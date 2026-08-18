@@ -268,30 +268,19 @@ def github_callback(
     with urllib.request.urlopen(user_req) as resp:
         gh_user = json.loads(resp.read().decode("utf-8"))
 
-    email = gh_user.get("email")
-    # If email is private on GitHub, fetch from /user/emails
-    if not email:
-        emails_req = urllib.request.Request(
-            "https://api.github.com/user/emails",
-            headers={
-                "Authorization": f"Bearer {gh_access_token}",
-                "User-Agent": "TIMETT-App",
-            },
-        )
-        with urllib.request.urlopen(emails_req) as resp:
-            emails_list = json.loads(resp.read().decode("utf-8"))
-            primary_email = next((e["email"] for e in emails_list if e.get("primary")), None)
-            email = primary_email or (emails_list[0]["email"] if emails_list else f"{gh_user['login']}@github.com")
+    gh_login = gh_user.get("login") or f"user_{gh_user.get('id', 'gh')}"
+    github_name = gh_user.get("name") or gh_login
 
-    # Use pure GitHub username
-    github_username = gh_user.get("login") or gh_user.get("name") or "GitHub User"
+    # Provider-scoped account email ensures GitHub accounts are ALWAYS treated
+    # as independent, separate user accounts from Google accounts.
+    github_account_email = f"{gh_login.lower()}@github.com"
 
-    # 3. Create or fetch user in database
-    user = db.query(User).filter(User.email == email).first()
+    # 3. Create or fetch separate GitHub user in database
+    user = db.query(User).filter(User.email == github_account_email).first()
     if not user:
         user = User(
-            name=github_username,
-            email=email,
+            name=github_name,
+            email=github_account_email,
             password_hash=None,
             role="user",
             is_active=True,
@@ -300,10 +289,10 @@ def github_callback(
         db.commit()
         db.refresh(user)
     else:
-        # Set user name to the GitHub username
-        user.name = github_username
-        db.commit()
-        db.refresh(user)
+        if github_name and user.name != github_name:
+            user.name = github_name
+            db.commit()
+            db.refresh(user)
 
     if not user.is_active:
         raise HTTPException(status_code=403, detail="This account is disabled.")

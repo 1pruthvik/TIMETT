@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: str
     is_active: bool
+    provider: str = "local"
     institution_id: int | None = None
     department_id: int | None = None
 

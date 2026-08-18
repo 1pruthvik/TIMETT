@@ -1,3 +1,6 @@
+import json
+import os
+import urllib.request
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -63,7 +66,7 @@ def register(
 ):
     existing_user = (
         db.query(User)
-        .filter(User.email == data.email)
+        .filter(User.email == data.email, User.provider == "local")
         .first()
     )
 
@@ -76,6 +79,7 @@ def register(
     user = User(
         name=data.name,
         email=data.email,
+        provider="local",
         password_hash=hash_password(data.password),
         role="user",
         is_active=True,
@@ -97,6 +101,7 @@ def register(
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            provider=user.provider,
             institution_id=inst_id,
             department_id=dept_id,
         ),
@@ -113,7 +118,7 @@ def login(
 ):
     user = (
         db.query(User)
-        .filter(User.email == data.email)
+        .filter(User.email == data.email, User.provider == "local")
         .first()
     )
 
@@ -150,6 +155,7 @@ def login(
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            provider=user.provider,
             institution_id=inst_id,
             department_id=dept_id,
         ),
@@ -163,7 +169,7 @@ def oauth_authorize(
 ):
     user = (
         db.query(User)
-        .filter(User.email == data.email)
+        .filter(User.email == data.email, User.provider == "google")
         .first()
     )
 
@@ -171,6 +177,7 @@ def oauth_authorize(
         user = User(
             name=data.name,
             email=data.email,
+            provider="google",
             password_hash=None,
             role="user",
             is_active=True,
@@ -179,8 +186,7 @@ def oauth_authorize(
         db.commit()
         db.refresh(user)
     else:
-        # Update user name to Google name
-        if data.name:
+        if data.name and user.name != data.name:
             user.name = data.name
             db.commit()
             db.refresh(user)
@@ -203,18 +209,16 @@ def oauth_authorize(
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            provider=user.provider,
             institution_id=inst_id,
             department_id=dept_id,
         ),
     )
 
 
-import os
-import urllib.request
-import json
-
 class GitHubCallbackRequest(BaseModel):
     code: str
+
 
 @router.post("/github/callback", response_model=AuthResponse)
 def github_callback(
@@ -268,19 +272,42 @@ def github_callback(
     with urllib.request.urlopen(user_req) as resp:
         gh_user = json.loads(resp.read().decode("utf-8"))
 
-    gh_login = gh_user.get("login") or f"user_{gh_user.get('id', 'gh')}"
-    github_name = gh_user.get("name") or gh_login
+    # Display GitHub username as requested
+    github_username = gh_user.get("login") or gh_user.get("name") or "GitHub User"
 
-    # Provider-scoped account email ensures GitHub accounts are ALWAYS treated
-    # as independent, separate user accounts from Google accounts.
-    github_account_email = f"{gh_login.lower()}@github.com"
+    # Fetch actual email associated with that GitHub account
+    email = gh_user.get("email")
+    if not email:
+        try:
+            emails_req = urllib.request.Request(
+                "https://api.github.com/user/emails",
+                headers={
+                    "Authorization": f"Bearer {gh_access_token}",
+                    "User-Agent": "TIMETT-App",
+                },
+            )
+            with urllib.request.urlopen(emails_req) as resp:
+                emails_list = json.loads(resp.read().decode("utf-8"))
+                primary_email = next((e["email"] for e in emails_list if e.get("primary")), None)
+                email = primary_email or (emails_list[0]["email"] if emails_list else None)
+        except Exception:
+            pass
 
-    # 3. Create or fetch separate GitHub user in database
-    user = db.query(User).filter(User.email == github_account_email).first()
+    if not email:
+        email = f"{gh_user['login'].lower()}@users.noreply.github.com"
+
+    # 3. Create or fetch separate GitHub user in database with provider="github"
+    # Composite (email, provider) uniqueness guarantees complete separation from Google accounts
+    user = (
+        db.query(User)
+        .filter(User.email == email, User.provider == "github")
+        .first()
+    )
     if not user:
         user = User(
-            name=github_name,
-            email=github_account_email,
+            name=github_username,
+            email=email,
+            provider="github",
             password_hash=None,
             role="user",
             is_active=True,
@@ -289,8 +316,8 @@ def github_callback(
         db.commit()
         db.refresh(user)
     else:
-        if github_name and user.name != github_name:
-            user.name = github_name
+        if user.name != github_username:
+            user.name = github_username
             db.commit()
             db.refresh(user)
 
@@ -309,6 +336,7 @@ def github_callback(
             email=user.email,
             role=user.role,
             is_active=user.is_active,
+            provider=user.provider,
             institution_id=inst_id,
             department_id=dept_id,
         ),

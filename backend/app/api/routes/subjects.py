@@ -43,7 +43,7 @@ def create_subject(data: SubjectCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(
             status_code=400,
-            detail=f"A subject with code '{code_clean}' already exists in this department.",
+            detail=f"Subject code '{code_clean}' is already assigned to '{existing.name}' in this department. Please use a unique code (e.g. {code_clean}1, {code_clean}-101) or edit the existing course.",
         )
 
     item = Subject(

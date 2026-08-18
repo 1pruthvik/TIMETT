@@ -41,6 +41,7 @@ import {
   BookMarked,
   Clock,
   Layers,
+  Info,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -78,7 +79,12 @@ const SUBJECT_TYPES = [
   { value: "Elective", label: "Elective Subject" },
 ];
 
-function isSubjectForSemester(subName: string, subCode: string, semName: string, metaSem?: string): boolean {
+function isSubjectForSemester(
+  subName: string,
+  subCode: string,
+  semName: string,
+  metaSem?: string
+): boolean {
   if (metaSem && metaSem.toLowerCase() === semName.toLowerCase()) return true;
 
   const normSub = (subName + " " + subCode).trim().toLowerCase();
@@ -89,7 +95,6 @@ function isSubjectForSemester(subName: string, subCode: string, semName: string,
   const digits = normSem.match(/\d+/);
   if (digits) {
     const d = digits[0];
-    // Check if code has semester digit e.g. CS301 -> Sem 3, or EC502 -> Sem 5
     const codeDigits = subCode.match(/\d+/);
     if (codeDigits && codeDigits[0].startsWith(d)) {
       return true;
@@ -99,6 +104,38 @@ function isSubjectForSemester(subName: string, subCode: string, semName: string,
   }
 
   return false;
+}
+
+function getSemesterGroupsForDept(
+  deptSubjects: Subject[],
+  availableSemesters: string[],
+  subjectMetaMap: Record<number, SubjectMeta>
+): { semTitle: string; subjects: Subject[]; isUnassigned?: boolean }[] {
+  const groups: { semTitle: string; subjects: Subject[]; isUnassigned?: boolean }[] = [];
+  const assigned = new Set<number>();
+
+  // 1. Check user configured academic semesters
+  for (const semName of availableSemesters) {
+    const matching = deptSubjects.filter((s) => {
+      if (assigned.has(s.id)) return false;
+      const meta = subjectMetaMap[s.id];
+      return isSubjectForSemester(s.name, s.code, semName, meta?.semesterName);
+    });
+    matching.forEach((s) => assigned.add(s.id));
+    groups.push({ semTitle: semName, subjects: matching });
+  }
+
+  // 2. Catch ALL remaining unassigned subjects so NO subject is ever invisible
+  const remaining = deptSubjects.filter((s) => !assigned.has(s.id));
+  if (remaining.length > 0) {
+    groups.push({
+      semTitle: "General / Unassigned Curriculum",
+      subjects: remaining,
+      isUnassigned: true,
+    });
+  }
+
+  return groups;
 }
 
 export default function SubjectsPage() {
@@ -189,7 +226,7 @@ export default function SubjectsPage() {
 
   const openAddForDeptAndSem = (deptId: number, semName: string) => {
     setSelectedDeptId(deptId);
-    setSelectedSemName(semName);
+    setSelectedSemName(semName.startsWith("General") ? "Semester 1" : semName);
     setName("");
     setCode("");
     setSubjectType("Theory");
@@ -385,7 +422,7 @@ export default function SubjectsPage() {
                       value={selectedDeptId}
                       onChange={(e) => setSelectedDeptId(Number(e.target.value))}
                       required
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
                     >
                       {departments.map((d) => (
                         <option key={d.id} value={d.id}>
@@ -403,7 +440,7 @@ export default function SubjectsPage() {
                       value={selectedSemName}
                       onChange={(e) => setSelectedSemName(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
                     >
                       {availableSemesters.map((s) => (
                         <option key={s} value={s}>
@@ -448,7 +485,7 @@ export default function SubjectsPage() {
                     <select
                       value={subjectType}
                       onChange={(e) => setSubjectType(e.target.value as "Theory" | "Lab" | "Elective")}
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
                     >
                       {SUBJECT_TYPES.map((t) => (
                         <option key={t.value} value={t.value}>
@@ -473,7 +510,12 @@ export default function SubjectsPage() {
                   </div>
                 </div>
 
-                {error && <p className="text-xs text-red-500">{error}</p>}
+                {error && (
+                  <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-500 flex items-start gap-2">
+                    <Info className="size-4 shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <DialogFooter className="pt-2">
                   <Button
@@ -524,6 +566,11 @@ export default function SubjectsPage() {
           <div className="space-y-8">
             {filteredDepartments.map((dept) => {
               const deptSubjects = subjects.filter((s) => s.department_id === dept.id);
+              const semesterGroups = getSemesterGroupsForDept(
+                deptSubjects,
+                availableSemesters,
+                subjectMetaMap
+              );
 
               return (
                 <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
@@ -551,58 +598,65 @@ export default function SubjectsPage() {
 
                   {/* Semesters under this Department */}
                   <div className="p-5 space-y-6 bg-card/30">
-                    {availableSemesters.map((semName) => {
-                      const semSubjects = deptSubjects.filter((s) => {
-                        const meta = subjectMetaMap[s.id];
-                        return isSubjectForSemester(s.name, s.code, semName, meta?.semesterName);
-                      });
-
+                    {semesterGroups.map((group) => {
                       return (
                         <div
-                          key={semName}
-                          className="rounded-2xl border border-border/70 bg-card/50 p-4 space-y-3"
+                          key={group.semTitle}
+                          className={`rounded-2xl border ${
+                            group.isUnassigned
+                              ? "border-amber-500/40 bg-amber-500/5"
+                              : "border-border/70 bg-card/50"
+                          } p-4 space-y-3`}
                         >
                           {/* Semester Sub-header with Quick Add Button */}
                           <div className="flex items-center justify-between pb-2 border-b border-border/40">
                             <div className="flex items-center gap-2">
-                              <GraduationCap className="size-4 text-[#8B5CF6]" />
+                              {group.isUnassigned ? (
+                                <Info className="size-4 text-amber-500" />
+                              ) : (
+                                <GraduationCap className="size-4 text-[#8B5CF6]" />
+                              )}
                               <span className="text-xs font-bold text-foreground">
-                                {semName}
+                                {group.semTitle}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="text-[10px] font-semibold bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] border-[#8B5CF6]/20 px-2 py-0.5"
+                                className={`text-[10px] font-semibold ${
+                                  group.isUnassigned
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
+                                    : "bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] border-[#8B5CF6]/20"
+                                } px-2 py-0.5`}
                               >
-                                {semSubjects.length} {semSubjects.length === 1 ? "Subject" : "Subjects"}
+                                {group.subjects.length} {group.subjects.length === 1 ? "Subject" : "Subjects"}
                               </Badge>
                             </div>
 
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => openAddForDeptAndSem(dept.id, semName)}
+                              onClick={() => openAddForDeptAndSem(dept.id, group.semTitle)}
                               className="h-7 text-xs rounded-lg gap-1.5 font-bold border-border bg-card hover:bg-muted text-primary cursor-pointer"
                             >
-                              <Plus className="size-3.5" /> Add Subject to {semName}
+                              <Plus className="size-3.5" /> Add Subject to {group.semTitle}
                             </Button>
                           </div>
 
                           {/* Subjects in this Semester */}
-                          {semSubjects.length === 0 ? (
+                          {group.subjects.length === 0 ? (
                             <p className="text-xs text-muted-foreground italic py-2">
-                              No subjects registered for {semName} in this department. Click &ldquo;Add Subject to {semName}&rdquo; to configure courses.
+                              No subjects registered for {group.semTitle} in this department. Click &ldquo;Add Subject to {group.semTitle}&rdquo; to configure courses.
                             </p>
                           ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {semSubjects.map((sub) => {
+                              {group.subjects.map((sub) => {
                                 const meta = subjectMetaMap[sub.id];
-                                const type = meta?.subjectType || "Theory";
+                                const type = meta?.subjectType || (sub.name.toLowerCase().includes("lab") ? "Lab" : "Theory");
                                 const hours = meta?.weeklyHours || 4;
 
                                 return (
                                   <div
                                     key={sub.id}
-                                    className="flex flex-col justify-between p-3.5 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors space-y-3"
+                                    className="flex flex-col justify-between p-3.5 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors space-y-3 shadow-xs"
                                   >
                                     <div className="space-y-1.5">
                                       <div className="flex items-center justify-between">
@@ -635,7 +689,7 @@ export default function SubjectsPage() {
                                         size="icon"
                                         className="size-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
                                         onClick={() => openEditModal(sub)}
-                                        title="Edit subject"
+                                        title="Edit subject details or semester"
                                       >
                                         <Pencil className="size-3.5" />
                                       </Button>
@@ -690,7 +744,7 @@ export default function SubjectsPage() {
                     value={editDeptId}
                     onChange={(e) => setEditDeptId(Number(e.target.value))}
                     required
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
                   >
                     {departments.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -708,7 +762,7 @@ export default function SubjectsPage() {
                     value={editSemName}
                     onChange={(e) => setEditSemName(e.target.value)}
                     required
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
                   >
                     {availableSemesters.map((s) => (
                       <option key={s} value={s}>
@@ -751,7 +805,7 @@ export default function SubjectsPage() {
                   <select
                     value={editSubjectType}
                     onChange={(e) => setEditSubjectType(e.target.value as "Theory" | "Lab" | "Elective")}
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
                   >
                     {SUBJECT_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
@@ -775,7 +829,12 @@ export default function SubjectsPage() {
                 </div>
               </div>
 
-              {editError && <p className="text-xs text-red-500">{editError}</p>}
+              {editError && (
+                <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-500 flex items-start gap-2">
+                  <Info className="size-4 shrink-0 mt-0.5" />
+                  <span>{editError}</span>
+                </div>
+              )}
 
               <DialogFooter className="pt-2">
                 <Button

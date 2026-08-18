@@ -490,9 +490,14 @@ export default function DepartmentsPage() {
       });
       if (res.ok) {
         setDepartments((prev) => prev.filter((d) => d.id !== id));
+        await fetchData();
+      } else {
+        const errData = await res.json().catch(() => null);
+        alert(errData?.detail || "Failed to delete department");
       }
     } catch (err) {
       console.error("Failed to delete department", err);
+      alert("Error connecting to server. Please try again.");
     }
   };
 

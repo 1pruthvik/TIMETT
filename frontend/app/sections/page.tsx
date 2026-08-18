@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   Table,
   TableBody,
@@ -18,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, GraduationCap, RefreshCw } from "lucide-react";
+import { Plus, Trash2, GraduationCap, RefreshCw, Sparkles } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -50,7 +46,6 @@ export default function SectionsPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
-  // Form state
   const [name, setName] = useState("");
   const [departmentId, setDepartmentId] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
@@ -65,7 +60,6 @@ export default function SectionsPage() {
       const userDeptId = user?.department_id;
       const userInstId = user?.institution_id;
 
-      // 1. Fetch departments
       const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
       const deptRes = await fetch(deptUrl);
       if (deptRes.ok) {
@@ -76,12 +70,10 @@ export default function SectionsPage() {
         }
       }
 
-      // 2. Fetch sections
       const secUrl = userDeptId ? `${API_BASE}/sections/?department_id=${userDeptId}` : `${API_BASE}/sections/`;
       const secRes = await fetch(secUrl);
       if (secRes.ok) {
-        const secData = await secRes.json();
-        setSections(secData);
+        setSections(await secRes.json());
       }
     } catch (err) {
       console.error(err);
@@ -144,119 +136,121 @@ export default function SectionsPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-6xl">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Section Management</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Define student cohorts, classes, and department batch sections.
-            </p>
-          </div>
+      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
+        <PageHeader
+          title="Section & Cohort Management"
+          description="Define student batches, class cohorts, and department division sections."
+          icon={GraduationCap}
+        >
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchData}
+            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Refresh sections"
+          >
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
+          </Button>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={fetchData} title="Refresh">
-              <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
-            </Button>
-
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="size-4" />
-                  Add Section
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add Student Section</DialogTitle>
-                  <DialogDescription>
-                    Create a class batch (e.g. CSE-A, CSE-B, or Year 3 - Sec 1).
-                  </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleAddSection} className="space-y-4 pt-2">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Section Name *
-                    </label>
-                    <Input
-                      placeholder="e.g. CSE-A or 6th Sem Batch A"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Department *
-                    </label>
-                    <select
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      value={departmentId}
-                      onChange={(e) => setDepartmentId(Number(e.target.value))}
-                      required
-                    >
-                      {departments.map((dept) => (
-                        <option key={dept.id} value={dept.id}>
-                          {dept.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {error && <p className="text-xs text-destructive">{error}</p>}
-
-                  <DialogFooter className="pt-2">
-                    <Button type="submit" disabled={submitting || !name.trim()}>
-                      {submitting ? "Saving..." : "Save Section"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Registered Sections</CardTitle>
-                <CardDescription>
-                  {sections.length} {sections.length === 1 ? "section" : "sections"} configured in department
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {loading ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                <div className="inline-block size-5 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
-                <p>Loading sections from database...</p>
-              </div>
-            ) : sections.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-3">
-                  <GraduationCap className="size-6" />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+                <Plus className="size-4" />
+                Add Student Section
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+              <DialogHeader>
+                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                  <Sparkles className="size-4" />
+                  <span className="tt-eyebrow">New Student Cohort</span>
                 </div>
-                <h3 className="text-sm font-medium">No sections found</h3>
-                <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                  Create class sections like CSE-A or 4th Year Section 1 to assign teaching schedules.
-                </p>
-              </div>
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  Create Section Batch
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Define a class section (e.g. CSE-A, 6th Sem Batch B, or Year 3 - Sec 1).
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleAddSection} className="space-y-4 pt-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Section Name *
+                  </label>
+                  <Input
+                    placeholder="e.g. CSE-A or 4th Sem Batch 1"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Department Assignment *
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(Number(e.target.value))}
+                    required
+                  >
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {error && <p className="text-xs text-red-500">{error}</p>}
+
+                <DialogFooter className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={submitting || !name.trim()}
+                    className="tt-gradient-btn rounded-xl font-bold"
+                  >
+                    {submitting ? "Saving..." : "Save Section"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </PageHeader>
+
+        <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
+          <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Registered Student Sections</h3>
+              <p className="text-xs text-muted-foreground">
+                {sections.length} {sections.length === 1 ? "section" : "sections"} active in curriculum
+              </p>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            {loading ? (
+              <LoadingState text="Loading sections database..." />
+            ) : sections.length === 0 ? (
+              <EmptyState
+                icon={GraduationCap}
+                title="No sections found"
+                description='Click "Add Student Section" to create cohorts and divisions.'
+              />
             ) : (
-              <div className="rounded-lg border">
+              <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Section Name</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
+                      <TableHead className="text-xs font-bold text-muted-foreground">#</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Section Identifier</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Department</TableHead>
+                      <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-
                   <TableBody>
                     {sections.map((sec, index) => {
                       const deptName =
@@ -264,23 +258,23 @@ export default function SectionsPage() {
                         `Dept #${sec.department_id}`;
 
                       return (
-                        <TableRow key={sec.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                        <TableRow key={sec.id} className="border-border hover:bg-muted/20 transition-colors">
+                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
                             #{index + 1}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary" className="font-semibold text-xs">
+                            <span className="inline-flex items-center rounded-lg bg-purple-500/10 border border-purple-500/30 px-3 py-1 font-bold text-xs text-purple-700 dark:text-purple-300">
                               {sec.name}
-                            </Badge>
+                            </span>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="text-sm font-medium text-muted-foreground">
                             {deptName}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-8 text-muted-foreground hover:text-destructive"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
                               onClick={() => handleDelete(sec.id)}
                               title="Delete section"
                             >
@@ -294,8 +288,8 @@ export default function SectionsPage() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </GlassPanel>
       </div>
     </AppShell>
   );

@@ -16,8 +16,11 @@ export default function HomePage() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-      <div className="size-6 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+    <div className="flex min-h-screen items-center justify-center bg-[#05070D]">
+      <div className="relative size-8">
+        <div className="absolute inset-0 rounded-full border-2 border-white/[0.06]" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#38BDF8] animate-spin" />
+      </div>
     </div>
   );
 }

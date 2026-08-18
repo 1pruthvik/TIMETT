@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { StatCard } from "@/components/ui/stat-card";
+import { GlassPanel } from "@/components/ui/glass-panel";
 import {
   CalendarDays,
   Users,
@@ -17,6 +17,10 @@ import {
   Clock,
   CheckCircle2,
   RefreshCw,
+  Zap,
+  Sliders,
+  Cpu,
+  Layers,
 } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
@@ -31,6 +35,13 @@ interface DashboardCounts {
   semester: string;
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function DashboardPage() {
   const [counts, setCounts] = useState<DashboardCounts>({
     faculty: 0,
@@ -42,6 +53,7 @@ export default function DashboardPage() {
     semester: "Semester 1",
   });
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("");
 
   const fetchLiveCounts = async () => {
     setLoading(true);
@@ -50,6 +62,7 @@ export default function DashboardPage() {
       const user = storedUser ? JSON.parse(storedUser) : null;
       const userDeptId = user?.department_id;
       const userInstId = user?.institution_id;
+      if (user?.name) setUserName(user.name.split(" ")[0]);
 
       const facUrl = userDeptId ? `${API_BASE}/faculty/?department_id=${userDeptId}` : `${API_BASE}/faculty/`;
       const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
@@ -94,158 +107,225 @@ export default function DashboardPage() {
     fetchLiveCounts();
   }, []);
 
-  const stats = [
-    { title: "Faculty Members", value: counts.faculty, icon: Users, href: "/faculty", label: "Teaching Staff" },
-    { title: "Subjects", value: counts.subjects, icon: BookOpen, href: "/subjects", label: "Curriculum" },
-    { title: "Rooms & Labs", value: counts.rooms, icon: DoorOpen, href: "/rooms", label: "Infrastructure" },
-    { title: "Sections", value: counts.sections, icon: GraduationCap, href: "/sections", label: "Student Batches" },
-  ];
-
   return (
     <AppShell>
-      <div className="space-y-8 max-w-6xl">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Institution Dashboard</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Real-time overview of academic resources and timetable solver optimization.
-            </p>
-          </div>
+      <div className="space-y-8 max-w-7xl mx-auto tt-animate-fade">
+        {/* Vercel/Linear Centered Hero Section */}
+        <div className="tt-floating-glass relative overflow-hidden rounded-3xl p-6 sm:p-10">
+          {/* Subtle glow layer */}
+          <div className="absolute top-0 right-1/4 -z-10 h-48 w-96 rounded-full bg-gradient-to-r from-[#8B5CF6]/15 to-[#EC4899]/15 blur-3xl opacity-60 pointer-events-none" />
 
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" onClick={fetchLiveCounts} title="Refresh counts">
-              <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
-            </Button>
-            <Link href="/generations">
-              <Button variant="outline" className="gap-2">
-                <Clock className="size-4" />
-                Run History
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              {/* Eyebrow pill label */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 px-3 py-1 text-[11px] font-bold text-[#8B5CF6] dark:text-[#A78BFA]">
+                <Sparkles className="size-3.5" />
+                <span className="tracking-wide">INTELLIGENT TIMETABLE OPERATING SYSTEM</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+                {getGreeting()}{userName ? `, ${userName}` : ""}. <br className="hidden sm:inline" />
+                <span className="tt-gradient-text">Conflict-free scheduling</span> at scale.
+              </h1>
+
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+                Google OR-Tools CP-SAT discrete constraint optimizer is synchronized with real-time faculty availability and department quotas.
+              </p>
+            </div>
+
+            {/* Dual CTAs & Actions */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchLiveCounts}
+                className="size-10 rounded-xl border-border bg-card/80 hover:bg-card text-muted-foreground hover:text-foreground cursor-pointer"
+                title="Refresh metrics"
+              >
+                <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
               </Button>
-            </Link>
-            <Link href="/timetable">
-              <Button className="gap-2">
-                <Sparkles className="size-4" />
-                Timetable Workspace
-              </Button>
-            </Link>
+
+              <Link href="/generations">
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground"
+                >
+                  <Clock className="size-4 text-[#8B5CF6]" />
+                  Run Logs
+                </Button>
+              </Link>
+
+              <Link href="/timetable">
+                <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-5 cursor-pointer">
+                  <Zap className="size-4" />
+                  Launch Timetable Studio
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Real-time Stats Grid */}
+        {/* 4 Feature / KPI Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((item) => (
-            <Link key={item.title} href={item.href}>
-              <Card className="transition-all hover:border-zinc-400 hover:shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {item.title}
-                  </CardTitle>
-                  <item.icon className="size-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold tracking-tight">
-                    {loading ? (
-                      <span className="inline-block size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    ) : (
-                      item.value
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <span className="font-medium text-emerald-600">Live in Database</span> · {item.label}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          <Link href="/faculty" className="block">
+            <StatCard
+              title="Faculty Staff"
+              value={counts.faculty}
+              icon={Users}
+              label="Teaching Roster"
+              loading={loading}
+            />
+          </Link>
+          <Link href="/subjects" className="block">
+            <StatCard
+              title="Subject Catalog"
+              value={counts.subjects}
+              icon={BookOpen}
+              label="Curriculum Courses"
+              loading={loading}
+            />
+          </Link>
+          <Link href="/rooms" className="block">
+            <StatCard
+              title="Rooms & Labs"
+              value={counts.rooms}
+              icon={DoorOpen}
+              label="Physical Spaces"
+              loading={loading}
+            />
+          </Link>
+          <Link href="/sections" className="block">
+            <StatCard
+              title="Student Cohorts"
+              value={counts.sections}
+              icon={GraduationCap}
+              label="Active Batches"
+              loading={loading}
+            />
+          </Link>
         </div>
 
-        {/* Status and Quick Action Cards */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Active Timetable Status</CardTitle>
-                  <CardDescription>Department of Computer Science & Engineering</CardDescription>
+        {/* Overview & Quick Actions */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Active Schedule Status (2 cols) */}
+          <GlassPanel glow="purple" className="p-6 lg:col-span-2 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-foreground">Active Term & Solution State</h3>
+                  <span className="rounded-full bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] px-2 py-0.5 text-[10px] font-bold border border-[#8B5CF6]/20">
+                    CSE Dept
+                  </span>
                 </div>
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                  <CheckCircle2 className="mr-1 size-3.5" />
-                  {counts.timetables > 0 ? `${counts.timetables} Timetables Active` : "Ready to Solve"}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border p-4 bg-muted/30 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Academic Year:</span>
-                  <span className="font-medium">{counts.academicYear}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Active Semester:</span>
-                  <span className="font-medium">{counts.semester}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Generated Runs:</span>
-                  <span className="font-medium text-emerald-600">{counts.timetables} Solutions Saved</span>
-                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">Automated conflict-free discrete scheduling</p>
               </div>
 
-              <Link href="/timetable" className="block">
-                <Button variant="outline" className="w-full justify-between">
-                  Open Interactive Timetable Workspace
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <CheckCircle2 className="size-3.5" />
+                {counts.timetables > 0 ? `${counts.timetables} Timetables Active` : "Solver Ready"}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-1">
+                <span className="tt-eyebrow text-muted-foreground">Academic Year</span>
+                <p className="text-base font-bold text-foreground">{counts.academicYear}</p>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">● Live Session</span>
+              </div>
+              <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-1">
+                <span className="tt-eyebrow text-muted-foreground">Active Semester</span>
+                <p className="text-base font-bold text-foreground">{counts.semester}</p>
+                <span className="text-[10px] text-[#8B5CF6] dark:text-[#A78BFA] font-semibold">● Primary Term</span>
+              </div>
+              <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-1">
+                <span className="tt-eyebrow text-muted-foreground">Generated Solves</span>
+                <p className="text-base font-bold text-foreground">{counts.timetables} Models</p>
+                <span className="text-[10px] text-pink-600 dark:text-pink-400 font-semibold">● 0 Hard Overlaps</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <Link href="/timetable" className="flex-1">
+                <Button className="tt-gradient-btn w-full h-11 rounded-xl font-bold justify-between px-4">
+                  <span>Open Interactive Timetable Grid</span>
                   <ArrowUpRight className="size-4" />
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Manage curriculum and scheduling constraints</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-2 sm:grid-cols-2">
-              <Link href="/faculty">
-                <Button variant="outline" className="w-full justify-start gap-2 h-14">
-                  <Users className="size-4 text-primary" />
-                  <div className="text-left">
-                    <p className="text-xs font-medium">Faculty</p>
-                    <p className="text-[10px] text-muted-foreground">{counts.faculty} registered</p>
-                  </div>
+              <Link href="/settings">
+                <Button variant="outline" className="h-11 rounded-xl font-semibold border-border bg-card hover:bg-muted px-4">
+                  <Sliders className="size-4 text-[#8B5CF6] mr-2" />
+                  Constraint Engine
                 </Button>
               </Link>
+            </div>
+          </GlassPanel>
 
-              <Link href="/subjects">
-                <Button variant="outline" className="w-full justify-start gap-2 h-14">
-                  <BookOpen className="size-4 text-primary" />
-                  <div className="text-left">
-                    <p className="text-xs font-medium">Subjects</p>
-                    <p className="text-[10px] text-muted-foreground">{counts.subjects} in catalog</p>
+          {/* Quick Hub (1 col) */}
+          <GlassPanel glow="pink" className="p-6 space-y-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-base font-bold text-foreground">Management Hub</h3>
+                <Cpu className="size-4 text-[#EC4899]" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Fast navigation to curriculum resources:
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <Link href="/faculty" className="block">
+                <div className="flex items-center justify-between rounded-xl border border-border bg-card/60 p-3 transition-all hover:bg-card hover:border-[#8B5CF6]/30 group">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] group-hover:scale-110 transition-transform">
+                      <Users className="size-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Faculty Roster</p>
+                      <p className="text-[10px] text-muted-foreground">{counts.faculty} staff members</p>
+                    </div>
                   </div>
-                </Button>
+                  <ArrowUpRight className="size-3.5 text-muted-foreground group-hover:text-[#8B5CF6] transition-colors" />
+                </div>
               </Link>
 
-              <Link href="/rooms">
-                <Button variant="outline" className="w-full justify-start gap-2 h-14">
-                  <DoorOpen className="size-4 text-primary" />
-                  <div className="text-left">
-                    <p className="text-xs font-medium">Rooms & Labs</p>
-                    <p className="text-[10px] text-muted-foreground">{counts.rooms} configured</p>
+              <Link href="/subjects" className="block">
+                <div className="flex items-center justify-between rounded-xl border border-border bg-card/60 p-3 transition-all hover:bg-card hover:border-[#EC4899]/30 group">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-[#EC4899]/10 text-[#EC4899] dark:text-[#F472B6] group-hover:scale-110 transition-transform">
+                      <BookOpen className="size-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Course Catalog</p>
+                      <p className="text-[10px] text-muted-foreground">{counts.subjects} curriculum courses</p>
+                    </div>
                   </div>
-                </Button>
+                  <ArrowUpRight className="size-3.5 text-muted-foreground group-hover:text-[#EC4899] transition-colors" />
+                </div>
               </Link>
 
-              <Link href="/sections">
-                <Button variant="outline" className="w-full justify-start gap-2 h-14">
-                  <GraduationCap className="size-4 text-primary" />
-                  <div className="text-left">
-                    <p className="text-xs font-medium">Sections</p>
-                    <p className="text-[10px] text-muted-foreground">{counts.sections} batches</p>
+              <Link href="/rooms" className="block">
+                <div className="flex items-center justify-between rounded-xl border border-border bg-card/60 p-3 transition-all hover:bg-card hover:border-[#8B5CF6]/30 group">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] group-hover:scale-110 transition-transform">
+                      <DoorOpen className="size-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Rooms & Labs</p>
+                      <p className="text-[10px] text-muted-foreground">{counts.rooms} physical spaces</p>
+                    </div>
                   </div>
-                </Button>
+                  <ArrowUpRight className="size-3.5 text-muted-foreground group-hover:text-[#8B5CF6] transition-colors" />
+                </div>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+
+            <Link href="/generations" className="block pt-2">
+              <Button variant="outline" className="w-full text-xs font-semibold rounded-xl border-border bg-card/60">
+                <Layers className="size-3.5 text-[#8B5CF6] mr-2" />
+                Generation History
+              </Button>
+            </Link>
+          </GlassPanel>
         </div>
       </div>
     </AppShell>

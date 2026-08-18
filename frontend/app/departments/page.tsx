@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -35,6 +36,8 @@ import {
   Sparkles,
   GraduationCap,
   FlaskConical,
+  CalendarRange,
+  ArrowRight,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -60,21 +63,17 @@ interface Room {
   institution_id: number;
 }
 
-interface SemesterConfig {
-  semNumber: number;
-  sectionCount: number;
+interface AcademicSemester {
+  id: number;
+  name: string;
+  academic_year_id: number;
 }
 
-const DEFAULT_SEMESTERS: SemesterConfig[] = [
-  { semNumber: 1, sectionCount: 2 },
-  { semNumber: 2, sectionCount: 2 },
-  { semNumber: 3, sectionCount: 2 },
-  { semNumber: 4, sectionCount: 2 },
-  { semNumber: 5, sectionCount: 2 },
-  { semNumber: 6, sectionCount: 2 },
-  { semNumber: 7, sectionCount: 2 },
-  { semNumber: 8, sectionCount: 2 },
-];
+interface SemesterSectionConfig {
+  semesterId: number;
+  semesterName: string;
+  sectionCount: number;
+}
 
 function getDeptAcronym(name: string): string {
   if (!name.trim()) return "SEC";
@@ -102,16 +101,29 @@ function getDeptLabs(dept: Department, allRooms: Room[]): Room[] {
   });
 }
 
-function isSectionInSem(secName: string, semNumber: number): boolean {
-  const norm = secName.trim();
-  const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${semNumber}([A-Za-z]|\\s|$)`, "i");
-  return pattern.test(norm);
+function isSectionForSemester(secName: string, semName: string): boolean {
+  const normSec = secName.trim().toLowerCase();
+  const normSem = semName.trim().toLowerCase();
+
+  // If full sem name is contained
+  if (normSec.includes(normSem)) return true;
+
+  // Extract digits from semName e.g. "Semester 1" -> "1"
+  const digits = normSem.match(/\d+/);
+  if (digits) {
+    const d = digits[0];
+    const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${d}([A-Za-z]|\\s|$)`, "i");
+    return pattern.test(normSec);
+  }
+
+  return false;
 }
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [academicSemesters, setAcademicSemesters] = useState<AcademicSemester[]>([]);
   const [institutionId, setInstitutionId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
 
@@ -119,7 +131,7 @@ export default function DepartmentsPage() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [deptLabCount, setDeptLabCount] = useState("3");
-  const [semesterConfigs, setSemesterConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
+  const [createConfigs, setCreateConfigs] = useState<SemesterSectionConfig[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -128,7 +140,7 @@ export default function DepartmentsPage() {
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [editName, setEditName] = useState("");
   const [editDeptLabCount, setEditDeptLabCount] = useState("0");
-  const [editConfigs, setEditConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
+  const [editConfigs, setEditConfigs] = useState<SemesterSectionConfig[]>([]);
   const [customSectionName, setCustomSectionName] = useState("");
   const [customLabName, setCustomLabName] = useState("");
   const [submittingEdit, setSubmittingEdit] = useState(false);
@@ -143,10 +155,11 @@ export default function DepartmentsPage() {
       const userInstId = user?.institution_id || 1;
       setInstitutionId(userInstId);
 
-      const [deptRes, secRes, roomRes] = await Promise.all([
+      const [deptRes, secRes, roomRes, semRes] = await Promise.all([
         fetch(`${API_BASE}/departments/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/rooms/?institution_id=${userInstId}`).catch(() => null),
+        fetch(`${API_BASE}/semesters/?institution_id=${userInstId}`).catch(() => null),
       ]);
 
       if (deptRes && deptRes.ok) {
@@ -157,6 +170,31 @@ export default function DepartmentsPage() {
       }
       if (roomRes && roomRes.ok) {
         setRooms(await roomRes.json());
+      }
+
+      let sems: AcademicSemester[] = [];
+      if (semRes && semRes.ok) {
+        sems = await semRes.json();
+        setAcademicSemesters(sems);
+      }
+
+      // Initialize createConfigs from academic terms
+      if (sems.length > 0) {
+        setCreateConfigs(
+          sems.map((s) => ({
+            semesterId: s.id,
+            semesterName: s.name,
+            sectionCount: 2,
+          }))
+        );
+      } else {
+        // Fallback only if no terms are added yet
+        setCreateConfigs([
+          { semesterId: 1, semesterName: "Semester 1", sectionCount: 2 },
+          { semesterId: 3, semesterName: "Semester 3", sectionCount: 2 },
+          { semesterId: 5, semesterName: "Semester 5", sectionCount: 2 },
+          { semesterId: 7, semesterName: "Semester 7", sectionCount: 2 },
+        ]);
       }
     } catch (err) {
       console.error(err);
@@ -170,12 +208,12 @@ export default function DepartmentsPage() {
     fetchData();
   }, []);
 
-  const handleUpdateSemConfig = (
+  const handleUpdateConfig = (
     index: number,
     val: number,
     isEdit = false
   ) => {
-    const updater = isEdit ? setEditConfigs : setSemesterConfigs;
+    const updater = isEdit ? setEditConfigs : setCreateConfigs;
     updater((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], sectionCount: Math.max(0, Math.min(10, val)) };
@@ -207,13 +245,14 @@ export default function DepartmentsPage() {
 
       const newDept: Department = await res.json();
 
-      // Automatically generate Sections for the department
+      // Automatically generate Sections for only the active semesters configured in Academic Terms
       const deptShort = getDeptAcronym(newDept.name);
       const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-      for (const conf of semesterConfigs) {
+      for (const conf of createConfigs) {
+        const semDigit = conf.semesterName.match(/\d+/)?.[0] || conf.semesterName;
         for (let i = 0; i < conf.sectionCount; i++) {
-          const secLabel = `${deptShort} ${conf.semNumber}${letters[i] || i + 1}`;
+          const secLabel = `${deptShort} ${semDigit}${letters[i] || i + 1}`;
           await fetch(`${API_BASE}/sections/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -244,7 +283,6 @@ export default function DepartmentsPage() {
 
       setName("");
       setDeptLabCount("3");
-      setSemesterConfigs(DEFAULT_SEMESTERS);
       setOpen(false);
       await fetchData();
     } catch (err) {
@@ -258,19 +296,29 @@ export default function DepartmentsPage() {
     setEditingDept(dept);
     setEditName(dept.name);
 
-    // Compute EXACT existing sections count per semester for this department (no hardcoded fallback)
     const deptSections = sections.filter((s) => s.department_id === dept.id);
-    const updatedConfigs: SemesterConfig[] = DEFAULT_SEMESTERS.map((sem) => {
-      const semSecs = deptSections.filter((s) => isSectionInSem(s.name, sem.semNumber));
+
+    // Populate semester list strictly from Academic Terms
+    const activeSems = academicSemesters.length > 0
+      ? academicSemesters
+      : [
+          { id: 1, name: "Semester 1", academic_year_id: 1 },
+          { id: 3, name: "Semester 3", academic_year_id: 1 },
+          { id: 5, name: "Semester 5", academic_year_id: 1 },
+          { id: 7, name: "Semester 7", academic_year_id: 1 },
+        ];
+
+    const updatedConfigs: SemesterSectionConfig[] = activeSems.map((sem) => {
+      const matchingSecs = deptSections.filter((s) => isSectionForSemester(s.name, sem.name));
       return {
-        semNumber: sem.semNumber,
-        sectionCount: semSecs.length, // EXACT MATCH with database!
+        semesterId: sem.id,
+        semesterName: sem.name,
+        sectionCount: matchingSecs.length, // Exact count from database
       };
     });
 
-    // Compute EXACT department labs count from database
     const deptLabs = getDeptLabs(dept, rooms);
-    setEditDeptLabCount(deptLabs.length.toString()); // EXACT MATCH with database!
+    setEditDeptLabCount(deptLabs.length.toString());
 
     setEditConfigs(updatedConfigs);
     setCustomSectionName("");
@@ -375,21 +423,21 @@ export default function DepartmentsPage() {
         throw new Error(errData.detail || "Failed to update department");
       }
 
-      // 2. Sync sections for the department
+      // 2. Sync sections for the academic terms semesters
       const deptShort = getDeptAcronym(editName.trim());
       const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
       for (const conf of editConfigs) {
         const currentSemSecs = sections.filter(
-          (s) => s.department_id === editingDept.id && isSectionInSem(s.name, conf.semNumber)
+          (s) => s.department_id === editingDept.id && isSectionForSemester(s.name, conf.semesterName)
         );
 
-        // If target count is greater than current count, create the missing sections
         if (conf.sectionCount > currentSemSecs.length) {
           const needed = conf.sectionCount - currentSemSecs.length;
+          const semDigit = conf.semesterName.match(/\d+/)?.[0] || conf.semesterName;
           for (let i = 0; i < needed; i++) {
             const letterIdx = currentSemSecs.length + i;
-            const secLabel = `${deptShort} ${conf.semNumber}${letters[letterIdx] || letterIdx + 1}`;
+            const secLabel = `${deptShort} ${semDigit}${letters[letterIdx] || letterIdx + 1}`;
             await fetch(`${API_BASE}/sections/`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -456,7 +504,7 @@ export default function DepartmentsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Departments & Structure"
-          description="Create academic departments, define total department laboratories, and configure student section counts per semester."
+          description="Create academic departments, define total department laboratories, and configure student section counts for your active academic terms."
           icon={Building2}
         >
           <Button
@@ -469,13 +517,20 @@ export default function DepartmentsPage() {
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
           </Button>
 
+          <Link href="/academic-terms">
+            <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
+              <CalendarRange className="size-4 text-[#8B5CF6]" />
+              Academic Terms ({academicSemesters.length} Semesters)
+            </Button>
+          </Link>
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
                 <Plus className="size-4" /> Add Department
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[540px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                   <Sparkles className="size-4" />
@@ -485,7 +540,7 @@ export default function DepartmentsPage() {
                   Create Department Structure
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Specify department title, total department labs, and number of student sections per semester.
+                  Specify department title, department labs, and section counts for semesters active in Academic Terms.
                 </DialogDescription>
               </DialogHeader>
 
@@ -522,38 +577,56 @@ export default function DepartmentsPage() {
                   </div>
                 </div>
 
-                {/* Semester Section Structure Table */}
+                {/* Semester Section Structure Table from Academic Terms */}
                 <div className="space-y-2 pt-2 border-t border-border">
-                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <GraduationCap className="size-4 text-[#8B5CF6]" />
-                    Semester Sections Provisioning
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-2xl border border-border bg-muted/20 p-3">
-                    {semesterConfigs.map((sem, idx) => (
-                      <div
-                        key={sem.semNumber}
-                        className="p-2.5 rounded-xl bg-card border border-border text-xs text-center space-y-1.5"
-                      >
-                        <span className="font-bold text-foreground block">
-                          Sem {sem.semNumber}
-                        </span>
-
-                        <div className="flex items-center justify-center gap-1">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="10"
-                            value={sem.sectionCount}
-                            onChange={(e) =>
-                              handleUpdateSemConfig(idx, parseInt(e.target.value) || 0)
-                            }
-                            className="w-14 h-8 text-center font-bold text-xs rounded-lg"
-                          />
-                          <span className="text-[11px] text-muted-foreground">secs</span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <GraduationCap className="size-4 text-[#8B5CF6]" />
+                      Active Academic Semesters ({createConfigs.length})
+                    </label>
+                    <Link
+                      href="/academic-terms"
+                      className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5"
+                    >
+                      Manage Terms <ArrowRight className="size-3" />
+                    </Link>
                   </div>
+
+                  {createConfigs.length === 0 ? (
+                    <div className="p-3 text-center rounded-xl bg-muted/30 border border-border text-xs text-muted-foreground">
+                      No active semesters found in Academic Terms.{" "}
+                      <Link href="/academic-terms" className="text-primary underline font-bold">
+                        Add Semesters in Academic Terms
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 rounded-2xl border border-border bg-muted/20 p-3">
+                      {createConfigs.map((sem, idx) => (
+                        <div
+                          key={sem.semesterId || idx}
+                          className="p-2.5 rounded-xl bg-card border border-border text-xs text-center space-y-1.5"
+                        >
+                          <span className="font-bold text-foreground block truncate" title={sem.semesterName}>
+                            {sem.semesterName}
+                          </span>
+
+                          <div className="flex items-center justify-center gap-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="10"
+                              value={sem.sectionCount}
+                              onChange={(e) =>
+                                handleUpdateConfig(idx, parseInt(e.target.value) || 0)
+                              }
+                              className="w-14 h-8 text-center font-bold text-xs rounded-lg"
+                            />
+                            <span className="text-[11px] text-muted-foreground">secs</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {error && <p className="text-xs text-red-500">{error}</p>}
@@ -584,7 +657,7 @@ export default function DepartmentsPage() {
                 Edit Department Structure
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Update department title, total department labs, and section counts per semester.
+                Update department title, department labs, and section counts for semesters active in Academic Terms.
               </DialogDescription>
             </DialogHeader>
 
@@ -619,20 +692,29 @@ export default function DepartmentsPage() {
                 </div>
               </div>
 
-              {/* Semester Sections Matrix inside Edit Modal */}
+              {/* Semester Sections Matrix from Academic Terms */}
               <div className="space-y-2 pt-2 border-t border-border">
-                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <GraduationCap className="size-4 text-[#8B5CF6]" />
-                  Configure Sections per Semester
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-2xl border border-border bg-muted/20 p-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <GraduationCap className="size-4 text-[#8B5CF6]" />
+                    Academic Terms Semesters ({editConfigs.length})
+                  </label>
+                  <Link
+                    href="/academic-terms"
+                    className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-0.5"
+                  >
+                    Manage Terms <ArrowRight className="size-3" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 rounded-2xl border border-border bg-muted/20 p-3">
                   {editConfigs.map((sem, idx) => (
                     <div
-                      key={sem.semNumber}
+                      key={sem.semesterId || idx}
                       className="p-2.5 rounded-xl bg-card border border-border text-xs text-center space-y-1.5"
                     >
-                      <span className="font-bold text-foreground block">
-                        Sem {sem.semNumber}
+                      <span className="font-bold text-foreground block truncate" title={sem.semesterName}>
+                        {sem.semesterName}
                       </span>
 
                       <div className="flex items-center justify-center gap-1">
@@ -642,7 +724,7 @@ export default function DepartmentsPage() {
                           max="10"
                           value={sem.sectionCount}
                           onChange={(e) =>
-                            handleUpdateSemConfig(idx, parseInt(e.target.value) || 0, true)
+                            handleUpdateConfig(idx, parseInt(e.target.value) || 0, true)
                           }
                           className="w-14 h-8 text-center font-bold text-xs rounded-lg"
                         />
@@ -773,14 +855,14 @@ export default function DepartmentsPage() {
             <div>
               <h3 className="text-base font-bold text-foreground">Institutional Departments</h3>
               <p className="text-xs text-muted-foreground">
-                {departments.length} {departments.length === 1 ? "department" : "departments"} registered with configured laboratories and semester sections
+                {departments.length} {departments.length === 1 ? "department" : "departments"} registered with configured laboratories and active academic term sections
               </p>
             </div>
           </div>
 
           <div className="p-4 sm:p-6">
             {loading ? (
-              <LoadingState text="Loading departments and semester structure..." />
+              <LoadingState text="Loading departments and academic term structure..." />
             ) : departments.length === 0 ? (
               <EmptyState
                 icon={Building2}

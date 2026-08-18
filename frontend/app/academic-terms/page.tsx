@@ -27,7 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Calendar, CalendarRange, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 interface AcademicYear {
   id: number;
@@ -62,13 +62,13 @@ export default function AcademicTermsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [yrRes, semRes] = await Promise.all([
-        fetch(`${API_BASE}/academic-years/`),
-        fetch(`${API_BASE}/semesters/`),
-      ]);
+      const yrPromise = fetch(`${API_BASE}/academic-years/`).catch(() => null);
+      const semPromise = fetch(`${API_BASE}/semesters/`).catch(() => null);
 
-      const yrs: AcademicYear[] = yrRes.ok ? await yrRes.json() : [];
-      const sems: Semester[] = semRes.ok ? await semRes.json() : [];
+      const [yrRes, semRes] = await Promise.all([yrPromise, semPromise]);
+
+      const yrs: AcademicYear[] = (yrRes && yrRes.ok) ? await yrRes.json() : [];
+      const sems: Semester[] = (semRes && semRes.ok) ? await semRes.json() : [];
 
       setAcademicYears(yrs);
       setSemesters(sems);
@@ -76,7 +76,7 @@ export default function AcademicTermsPage() {
         setSelectedYearId(yrs[0].id);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch academic terms data:", err);
     } finally {
       setLoading(false);
     }

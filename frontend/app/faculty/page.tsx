@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import {
   Plus,
   Trash2,
+  Pencil,
   Users,
   RefreshCw,
   CalendarClock,
@@ -113,6 +114,15 @@ export default function FacultyPage() {
   const [assignments, setAssignments] = useState<SubjectAssignmentInput[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit Faculty states
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingFaculty, setEditingFaculty] = useState<FacultyMember | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesignation, setEditDesignation] = useState("Assistant Professor");
+  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
 
   // Availability Modal states
   const [availOpen, setAvailOpen] = useState(false);
@@ -286,6 +296,47 @@ export default function FacultyPage() {
       setError(err instanceof Error ? err.message : "Error creating faculty member");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (member: FacultyMember) => {
+    setEditingFaculty(member);
+    setEditName(member.name);
+    setEditDesignation(member.designation || "Assistant Professor");
+    setEditDepartmentId(member.department_id);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateFaculty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFaculty || !editName.trim() || !editDepartmentId) return;
+
+    setSubmittingEdit(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/faculty/${editingFaculty.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          designation: editDesignation.trim() || "Assistant Professor",
+          department_id: Number(editDepartmentId),
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update faculty member");
+      }
+
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating faculty member");
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -561,6 +612,95 @@ export default function FacultyPage() {
           </Dialog>
         </PageHeader>
 
+        {/* Edit Faculty Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Instructor</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Edit Faculty Member
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update instructor name, academic title, and departmental affiliation.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateFaculty} className="space-y-4 pt-2">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Full Name *
+                  </label>
+                  <Input
+                    placeholder="e.g. Dr. Rajesh Kumar"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Designation
+                  </label>
+                  <Input
+                    placeholder="e.g. Associate Professor"
+                    value={editDesignation}
+                    onChange={(e) => setEditDesignation(e.target.value)}
+                    className="rounded-xl border-border bg-muted/40"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Department *
+                </label>
+                <select
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  value={editDepartmentId}
+                  onChange={(e) => setEditDepartmentId(Number(e.target.value))}
+                  required
+                >
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {editError && (
+                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-600 dark:text-red-400">
+                  <AlertCircle className="size-4 shrink-0" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editName.trim() || !editDepartmentId}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
+                  {submittingEdit ? "Updating..." : "Update Faculty"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {/* Directory Table */}
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
@@ -644,15 +784,26 @@ export default function FacultyPage() {
                             </Button>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDelete(member.id)}
-                              title="Delete faculty"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                onClick={() => openEditModal(member)}
+                                title="Edit faculty"
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                                onClick={() => handleDelete(member.id)}
+                                title="Delete faculty"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

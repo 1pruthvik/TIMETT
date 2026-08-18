@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, BookOpen, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, BookOpen, RefreshCw, Sparkles } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -22,12 +22,23 @@ export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Create Modal
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [departmentId, setDepartmentId] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit Modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCode, setEditCode] = useState("");
+  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const fetchData = async () => {
     setLoading(true); setError("");
@@ -37,11 +48,15 @@ export default function SubjectsPage() {
       const userDeptId = user?.department_id;
       const userInstId = user?.institution_id;
       const deptUrl = userInstId ? `${API_BASE}/departments/?institution_id=${userInstId}` : `${API_BASE}/departments/`;
-      const deptRes = await fetch(deptUrl);
-      if (deptRes.ok) { const depts = await deptRes.json(); setDepartments(depts); if (depts.length > 0) setDepartmentId(userDeptId || depts[0].id); }
+      const deptRes = await fetch(deptUrl).catch(() => null);
+      if (deptRes && deptRes.ok) {
+        const depts = await deptRes.json();
+        setDepartments(depts);
+        if (depts.length > 0 && !departmentId) setDepartmentId(userDeptId || depts[0].id);
+      }
       const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
-      const subRes = await fetch(subUrl);
-      if (subRes.ok) setSubjects(await subRes.json());
+      const subRes = await fetch(subUrl).catch(() => null);
+      if (subRes && subRes.ok) setSubjects(await subRes.json());
     } catch (err) { console.error(err); setError("Failed to connect to backend API."); }
     finally { setLoading(false); }
   };
@@ -53,17 +68,59 @@ export default function SubjectsPage() {
     if (!name.trim() || !code.trim() || !departmentId) return;
     setSubmitting(true); setError("");
     try {
-      const res = await fetch(`${API_BASE}/subjects/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: name.trim(), code: code.trim().toUpperCase(), department_id: Number(departmentId) }) });
+      const res = await fetch(`${API_BASE}/subjects/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), code: code.trim().toUpperCase(), department_id: Number(departmentId) })
+      });
       if (!res.ok) { const errData = await res.json(); throw new Error(errData.detail || "Failed to add subject"); }
       setName(""); setCode(""); setOpen(false); await fetchData();
     } catch (err) { setError(err instanceof Error ? err.message : "Error creating subject"); }
     finally { setSubmitting(false); }
   };
 
+  const openEditModal = (subject: Subject) => {
+    setEditingSubject(subject);
+    setEditName(subject.name);
+    setEditCode(subject.code);
+    setEditDepartmentId(subject.department_id);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateSubject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSubject || !editName.trim() || !editCode.trim() || !editDepartmentId) return;
+    setSubmittingEdit(true); setEditError("");
+    try {
+      const res = await fetch(`${API_BASE}/subjects/${editingSubject.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          code: editCode.trim().toUpperCase(),
+          department_id: Number(editDepartmentId)
+        })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update subject");
+      }
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating subject");
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this subject?")) return;
-    try { const res = await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" }); if (res.ok) setSubjects((prev) => prev.filter((s) => s.id !== id)); }
-    catch (err) { console.error("Failed to delete subject", err); }
+    try {
+      const res = await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
+      if (res.ok) setSubjects((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) { console.error("Failed to delete subject", err); }
   };
 
   return (
@@ -114,6 +171,43 @@ export default function SubjectsPage() {
           </Dialog>
         </PageHeader>
 
+        {/* Edit Subject Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Course</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">Edit Subject</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">Update course details, subject code, or department.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateSubject} className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Subject Name *</label>
+                <Input placeholder="e.g. Data Structures & Algorithms" value={editName} onChange={(e) => setEditName(e.target.value)} required className="rounded-xl border-border bg-muted/40" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Subject Code *</label>
+                <Input placeholder="e.g. CS201" value={editCode} onChange={(e) => setEditCode(e.target.value)} required className="rounded-xl border-border bg-muted/40 font-mono" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Department *</label>
+                <select className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" value={editDepartmentId} onChange={(e) => setEditDepartmentId(Number(e.target.value))} required>
+                  {departments.map((dept) => (<option key={dept.id} value={dept.id}>{dept.name}</option>))}
+                </select>
+              </div>
+              {editError && <p className="text-xs text-red-500">{editError}</p>}
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="rounded-xl">Cancel</Button>
+                <Button type="submit" disabled={submittingEdit || !editName.trim() || !editCode.trim()} className="tt-gradient-btn rounded-xl font-bold">
+                  {submittingEdit ? "Updating..." : "Update Subject"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
@@ -146,9 +240,14 @@ export default function SubjectsPage() {
                           <TableCell className="font-bold text-foreground text-sm">{sub.name}</TableCell>
                           <TableCell className="text-xs text-muted-foreground font-medium">{deptName}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer" onClick={() => handleDelete(sub.id)} title="Delete subject">
-                              <Trash2 className="size-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer" onClick={() => openEditModal(sub)} title="Edit subject">
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer" onClick={() => handleDelete(sub.id)} title="Delete subject">
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

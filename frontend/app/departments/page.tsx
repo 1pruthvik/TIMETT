@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Building2, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, Building2, RefreshCw, Sparkles } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -39,11 +39,19 @@ export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [institutionId, setInstitutionId] = useState<number>(1);
   const [loading, setLoading] = useState(true);
+  
+  // Create Modal
   const [open, setOpen] = useState(false);
-
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit Modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingDept, setEditingDept] = useState<Department | null>(null);
+  const [editName, setEditName] = useState("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -55,8 +63,8 @@ export default function DepartmentsPage() {
       setInstitutionId(userInstId);
 
       const deptUrl = `${API_BASE}/departments/?institution_id=${userInstId}`;
-      const deptRes = await fetch(deptUrl);
-      if (deptRes.ok) {
+      const deptRes = await fetch(deptUrl).catch(() => null);
+      if (deptRes && deptRes.ok) {
         setDepartments(await deptRes.json());
       }
     } catch (err) {
@@ -100,6 +108,44 @@ export default function DepartmentsPage() {
       setError(err instanceof Error ? err.message : "Error creating department");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (dept: Department) => {
+    setEditingDept(dept);
+    setEditName(dept.name);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleUpdateDepartment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDept || !editName.trim()) return;
+
+    setSubmittingEdit(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/departments/${editingDept.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          institution_id: editingDept.institution_id || institutionId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update department");
+      }
+
+      setEditOpen(false);
+      await fetchData();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Error updating department");
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -167,7 +213,7 @@ export default function DepartmentsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="rounded-xl border-border bg-muted/40 focus:border-primary"
                   />
                 </div>
 
@@ -179,13 +225,66 @@ export default function DepartmentsPage() {
                     disabled={submitting || !name.trim()}
                     className="tt-gradient-btn rounded-xl font-bold"
                   >
-                    {submitting ? "Saving..." : "Save Department"}
+                    {submitting ? "Creating..." : "Create Department"}
                   </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
         </PageHeader>
+
+        {/* Edit Department Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Pencil className="size-4" />
+                <span className="tt-eyebrow">Modify Faculty</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Edit Department
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Update department name and structural title.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleUpdateDepartment} className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Department Title *
+                </label>
+                <Input
+                  placeholder="e.g. Mechanical Engineering"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  className="rounded-xl border-border bg-muted/40 focus:border-primary"
+                />
+              </div>
+
+              {editError && <p className="text-xs text-red-500">{editError}</p>}
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingEdit || !editName.trim()}
+                  className="tt-gradient-btn rounded-xl font-bold"
+                >
+                  {submittingEdit ? "Updating..." : "Update Department"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
@@ -226,15 +325,26 @@ export default function DepartmentsPage() {
                           {dept.name}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                            onClick={() => handleDelete(dept.id)}
-                            title="Delete department"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditModal(dept)}
+                              title="Edit department"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDelete(dept.id)}
+                              title="Delete department"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   Table,
   TableBody,
@@ -18,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Calendar, CalendarRange, RefreshCw, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Calendar, CalendarRange, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -58,7 +54,7 @@ export default function AcademicTermsPage() {
 
   // Semester Modal
   const [semOpen, setSemOpen] = useState(false);
-  const [semName, setSemName] = useState("Semester 1 (Odd)");
+  const [semName, setSemName] = useState("Semester 1");
   const [selectedYearId, setSelectedYearId] = useState<number | "">("");
   const [submittingSem, setSubmittingSem] = useState(false);
   const [semError, setSemError] = useState("");
@@ -66,37 +62,21 @@ export default function AcademicTermsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const storedUser = localStorage.getItem("user");
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      const instId = user?.institution_id;
+      const [yrRes, semRes] = await Promise.all([
+        fetch(`${API_BASE}/academic-years/`),
+        fetch(`${API_BASE}/semesters/`),
+      ]);
 
-      let yrs: AcademicYear[] = [];
-      if (instId) {
-        const yrRes = await fetch(`${API_BASE}/academic-years/?institution_id=${instId}`);
-        if (yrRes.ok) {
-          yrs = await yrRes.json();
-        }
-      }
-
-      // If no years found with query param, fetch all
-      if (yrs.length === 0) {
-        const allYrRes = await fetch(`${API_BASE}/academic-years/`);
-        if (allYrRes.ok) {
-          yrs = await allYrRes.json();
-        }
-      }
-
-      const semRes = await fetch(`${API_BASE}/semesters/`);
+      const yrs: AcademicYear[] = yrRes.ok ? await yrRes.json() : [];
       const sems: Semester[] = semRes.ok ? await semRes.json() : [];
 
       setAcademicYears(yrs);
       setSemesters(sems);
-
       if (yrs.length > 0) {
         setSelectedYearId(yrs[0].id);
       }
     } catch (err) {
-      console.error("Error fetching academic terms", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -109,34 +89,21 @@ export default function AcademicTermsPage() {
   const handleAddYear = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!yearName.trim()) return;
-
     setSubmittingYear(true);
     setYearError("");
-
     try {
-      const storedUser = localStorage.getItem("user");
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      const instId = user?.institution_id || 1;
-
       const res = await fetch(`${API_BASE}/academic-years/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          institution_id: instId,
-          name: yearName.trim(),
-        }),
+        body: JSON.stringify({ institution_id: 1, name: yearName.trim() }),
       });
-
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Failed to create academic year");
+        const err = await res.json();
+        throw new Error(err.detail || "Failed to create academic year");
       }
-
       setYearOpen(false);
-      setYearName("");
       await fetchData();
     } catch (err) {
-      console.error("Error creating academic year", err);
       setYearError(err instanceof Error ? err.message : "Error creating year");
     } finally {
       setSubmittingYear(false);
@@ -145,14 +112,9 @@ export default function AcademicTermsPage() {
 
   const handleAddSemester = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!semName.trim() || !selectedYearId) {
-      setSemError("Please choose an Academic Year and enter a Semester name.");
-      return;
-    }
-
+    if (!semName.trim() || !selectedYearId) return;
     setSubmittingSem(true);
     setSemError("");
-
     try {
       const res = await fetch(`${API_BASE}/semesters/`, {
         method: "POST",
@@ -162,17 +124,13 @@ export default function AcademicTermsPage() {
           name: semName.trim(),
         }),
       });
-
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Failed to create semester");
+        const err = await res.json();
+        throw new Error(err.detail || "Failed to create semester");
       }
-
       setSemOpen(false);
-      setSemName("");
       await fetchData();
     } catch (err) {
-      console.error("Error creating semester", err);
       setSemError(err instanceof Error ? err.message : "Error creating semester");
     } finally {
       setSubmittingSem(false);
@@ -181,10 +139,11 @@ export default function AcademicTermsPage() {
 
   const handleDeleteYear = async (id: number) => {
     if (!confirm("Are you sure you want to delete this academic year?")) return;
-
     try {
-      await fetch(`${API_BASE}/academic-years/${id}`, { method: "DELETE" });
-      await fetchData();
+      const res = await fetch(`${API_BASE}/academic-years/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setAcademicYears((prev) => prev.filter((y) => y.id !== id));
+      }
     } catch (err) {
       console.error(err);
     }
@@ -192,10 +151,11 @@ export default function AcademicTermsPage() {
 
   const handleDeleteSemester = async (id: number) => {
     if (!confirm("Are you sure you want to delete this semester?")) return;
-
     try {
-      await fetch(`${API_BASE}/semesters/${id}`, { method: "DELETE" });
-      await fetchData();
+      const res = await fetch(`${API_BASE}/semesters/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setSemesters((prev) => prev.filter((s) => s.id !== id));
+      }
     } catch (err) {
       console.error(err);
     }
@@ -203,187 +163,147 @@ export default function AcademicTermsPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-6xl">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Academic Years & Semesters</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Define academic sessions, terms, and active scheduling semesters.
-            </p>
-          </div>
+      <div className="space-y-8 max-w-7xl mx-auto tt-animate-fade">
+        <PageHeader
+          title="Academic Terms & Semesters"
+          description="Manage academic calendar sessions, annual years, and semester partitions."
+          icon={CalendarRange}
+        >
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchData}
+            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Refresh academic terms"
+          >
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
+          </Button>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={fetchData} title="Refresh">
-              <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
-            </Button>
+          <Dialog open={yearOpen} onOpenChange={setYearOpen}>
+            <DialogTrigger asChild>
+              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+                <Plus className="size-4" />
+                Add Academic Year
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-foreground">Add Academic Year</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Define an annual academic cycle (e.g. 2026 - 2027).
+                </DialogDescription>
+              </DialogHeader>
 
-            {/* Add Year Button */}
-            <Dialog open={yearOpen} onOpenChange={setYearOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Plus className="size-4" />
-                  Add Academic Year
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader>
-                  <DialogTitle>Add Academic Year</DialogTitle>
-                  <DialogDescription>
-                    Create a new academic session (e.g. 2026 - 2027).
-                  </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleAddYear} className="space-y-4 pt-2">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Academic Year Name *
-                    </label>
-                    <Input
-                      placeholder="e.g. 2026 - 2027"
-                      value={yearName}
-                      onChange={(e) => setYearName(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  {yearError && (
-                    <div className="flex items-center gap-2 rounded bg-destructive/10 p-2 text-xs text-destructive">
-                      <AlertCircle className="size-4 shrink-0" />
-                      <span>{yearError}</span>
-                    </div>
-                  )}
-
-                  <DialogFooter className="pt-2">
-                    <Button type="submit" disabled={submittingYear || !yearName.trim()}>
-                      {submittingYear ? "Saving..." : "Save Year"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            {/* Add Semester Button */}
-            <Dialog open={semOpen} onOpenChange={setSemOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="size-4" />
-                  Add Semester / Term
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Semester</DialogTitle>
-                  <DialogDescription>
-                    Create a semester term under an academic year.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleAddSemester} className="space-y-4 pt-2">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Academic Year *
-                    </label>
-                    {academicYears.length === 0 ? (
-                      <p className="text-xs text-destructive">
-                        Please add an Academic Year first before adding a semester.
-                      </p>
-                    ) : (
-                      <select
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        value={selectedYearId}
-                        onChange={(e) => setSelectedYearId(Number(e.target.value))}
-                        required
-                      >
-                        {academicYears.map((y) => (
-                          <option key={y.id} value={y.id}>
-                            {y.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Semester Name *
-                    </label>
-                    <Input
-                      placeholder="e.g. Semester 1 (Odd), Fall 2026"
-                      value={semName}
-                      onChange={(e) => setSemName(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  {semError && (
-                    <div className="flex items-center gap-2 rounded bg-destructive/10 p-2 text-xs text-destructive">
-                      <AlertCircle className="size-4 shrink-0" />
-                      <span>{semError}</span>
-                    </div>
-                  )}
-
-                  <DialogFooter className="pt-2">
-                    <Button
-                      type="submit"
-                      disabled={submittingSem || !semName.trim() || !selectedYearId || academicYears.length === 0}
-                    >
-                      {submittingSem ? "Saving..." : "Save Semester"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* 2-Column Grid: Academic Years & Semesters */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Academic Years Card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <form onSubmit={handleAddYear} className="space-y-4 pt-2">
                 <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CalendarRange className="size-4 text-primary" />
-                    Academic Years
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {academicYears.length} academic {academicYears.length === 1 ? "session" : "sessions"} configured
-                  </CardDescription>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">Year Label *</label>
+                  <Input
+                    value={yearName}
+                    onChange={(e) => setYearName(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40"
+                  />
                 </div>
-              </div>
-            </CardHeader>
+                {yearError && <p className="text-xs text-red-500">{yearError}</p>}
+                <DialogFooter className="pt-2">
+                  <Button type="submit" disabled={submittingYear} className="tt-gradient-btn rounded-xl font-bold">
+                    {submittingYear ? "Saving..." : "Save Academic Year"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-            <CardContent>
-              {loading ? (
-                <div className="py-8 text-center text-xs text-muted-foreground">Loading years...</div>
-              ) : academicYears.length === 0 ? (
-                <div className="py-8 text-center text-xs text-muted-foreground">
-                  No academic years added yet. Click "Add Academic Year" above.
+          <Dialog open={semOpen} onOpenChange={setSemOpen}>
+            <DialogTrigger asChild>
+              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+                <Plus className="size-4" />
+                Add Semester
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-foreground">Add Semester Term</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Create a semester term linked to an academic year.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleAddSemester} className="space-y-4 pt-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">Semester Name *</label>
+                  <Input
+                    value={semName}
+                    onChange={(e) => setSemName(e.target.value)}
+                    required
+                    className="rounded-xl border-border bg-muted/40"
+                  />
                 </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">Parent Academic Year *</label>
+                  <select
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    value={selectedYearId}
+                    onChange={(e) => setSelectedYearId(Number(e.target.value))}
+                    required
+                  >
+                    {academicYears.map((yr) => (
+                      <option key={yr.id} value={yr.id}>
+                        {yr.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {semError && <p className="text-xs text-red-500">{semError}</p>}
+                <DialogFooter className="pt-2">
+                  <Button type="submit" disabled={submittingSem} className="tt-gradient-btn rounded-xl font-bold">
+                    {submittingSem ? "Saving..." : "Save Semester"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </PageHeader>
+
+        {/* Dual Panels for Years and Semesters */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Academic Years Panel */}
+          <GlassPanel glow="indigo" className="overflow-hidden p-0 shadow-sm border-border">
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
+              <h3 className="text-base font-bold text-foreground">Academic Years</h3>
+              <span className="rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 text-xs font-bold border border-indigo-500/20">
+                {academicYears.length} Years
+              </span>
+            </div>
+
+            <div className="p-4 sm:p-6">
+              {loading ? (
+                <LoadingState text="Loading academic years..." />
+              ) : academicYears.length === 0 ? (
+                <EmptyState icon={Calendar} title="No academic years" description="Create a year like 2026-2027 above." />
               ) : (
-                <div className="rounded-lg border">
+                <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Session</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                      <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
+                        <TableHead className="text-xs font-bold text-muted-foreground">ID</TableHead>
+                        <TableHead className="text-xs font-bold text-muted-foreground">Year Range</TableHead>
+                        <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {academicYears.map((yr, index) => (
-                        <TableRow key={yr.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground font-semibold">#{index + 1}</TableCell>
-                          <TableCell className="font-medium">{yr.name}</TableCell>
+                      {academicYears.map((yr) => (
+                        <TableRow key={yr.id} className="border-border hover:bg-muted/20 transition-colors">
+                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">#{yr.id}</TableCell>
+                          <TableCell className="font-bold text-foreground">{yr.name}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-7 text-muted-foreground hover:text-destructive"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
                               onClick={() => handleDeleteYear(yr.id)}
                             >
-                              <Trash2 className="size-3.5" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -392,74 +312,56 @@ export default function AcademicTermsPage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </GlassPanel>
 
-          {/* Semesters Card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Calendar className="size-4 text-primary" />
-                    Semesters / Terms
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {semesters.length} {semesters.length === 1 ? "semester" : "semesters"} available for timetable runs
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
+          {/* Semesters Panel */}
+          <GlassPanel glow="cyan" className="overflow-hidden p-0 shadow-sm border-border">
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
+              <h3 className="text-base font-bold text-foreground">Semesters</h3>
+              <span className="rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-2 py-0.5 text-xs font-bold border border-cyan-500/20">
+                {semesters.length} Semesters
+              </span>
+            </div>
 
-            <CardContent>
+            <div className="p-4 sm:p-6">
               {loading ? (
-                <div className="py-8 text-center text-xs text-muted-foreground">Loading semesters...</div>
+                <LoadingState text="Loading semesters..." />
               ) : semesters.length === 0 ? (
-                <div className="py-8 text-center text-xs text-muted-foreground">
-                  No semesters added yet. Click "Add Semester / Term" above.
-                </div>
+                <EmptyState icon={CalendarRange} title="No semesters found" description="Add semesters like Semester 1 or Odd Sem above." />
               ) : (
-                <div className="rounded-lg border">
+                <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>#</TableHead>
-                        <TableHead>Semester Name</TableHead>
-                        <TableHead>Academic Year</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                      <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
+                        <TableHead className="text-xs font-bold text-muted-foreground">ID</TableHead>
+                        <TableHead className="text-xs font-bold text-muted-foreground">Semester Term</TableHead>
+                        <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {semesters.map((sem, index) => {
-                        const yr = academicYears.find((y) => y.id === sem.academic_year_id);
-                        return (
-                          <TableRow key={sem.id}>
-                            <TableCell className="font-mono text-xs text-muted-foreground font-semibold">#{index + 1}</TableCell>
-                            <TableCell className="font-medium">{sem.name}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="text-xs font-normal">
-                                {yr?.name || `Year #${sem.academic_year_id}`}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-7 text-muted-foreground hover:text-destructive"
-                                onClick={() => handleDeleteSemester(sem.id)}
-                              >
-                                <Trash2 className="size-3.5" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {semesters.map((sem) => (
+                        <TableRow key={sem.id} className="border-border hover:bg-muted/20 transition-colors">
+                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">#{sem.id}</TableCell>
+                          <TableCell className="font-bold text-foreground">{sem.name}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDeleteSemester(sem.id)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </GlassPanel>
         </div>
       </div>
     </AppShell>

@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   Table,
   TableBody,
@@ -18,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Clock, CalendarDays, RefreshCw, Wand2 } from "lucide-react";
+import { Plus, Trash2, Clock, CalendarDays, RefreshCw, Wand2, Sparkles } from "lucide-react";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -47,7 +43,6 @@ export default function TimeSlotsPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
-  // Form states
   const [dayOfWeek, setDayOfWeek] = useState("Monday");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
@@ -60,12 +55,11 @@ export default function TimeSlotsPage() {
     try {
       const res = await fetch(`${API_BASE}/time-slots/`);
       if (res.ok) {
-        const data = await res.json();
-        setSlots(data);
+        setSlots(await res.json());
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch time slots.");
+      setError("Failed to connect to backend API.");
     } finally {
       setLoading(false);
     }
@@ -77,8 +71,6 @@ export default function TimeSlotsPage() {
 
   const handleAddSlot = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dayOfWeek || !startTime || !endTime) return;
-
     setSubmitting(true);
     setError("");
 
@@ -88,8 +80,8 @@ export default function TimeSlotsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           day_of_week: dayOfWeek,
-          start_time: startTime,
-          end_time: endTime,
+          start_time: startTime.trim(),
+          end_time: endTime.trim(),
         }),
       });
 
@@ -107,39 +99,40 @@ export default function TimeSlotsPage() {
     }
   };
 
-  const handleQuickStandardSetup = async () => {
-    setSubmitting(true);
-    try {
-      const standard = [
-        { day_of_week: "Monday", start_time: "09:00", end_time: "10:00" },
-        { day_of_week: "Monday", start_time: "10:00", end_time: "11:00" },
-        { day_of_week: "Monday", start_time: "11:15", end_time: "12:15" },
-        { day_of_week: "Monday", start_time: "14:00", end_time: "15:00" },
-        { day_of_week: "Tuesday", start_time: "09:00", end_time: "10:00" },
-        { day_of_week: "Tuesday", start_time: "10:00", end_time: "11:00" },
-        { day_of_week: "Tuesday", start_time: "11:15", end_time: "12:15" },
-        { day_of_week: "Tuesday", start_time: "14:00", end_time: "15:00" },
-        { day_of_week: "Wednesday", start_time: "09:00", end_time: "10:00" },
-        { day_of_week: "Wednesday", start_time: "10:00", end_time: "11:00" },
-        { day_of_week: "Wednesday", start_time: "11:15", end_time: "12:15" },
-        { day_of_week: "Thursday", start_time: "09:00", end_time: "10:00" },
-        { day_of_week: "Thursday", start_time: "10:00", end_time: "11:00" },
-        { day_of_week: "Friday", start_time: "09:00", end_time: "10:00" },
-        { day_of_week: "Friday", start_time: "10:00", end_time: "11:00" },
-      ];
+  const handleAutoGenerateStandard = async () => {
+    if (!confirm("Populate standard Monday-Friday timetable slots (09:00 - 16:00)?")) return;
+    setLoading(true);
 
-      for (const s of standard) {
-        await fetch(`${API_BASE}/time-slots/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(s),
-        });
+    const standardPeriods = [
+      { start: "09:00", end: "10:00" },
+      { start: "10:00", end: "11:00" },
+      { start: "11:15", end: "12:15" },
+      { start: "12:15", end: "13:15" },
+      { start: "14:00", end: "15:00" },
+      { start: "15:00", end: "16:00" },
+    ];
+
+    const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    try {
+      for (const day of weekDays) {
+        for (const period of standardPeriods) {
+          await fetch(`${API_BASE}/time-slots/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              day_of_week: day,
+              start_time: period.start,
+              end_time: period.end,
+            }),
+          });
+        }
       }
       await fetchData();
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error("Auto populating slots failed", err);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -154,170 +147,174 @@ export default function TimeSlotsPage() {
         setSlots((prev) => prev.filter((s) => s.id !== id));
       }
     } catch (err) {
-      console.error("Failed to delete time slot", err);
+      console.error("Failed to delete slot", err);
     }
   };
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-5xl">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Time Slots & Working Periods</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Configure daily lecture periods, laboratory slots, and college timings.
-            </p>
-          </div>
+      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
+        <PageHeader
+          title="Time Slot Architecture"
+          description="Configure discrete daily time intervals, lecture period durations, and break windows."
+          icon={Clock}
+        >
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchData}
+            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Refresh time slots"
+          >
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
+          </Button>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="icon" onClick={fetchData} title="Refresh">
-              <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
-            </Button>
+          <Button
+            variant="outline"
+            className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground cursor-pointer"
+            onClick={handleAutoGenerateStandard}
+          >
+            <Wand2 className="size-4 text-cyan-500" />
+            Auto-Populate 5-Day Grid
+          </Button>
 
-            {slots.length === 0 && (
-              <Button variant="secondary" className="gap-2" onClick={handleQuickStandardSetup} disabled={submitting}>
-                <Wand2 className="size-4" />
-                Add Standard Mon-Fri Periods
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+                <Plus className="size-4" />
+                Add Time Slot
               </Button>
-            )}
-
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="size-4" />
-                  Add Time Slot
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Period / Slot</DialogTitle>
-                  <DialogDescription>
-                    Define the day and timing for class scheduling.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleAddSlot} className="space-y-4 pt-2">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Day of the Week *
-                    </label>
-                    <select
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      value={dayOfWeek}
-                      onChange={(e) => setDayOfWeek(e.target.value)}
-                    >
-                      {DAYS.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                        Start Time *
-                      </label>
-                      <Input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                        End Time *
-                      </label>
-                      <Input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {error && <p className="text-xs text-destructive">{error}</p>}
-
-                  <DialogFooter className="pt-2">
-                    <Button type="submit" disabled={submitting}>
-                      {submitting ? "Saving..." : "Save Time Slot"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Schedule Periods Matrix</CardTitle>
-                <CardDescription>
-                  {slots.length} {slots.length === 1 ? "period" : "periods"} available across weekly timetable
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {loading ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                <div className="inline-block size-5 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
-                <p>Loading schedule slots...</p>
-              </div>
-            ) : slots.length === 0 ? (
-              <div className="py-12 text-center">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-3">
-                  <Clock className="size-6" />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+              <DialogHeader>
+                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                  <Sparkles className="size-4" />
+                  <span className="tt-eyebrow">Discrete Scheduling Period</span>
                 </div>
-                <h3 className="text-sm font-medium">No time slots created</h3>
-                <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                  Add period timings or click "Add Standard Mon-Fri Periods" to generate college timings.
-                </p>
-              </div>
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  Create Time Slot
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  Select day of week and 24h start/end lecture times.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleAddSlot} className="space-y-4 pt-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Day of Week *
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    value={dayOfWeek}
+                    onChange={(e) => setDayOfWeek(e.target.value)}
+                  >
+                    {DAYS.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Start Time (24h) *
+                    </label>
+                    <Input
+                      placeholder="09:00"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      required
+                      className="rounded-xl border-border bg-muted/40 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      End Time (24h) *
+                    </label>
+                    <Input
+                      placeholder="10:00"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      required
+                      className="rounded-xl border-border bg-muted/40 font-mono"
+                    />
+                  </div>
+                </div>
+
+                {error && <p className="text-xs text-red-500">{error}</p>}
+
+                <DialogFooter className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="tt-gradient-btn rounded-xl font-bold"
+                  >
+                    {submitting ? "Saving..." : "Save Time Slot"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </PageHeader>
+
+        <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
+          <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Discrete Time Slot Blocks</h3>
+              <p className="text-xs text-muted-foreground">
+                {slots.length} {slots.length === 1 ? "slot" : "slots"} defined for OR-Tools optimizer
+              </p>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            {loading ? (
+              <LoadingState text="Loading time slots..." />
+            ) : slots.length === 0 ? (
+              <EmptyState
+                icon={Clock}
+                title="No time slots configured"
+                description='Click "Auto-Populate 5-Day Grid" to instantly generate standard 09:00-16:00 lecture periods.'
+              >
+                <Button onClick={handleAutoGenerateStandard} className="rounded-xl font-semibold bg-primary text-primary-foreground">
+                  Auto-Populate Standard Grid
+                </Button>
+              </EmptyState>
             ) : (
-              <div className="rounded-lg border">
+              <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Day</TableHead>
-                      <TableHead>Period Window</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
+                      <TableHead className="text-xs font-bold text-muted-foreground">#</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Day of Week</TableHead>
+                      <TableHead className="text-xs font-bold text-muted-foreground">Period Window</TableHead>
+                      <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-
                   <TableBody>
-                    {slots.map((s, index) => (
-                      <TableRow key={s.id}>
-                        <TableCell className="font-mono text-xs text-muted-foreground font-semibold">
+                    {slots.map((slot, index) => (
+                      <TableRow key={slot.id} className="border-border hover:bg-muted/20 transition-colors">
+                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">
                           #{index + 1}
                         </TableCell>
-                        <TableCell className="font-medium">
-                          <Badge variant="outline" className="font-medium text-xs">
-                            {s.day_of_week}
-                          </Badge>
-                        </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5 font-mono text-xs">
-                            <Clock className="size-3.5 text-muted-foreground" />
-                            <span>
-                              {s.start_time} - {s.end_time}
-                            </span>
-                          </div>
+                          <span className="inline-flex items-center rounded-lg bg-sky-500/10 border border-sky-500/30 px-3 py-1 font-bold text-xs text-sky-700 dark:text-sky-300">
+                            {slot.day_of_week}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm font-semibold text-foreground">
+                          {slot.start_time} — {slot.end_time}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-8 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleDelete(s.id)}
+                            className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                            onClick={() => handleDelete(slot.id)}
                             title="Delete slot"
                           >
                             <Trash2 className="size-4" />
@@ -329,8 +326,8 @@ export default function TimeSlotsPage() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </GlassPanel>
       </div>
     </AppShell>
   );

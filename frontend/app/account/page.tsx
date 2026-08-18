@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { User, Mail, Shield, LogOut, CheckCircle2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { User, Mail, Shield, LogOut, CheckCircle2, Building, Sparkles } from "lucide-react";
 
 interface UserProfile {
   id?: number;
@@ -38,104 +39,96 @@ export default function AccountPage() {
     window.location.href = "/login";
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <AppShell>
-      <div className="max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Account & Profile</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your personal details and account preferences.
-          </p>
-        </div>
+      <div className="max-w-4xl mx-auto space-y-8 tt-animate-fade">
+        <PageHeader
+          title="User Account & Security Profile"
+          description="Manage your institutional profile details, permissions, and active login sessions."
+          icon={User}
+        />
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <GlassPanel glow="indigo" className="p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+            <div className="flex items-center gap-4">
+              <Avatar className="size-16 border-2 border-primary/40 shadow-md">
+                <AvatarFallback className="text-xl font-extrabold bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-500 text-white">
+                  {user?.name ? getInitials(user.name) : "U"}
+                </AvatarFallback>
+              </Avatar>
               <div>
-                <CardTitle>Profile Details</CardTitle>
-                <CardDescription>Your personal and institutional information</CardDescription>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-foreground">{user?.name || "Administrator"}</h3>
+                  <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Active Session
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">{user?.email || "admin@institution.edu"}</p>
               </div>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                <CheckCircle2 className="mr-1 size-3.5" />
-                Active Account
-              </Badge>
             </div>
-          </CardHeader>
 
-          <CardContent className="space-y-6">
-            {loading ? (
-              <div className="py-6 text-sm text-muted-foreground">Loading account details...</div>
-            ) : user ? (
-              <div className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-start gap-3 rounded-lg border p-4">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <User className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase">Full Name</p>
-                      <p className="text-sm font-medium mt-0.5">{user.name || "N/A"}</p>
-                    </div>
-                  </div>
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              className="h-10 rounded-xl gap-2 font-semibold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/20 cursor-pointer"
+            >
+              <LogOut className="size-4" />
+              Sign Out Session
+            </Button>
+          </div>
 
-                  <div className="flex items-start gap-3 rounded-lg border p-4">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Mail className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase">Email Address</p>
-                      <p className="text-sm font-medium mt-0.5">{user.email || "N/A"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 rounded-lg border p-4">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Shield className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase">Role</p>
-                      <p className="text-sm font-medium mt-0.5 capitalize">{user.role || "Administrator"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 rounded-lg border p-4">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <CheckCircle2 className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase">Status</p>
-                      <p className="text-sm font-medium mt-0.5">
-                        {user.is_active !== false ? "Active" : "Inactive"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                <div className="flex items-center justify-between pt-2">
-                  <div>
-                    <h3 className="text-sm font-medium text-destructive">Sign Out</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Sign out of your active session on this device.
-                    </p>
-                  </div>
-                  <Button variant="destructive" onClick={handleLogout} className="gap-2">
-                    <LogOut className="size-4" />
-                    Sign Out
-                  </Button>
-                </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-card/60 p-4">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                <User className="size-5" />
               </div>
-            ) : (
-              <div className="py-6 text-center">
-                <p className="text-sm text-muted-foreground">No user session found.</p>
-                <Button className="mt-4" onClick={() => (window.location.href = "/login")}>
-                  Go to Login
-                </Button>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Full Name</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">{user?.name || "TIMETT Planner"}</p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-card/60 p-4">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+                <Mail className="size-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Email Address</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">{user?.email || "N/A"}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-card/60 p-4">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                <Shield className="size-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">System Role</p>
+                <p className="text-sm font-bold text-foreground mt-0.5 capitalize">{user?.role || "Timetable Administrator"}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-card/60 p-4">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <Building className="size-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Department Context</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">Computer Science & Engineering</p>
+              </div>
+            </div>
+          </div>
+        </GlassPanel>
       </div>
     </AppShell>
   );

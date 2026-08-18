@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, BookOpen, RefreshCw, Sparkles } from "lucide-react";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 interface Subject { id: number; name: string; code: string; department_id: number; }
 interface Department { id: number; name: string; }

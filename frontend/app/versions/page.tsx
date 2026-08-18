@@ -17,6 +17,7 @@ import { Layers3, Plus, ArrowUpRight, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
 
 export default function VersionsPage() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const versions = [
     {
       id: "v1.0",

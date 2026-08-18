@@ -60,32 +60,31 @@ export default function DashboardPage() {
     try {
       const storedUser = localStorage.getItem("user");
       const user = storedUser ? JSON.parse(storedUser) : null;
-      const userDeptId = user?.department_id;
-      const userInstId = user?.institution_id;
+      const userInstId = user?.institution_id || 1;
       if (user?.name) setUserName(user.name.split(" ")[0]);
 
-      const facUrl = userDeptId ? `${API_BASE}/faculty/?department_id=${userDeptId}` : `${API_BASE}/faculty/`;
-      const subUrl = userDeptId ? `${API_BASE}/subjects/?department_id=${userDeptId}` : `${API_BASE}/subjects/`;
-      const roomUrl = userInstId ? `${API_BASE}/rooms/?institution_id=${userInstId}` : `${API_BASE}/rooms/`;
-      const secUrl = userDeptId ? `${API_BASE}/sections/?department_id=${userDeptId}` : `${API_BASE}/sections/`;
+      const facUrl = `${API_BASE}/faculty/?institution_id=${userInstId}`;
+      const subUrl = `${API_BASE}/subjects/?institution_id=${userInstId}`;
+      const roomUrl = `${API_BASE}/rooms/?institution_id=${userInstId}`;
+      const secUrl = `${API_BASE}/sections/?institution_id=${userInstId}`;
 
       const [facRes, subRes, roomRes, secRes, ttRes, yrRes, semRes] = await Promise.all([
-        fetch(facUrl),
-        fetch(subUrl),
-        fetch(roomUrl),
-        fetch(secUrl),
-        fetch(`${API_BASE}/timetables/`),
-        fetch(`${API_BASE}/academic-years/`),
-        fetch(`${API_BASE}/semesters/`),
+        fetch(facUrl).catch(() => null),
+        fetch(subUrl).catch(() => null),
+        fetch(roomUrl).catch(() => null),
+        fetch(secUrl).catch(() => null),
+        fetch(`${API_BASE}/timetables/`).catch(() => null),
+        fetch(`${API_BASE}/academic-years/?institution_id=${userInstId}`).catch(() => null),
+        fetch(`${API_BASE}/semesters/?institution_id=${userInstId}`).catch(() => null),
       ]);
 
-      const facultyList = facRes.ok ? await facRes.json() : [];
-      const subjectsList = subRes.ok ? await subRes.json() : [];
-      const roomsList = roomRes.ok ? await roomRes.json() : [];
-      const sectionsList = secRes.ok ? await secRes.json() : [];
-      const timetablesList = ttRes.ok ? await ttRes.json() : [];
-      const yearsList = yrRes.ok ? await yrRes.json() : [];
-      const semsList = semRes.ok ? await semRes.json() : [];
+      const facultyList = (facRes && facRes.ok) ? await facRes.json() : [];
+      const subjectsList = (subRes && subRes.ok) ? await subRes.json() : [];
+      const roomsList = (roomRes && roomRes.ok) ? await roomRes.json() : [];
+      const sectionsList = (secRes && secRes.ok) ? await secRes.json() : [];
+      const timetablesList = (ttRes && ttRes.ok) ? await ttRes.json() : [];
+      const yearsList = (yrRes && yrRes.ok) ? await yrRes.json() : [];
+      const semsList = (semRes && semRes.ok) ? await semRes.json() : [];
 
       setCounts({
         faculty: facultyList.length,

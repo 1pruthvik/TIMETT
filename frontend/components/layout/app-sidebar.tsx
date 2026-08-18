@@ -17,6 +17,7 @@ import {
   Clock,
   CalendarRange,
   User,
+  Sliders,
 } from "lucide-react";
 
 import {
@@ -84,6 +85,11 @@ const managementItems: NavItemDef[] = [
     title: "Rooms & Labs",
     url: "/rooms",
     icon: DoorOpen,
+  },
+  {
+    title: "Constraints",
+    url: "/constraints",
+    icon: Sliders,
   },
   {
     title: "Time Slots",

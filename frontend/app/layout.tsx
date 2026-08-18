@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   title: "TIMETT — Intelligent Timetable Operating System",
   description:
     "Next-generation college timetable planner powered by constraint optimization and intelligent scheduling.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +40,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         {/* Synchronous Anti-Flash Theme Script (Prevents flash of dark/light on reload) */}
         <script
           dangerouslySetInnerHTML={{

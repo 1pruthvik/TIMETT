@@ -34,7 +34,7 @@ import {
   RefreshCw,
   Sparkles,
   GraduationCap,
-  Sliders,
+  FlaskConical,
   CheckCircle2,
 } from "lucide-react";
 
@@ -84,6 +84,8 @@ export default function DepartmentsPage() {
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [editName, setEditName] = useState("");
   const [editConfigs, setEditConfigs] = useState<SemesterConfig[]>(DEFAULT_SEMESTERS);
+  const [customSectionName, setCustomSectionName] = useState("");
+  const [customSectionType, setCustomSectionType] = useState<"theory" | "lab">("theory");
   const [submittingEdit, setSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -217,8 +219,49 @@ export default function DepartmentsPage() {
     });
 
     setEditConfigs(updatedConfigs);
+    setCustomSectionName("");
     setEditError("");
     setEditOpen(true);
+  };
+
+  const handleAddCustomSectionToDept = async () => {
+    if (!editingDept || !customSectionName.trim()) return;
+
+    try {
+      const label = customSectionType === "lab"
+        ? (customSectionName.toLowerCase().includes("lab") ? customSectionName.trim() : `${customSectionName.trim()} Lab`)
+        : customSectionName.trim();
+
+      const res = await fetch(`${API_BASE}/sections/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: label,
+          department_id: editingDept.id,
+          student_count: customSectionType === "lab" ? 30 : 60,
+        }),
+      });
+
+      if (res.ok) {
+        setCustomSectionName("");
+        await fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSectionFromDept = async (secId: number) => {
+    try {
+      const res = await fetch(`${API_BASE}/sections/${secId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSections((prev) => prev.filter((s) => s.id !== secId));
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleUpdateDepartment = async (e: React.FormEvent) => {
@@ -304,6 +347,8 @@ export default function DepartmentsPage() {
       console.error("Failed to delete department", err);
     }
   };
+
+  const activeDeptSections = editingDept ? sections.filter((s) => s.department_id === editingDept.id) : [];
 
   return (
     <AppShell>
@@ -421,19 +466,19 @@ export default function DepartmentsPage() {
           </Dialog>
         </PageHeader>
 
-        {/* Edit Department Modal (Includes Title + Semester Sections & Labs) */}
+        {/* Edit Department Modal (Includes Title + Semester Sections & Labs + Live Cohorts Manager) */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[540px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[580px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Department & Structure</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Department & Cohorts
+                Edit Department, Sections & Labs
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Update department title and adjust section & lab counts per semester.
+                Update department title, manage semester section/lab counts, or add custom cohorts.
               </DialogDescription>
             </DialogHeader>
 
@@ -450,7 +495,7 @@ export default function DepartmentsPage() {
                 />
               </div>
 
-              {/* Semester Sections & Labs Matrix inside Edit Modal */}
+              {/* Semester Sections & Labs Counts Matrix */}
               <div className="space-y-2 pt-2 border-t border-border">
                 <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <GraduationCap className="size-4 text-[#8B5CF6]" />
@@ -495,6 +540,77 @@ export default function DepartmentsPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Current Active Cohorts in this Department */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-foreground">
+                    Active Cohorts ({activeDeptSections.length})
+                  </label>
+                </div>
+
+                {activeDeptSections.length > 0 ? (
+                  <div className="max-h-36 overflow-y-auto rounded-xl border border-border bg-card/60 p-2 space-y-1.5">
+                    {activeDeptSections.map((sec) => (
+                      <div
+                        key={sec.id}
+                        className="flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-lg bg-muted/40 text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground">{sec.name}</span>
+                          {sec.name.toLowerCase().includes("lab") ? (
+                            <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/30">
+                              Lab
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-400 border-purple-500/30">
+                              Section
+                            </Badge>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSectionFromDept(sec.id)}
+                          className="text-muted-foreground hover:text-red-500 p-1 cursor-pointer"
+                          title="Remove cohort"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">No cohorts provisioned yet.</p>
+                )}
+
+                {/* Quick Add Custom Section/Lab */}
+                <div className="flex items-center gap-2 pt-1">
+                  <Input
+                    placeholder="e.g. CSE 8A or Project Lab"
+                    value={customSectionName}
+                    onChange={(e) => setCustomSectionName(e.target.value)}
+                    className="h-8 text-xs rounded-xl"
+                  />
+                  <select
+                    value={customSectionType}
+                    onChange={(e) => setCustomSectionType(e.target.value as "theory" | "lab")}
+                    className="h-8 rounded-xl border border-border bg-muted/40 px-2 text-xs font-semibold text-foreground focus:outline-none"
+                  >
+                    <option value="theory">Section</option>
+                    <option value="lab">Lab</option>
+                  </select>
+                  <Button
+                    type="button"
+                    onClick={handleAddCustomSectionToDept}
+                    disabled={!customSectionName.trim()}
+                    size="sm"
+                    className="h-8 rounded-xl text-xs font-bold px-3 shrink-0"
+                  >
+                    <Plus className="size-3.5 mr-1" /> Add
+                  </Button>
                 </div>
               </div>
 
@@ -574,7 +690,7 @@ export default function DepartmentsPage() {
                                 size="icon"
                                 className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
                                 onClick={() => openEditModal(dept)}
-                                title="Edit department and cohorts"
+                                title="Edit department, sections, and labs"
                               >
                                 <Pencil className="size-4" />
                               </Button>

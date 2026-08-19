@@ -47,7 +47,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: "m_init",
     sender: "ai",
-    text: "Hello! I am your AI Timetable & Constraint Assistant. Ask me to formulate scheduling rules, analyze teacher workloads, or propose conflict-free moves.",
+    text: "Hello! I am Kaci, your intelligent Timetable & Constraint Assistant. Ask me to formulate scheduling rules, analyze teacher workloads, or propose conflict-free moves.",
     timestamp: "Just now",
   },
 ];
@@ -179,20 +179,20 @@ export function FloatingAiChat() {
 
   return (
     <>
-      {/* 1. Floating AI Assistant Trigger Bubble (Bottom-Right) */}
+      {/* 1. Floating Kaci Assistant Trigger Bubble (Bottom-Right) */}
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-50 print:hidden animate-fade-in">
           <button
             onClick={() => setIsOpen(true)}
             className="group flex items-center gap-3 px-4 py-3.5 rounded-full bg-gradient-to-r from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-2xl hover:shadow-[#8B5CF6]/40 hover:scale-105 transition-all duration-300 cursor-pointer border border-white/20"
-            title="Open AI Timetable & Constraint Assistant"
+            title="Open Kaci (AI Scheduling Assistant)"
           >
             <div className="relative flex items-center justify-center">
               <Bot className="size-5 animate-pulse" />
               <span className="absolute -top-1 -right-1 size-2 rounded-full bg-emerald-400 border border-white" />
             </div>
             <span className="font-bold text-xs tracking-wide pr-1 hidden sm:inline-block">
-              AI Assistant
+              Kaci
             </span>
             <Sparkles className="size-3.5 text-amber-300 group-hover:rotate-12 transition-transform" />
           </button>
@@ -210,19 +210,19 @@ export function FloatingAiChat() {
               </div>
               <div>
                 <h3 className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                  AI Timetable Assistant
+                  Kaci
                   <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                     Online
                   </Badge>
                 </h3>
                 <p className="text-[10px] text-muted-foreground">
-                  Natural language constraint & schedule solver
+                  AI Timetable & Constraint Assistant
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <Link href="/constraints" title="Open Full AI & Constraints Studio">
+              <Link href="/constraints" title="Open Kaci Studio">
                 <Button
                   variant="ghost"
                   size="icon"

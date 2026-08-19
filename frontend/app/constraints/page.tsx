@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { KaciLogo } from "@/components/ui/kaci-logo";
 import { ChatMessage } from "@/components/layout/floating-ai-chat";
+import { MarkdownContent } from "@/components/ui/markdown-content";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -216,7 +217,11 @@ export default function KaciPage() {
                       : "bg-card/70 backdrop-blur-md border border-border/80 text-foreground rounded-tl-xs"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    {isUser ? (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    ) : (
+                      <MarkdownContent content={msg.text} />
+                    )}
 
                   {/* Proposed moves card */}
                   {msg.proposedChanges && (

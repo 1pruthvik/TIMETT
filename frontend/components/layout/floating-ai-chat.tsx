@@ -217,59 +217,40 @@ export function FloatingAiChat() {
 
       {/* 2. Floating Collapsible Chat Window (Bottom-Right, Top Screen Stays Visible) */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[420px] max-w-[calc(100vw-2rem)] h-[540px] max-h-[80vh] rounded-3xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in print:hidden">
+        <div className="fixed bottom-6 right-6 z-50 w-[450px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[85vh] rounded-3xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in print:hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-muted/40 shrink-0">
             <div className="flex items-center gap-2.5">
               <KaciLogo size={32} glow />
               <div>
-                <h3 className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                  Kaci
-                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-                    Online
-                  </Badge>
-                </h3>
-                <p className="text-[10px] text-muted-foreground">
-                  AI Timetable & Constraint Assistant
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-sm text-foreground">Kaci</span>
+                  <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                </div>
+                <p className="text-[10px] text-muted-foreground">TIMETT AI Copilot &bull; Live</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <Link href="/constraints" title="Open Kaci Studio">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  <Maximize2 className="size-3.5" />
-                </Button>
-              </Link>
-
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={handleClearHistory}
-                className="size-7 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                title="Reset conversation"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                title="Clear Chat History"
               >
                 <RotateCcw className="size-3.5" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
+              </button>
+              <button
                 onClick={() => setIsOpen(false)}
-                className="size-7 rounded-lg text-muted-foreground hover:text-red-500 cursor-pointer"
-                title="Minimize assistant"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                title="Minimize Kaci"
               >
-                <X className="size-4" />
-              </Button>
+                <Minimize2 className="size-4" />
+              </button>
             </div>
           </div>
 
-          {/* Messages Scroll Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 scrollbar-thin text-xs">
+          {/* Conversation Stream */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs scrollbar-thin">
             {messages.map((msg) => {
               const isUser = msg.sender === "user";
               return (
@@ -278,7 +259,7 @@ export function FloatingAiChat() {
                   className={`flex items-start gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
                 >
                   {!isUser && (
-                    <KaciLogo size={24} className="mt-0.5" />
+                    <KaciLogo size={22} className="mt-0.5" />
                   )}
 
                   <div
@@ -345,11 +326,11 @@ export function FloatingAiChat() {
           </div>
 
           {/* Input Footer */}
-          <div className="p-2.5 border-t border-border bg-card shrink-0">
+          <div className="p-3 border-t border-border bg-card shrink-0">
             <div className="flex items-end gap-2">
               <textarea
-                rows={1}
-                placeholder="Ask Kaci... (Shift + Enter for new line)"
+                rows={2}
+                placeholder="Ask Kaci... (Shift + Enter for newline, Enter to send)"
                 value={inputPrompt}
                 onChange={(e) => setInputPrompt(e.target.value)}
                 onKeyDown={(e) => {
@@ -360,14 +341,14 @@ export function FloatingAiChat() {
                     }
                   }
                 }}
-                className="flex-1 min-h-[38px] max-h-24 resize-none rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6] leading-relaxed"
+                className="flex-1 min-h-[52px] max-h-36 resize-none rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6] leading-relaxed overflow-y-auto scrollbar-thin"
               />
               <Button
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputPrompt.trim() || isThinking}
                 size="icon"
-                className="size-9 rounded-xl tt-gradient-btn shrink-0 cursor-pointer shadow-sm mb-0.5"
+                className="size-9 rounded-xl tt-gradient-btn shrink-0 cursor-pointer shadow-sm mb-1"
                 title="Send Message (Enter)"
               >
                 <Send className="size-3.5" />

@@ -276,11 +276,11 @@ export default function KaciPage() {
             ))}
           </div>
 
-          {/* Input Form Box */}
-          <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-2 shadow-lg focus-within:border-[#8B5CF6] transition-all">
+          {/* Input Form Box with 10-line capacity & generous padding */}
+          <div className="relative rounded-2xl border border-border/80 bg-card/90 backdrop-blur-xl p-3.5 shadow-xl focus-within:border-[#8B5CF6] focus-within:ring-2 focus-within:ring-[#8B5CF6]/20 transition-all">
             <textarea
-              rows={1}
-              placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules... (Shift + Enter for new line)"
+              rows={4}
+              placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules...&#10;Press Shift + Enter for a new line, Enter to send"
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
               onKeyDown={(e) => {
@@ -291,17 +291,22 @@ export default function KaciPage() {
                   }
                 }
               }}
-              className="flex-1 min-h-[42px] max-h-32 resize-none bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none leading-relaxed"
+              className="w-full min-h-[120px] max-h-[260px] resize-y bg-transparent px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none leading-relaxed overflow-y-auto scrollbar-thin"
             />
-            <Button
-              type="button"
-              onClick={() => handleSendMessage()}
-              disabled={!inputPrompt.trim() || isThinking}
-              className="h-10 px-5 rounded-xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md mb-0.5"
-              title="Send Message (Enter)"
-            >
-              <Send className="size-3.5" /> Send
-            </Button>
+            <div className="flex items-center justify-between pt-2 mt-1 border-t border-border/40">
+              <span className="text-[11px] text-muted-foreground/70 font-medium">
+                <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono border border-border">Shift + Enter</kbd> newline &bull; <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono border border-border">Enter</kbd> send
+              </span>
+              <Button
+                type="button"
+                onClick={() => handleSendMessage()}
+                disabled={!inputPrompt.trim() || isThinking}
+                className="h-9 px-5 rounded-xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md"
+                title="Send Message (Enter)"
+              >
+                <Send className="size-3.5" /> Send
+              </Button>
+            </div>
           </div>
         </div>
       </div>

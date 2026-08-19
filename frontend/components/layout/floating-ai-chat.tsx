@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Badge } from "@/components/ui/badge";
@@ -53,11 +54,17 @@ const INITIAL_MESSAGES: ChatMessage[] = [
 ];
 
 export function FloatingAiChat() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputPrompt, setInputPrompt] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // If user is already on the full Kaci studio page, don't show floating trigger
+  if (pathname === "/constraints") {
+    return null;
+  }
 
   // Load chat history from localStorage
   useEffect(() => {

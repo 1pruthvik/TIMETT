@@ -3,8 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import {
   Sparkles,
@@ -14,7 +12,6 @@ import {
   Send,
   CalendarDays,
   CheckCircle2,
-  Sliders,
 } from "lucide-react";
 import { ChatMessage } from "@/components/layout/floating-ai-chat";
 
@@ -36,7 +33,6 @@ const INITIAL_MESSAGES: ChatMessage[] = [
 ];
 
 export default function KaciPage() {
-  // Chat & History State
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputPrompt, setInputPrompt] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -159,150 +155,142 @@ export default function KaciPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-5xl mx-auto tt-animate-fade pb-12">
-        <PageHeader
-          title="Kaci"
-          description="Conversational AI assistant for timetable optimization, scheduling intelligence, and constraint formulation."
-          icon={Bot}
-        />
-
-        {/* FULL-WIDTH DEDICATED KACI CONVERSATION & PROMPT STUDIO */}
-        <GlassPanel className="p-0 overflow-hidden rounded-3xl border-border shadow-lg flex flex-col h-[700px] bg-card/80 backdrop-blur-xl">
-          {/* Chat Header */}
-          <div className="flex items-center justify-between p-5 border-b border-border bg-card/70">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-md">
-                <Bot className="size-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                  Kaci &mdash; Timetable Assistant & Conversation History
-                  <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-                    Live Sync
-                  </Badge>
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {messages.length} messages in history &bull; Real-time constraint & schedule solver
-                </p>
-              </div>
+      <div className="flex flex-col min-h-[calc(100vh-6.5rem)] max-w-4xl mx-auto tt-animate-fade justify-between">
+        {/* Seamless Header directly on page background */}
+        <div className="flex items-center justify-between pb-4 mb-2 border-b border-border/60">
+          <div className="flex items-center gap-3.5">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-lg">
+              <Bot className="size-6" />
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearHistory}
-              className="rounded-xl text-xs gap-1.5 font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
-            >
-              <RotateCcw className="size-3.5" /> Clear History
-            </Button>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-foreground">Kaci</h1>
+                <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                  Online &bull; Live Sync
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Conversational AI Assistant &bull; Natural language timetable & constraint solver
+              </p>
+            </div>
           </div>
 
-          {/* Chat Messages Stream */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-thin">
-            {messages.map((msg) => {
-              const isUser = msg.sender === "user";
-              return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearHistory}
+            className="rounded-xl text-xs gap-1.5 font-semibold text-muted-foreground hover:text-foreground cursor-pointer border-border bg-card/60 hover:bg-card"
+          >
+            <RotateCcw className="size-3.5" /> Clear History
+          </Button>
+        </div>
+
+        {/* Message Stream directly on page background */}
+        <div className="flex-1 py-4 overflow-y-auto space-y-5 scrollbar-thin">
+          {messages.map((msg) => {
+            const isUser = msg.sender === "user";
+            return (
+              <div
+                key={msg.id}
+                className={`flex items-start gap-3.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+              >
+                {!isUser && (
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30 shadow-xs mt-0.5">
+                    <Bot className="size-4.5" />
+                  </div>
+                )}
+
                 <div
-                  key={msg.id}
-                  className={`flex items-start gap-3.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+                  className={`max-w-[85%] rounded-3xl p-4 space-y-2.5 shadow-sm ${
+                    isUser
+                      ? "bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-tr-xs"
+                      : "bg-card/70 backdrop-blur-md border border-border/80 text-foreground rounded-tl-xs"
+                  }`}
                 >
-                  {!isUser && (
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30 shadow-xs">
-                      <Bot className="size-4.5" />
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+
+                  {/* Proposed moves card */}
+                  {msg.proposedChanges && (
+                    <div className="space-y-2 pt-1">
+                      {msg.proposedChanges.map((change, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 rounded-2xl bg-muted/40 border border-border text-xs space-y-1 text-foreground"
+                        >
+                          <span className="font-bold text-[#8B5CF6] block">{change.subject}</span>
+                          <div className="text-[11px] text-muted-foreground">
+                            <span>From: </span>
+                            <span className="line-through">{change.from}</span>
+                          </div>
+                          <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            <span>To: </span>
+                            <span>{change.to} ({change.faculty})</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 
                   <div
-                    className={`max-w-[80%] rounded-3xl p-4 space-y-2 shadow-xs ${
-                      isUser
-                        ? "bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-tr-xs"
-                        : "bg-muted/40 border border-border text-foreground rounded-tl-xs"
+                    className={`text-[10px] font-mono ${
+                      isUser ? "text-white/70 text-right" : "text-muted-foreground text-left"
                     }`}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-
-                    {/* Proposed moves card */}
-                    {msg.proposedChanges && (
-                      <div className="space-y-2 pt-1">
-                        {msg.proposedChanges.map((change, idx) => (
-                          <div
-                            key={idx}
-                            className="p-3 rounded-2xl bg-card border border-border text-xs space-y-1 text-foreground"
-                          >
-                            <span className="font-bold text-[#8B5CF6] block">{change.subject}</span>
-                            <div className="text-[11px] text-muted-foreground">
-                              <span>From: </span>
-                              <span className="line-through">{change.from}</span>
-                            </div>
-                            <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                              <span>To: </span>
-                              <span>{change.to} ({change.faculty})</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div
-                      className={`text-[10px] font-mono ${
-                        isUser ? "text-white/70 text-right" : "text-muted-foreground text-left"
-                      }`}
-                    >
-                      {msg.timestamp}
-                    </div>
+                    {msg.timestamp}
                   </div>
                 </div>
-              );
-            })}
-
-            {isThinking && (
-              <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-muted/30 border border-border text-xs text-muted-foreground w-fit animate-pulse">
-                <Wand2 className="size-4 text-[#8B5CF6] animate-spin" />
-                <span>Kaci is analyzing scheduling parameters & constraints...</span>
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+            );
+          })}
 
+          {isThinking && (
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-muted/30 border border-border text-xs text-muted-foreground w-fit animate-pulse">
+              <Wand2 className="size-4 text-[#8B5CF6] animate-spin" />
+              <span>Kaci is analyzing your request...</span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Bottom Bar: Prompt Suggestions + Input integrated directly on background */}
+        <div className="pt-3 pb-2 space-y-3 shrink-0">
           {/* Quick Suggestion Chips */}
-          <div className="px-5 py-2.5 border-t border-border/60 bg-muted/20 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+          <div className="flex gap-2 overflow-x-auto scrollbar-none py-1">
             {DEFAULT_SUGGESTIONS.map((sug, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(sug)}
-                className="whitespace-nowrap text-xs font-semibold px-3.5 py-1.5 rounded-full border border-border bg-card hover:border-[#8B5CF6]/50 text-foreground transition-all cursor-pointer shrink-0"
+                className="whitespace-nowrap text-xs font-semibold px-3.5 py-1.5 rounded-full border border-border/80 bg-card/60 hover:bg-card hover:border-[#8B5CF6]/50 text-foreground transition-all cursor-pointer shrink-0 backdrop-blur-md"
               >
                 {sug}
               </button>
             ))}
           </div>
 
-          {/* Input Form */}
-          <div className="p-5 border-t border-border bg-card shrink-0">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-              className="flex items-center gap-3"
+          {/* Input Form Box */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="relative flex items-center gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-1.5 shadow-lg focus-within:border-[#8B5CF6] transition-all"
+          >
+            <input
+              type="text"
+              placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules..."
+              value={inputPrompt}
+              onChange={(e) => setInputPrompt(e.target.value)}
+              className="flex-1 h-11 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+            />
+            <Button
+              type="submit"
+              disabled={!inputPrompt.trim() || isThinking}
+              className="h-10 px-5 rounded-xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md"
             >
-              <input
-                type="text"
-                placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules..."
-                value={inputPrompt}
-                onChange={(e) => setInputPrompt(e.target.value)}
-                className="flex-1 h-12 rounded-2xl border border-border bg-muted/40 px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6]"
-              />
-              <Button
-                type="submit"
-                disabled={!inputPrompt.trim() || isThinking}
-                className="h-12 px-6 rounded-2xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md"
-              >
-                <Send className="size-4" /> Send
-              </Button>
-            </form>
-          </div>
-        </GlassPanel>
+              <Send className="size-3.5" /> Send
+            </Button>
+          </form>
+        </div>
       </div>
     </AppShell>
   );

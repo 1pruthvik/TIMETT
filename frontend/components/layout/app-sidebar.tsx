@@ -83,7 +83,7 @@ const managementItems: NavItemDef[] = [
     icon: Clock,
   },
   {
-    title: "AI & Constraints",
+    title: "Kaci",
     url: "/constraints",
     icon: Bot,
   },

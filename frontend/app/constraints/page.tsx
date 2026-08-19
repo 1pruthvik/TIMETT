@@ -121,7 +121,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: "m_init",
     sender: "ai",
-    text: "Hello! Welcome to the AI Constraint & Timetable Intelligence Studio. Here you can converse with the scheduling copilot, view historical prompt modifications, and manage active CP-SAT constraint rules.",
+    text: "Hello! I am Kaci, your intelligent Timetable & Constraint Assistant. Here you can converse with me, view historical prompt modifications, and manage active CP-SAT constraint rules.",
     timestamp: "Just now",
   },
 ];
@@ -355,9 +355,9 @@ export default function ConstraintsPage() {
     <AppShell>
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade pb-12">
         <PageHeader
-          title="AI Assistant & Constraints Studio"
-          description="Interactive natural language scheduling copilot, prompt modification history, and CP-SAT constraint rules management."
-          icon={Sliders}
+          title="Kaci"
+          description="Conversational AI assistant for timetable optimization, constraint formulation, and scheduling intelligence."
+          icon={Bot}
         >
           <Button
             variant="outline"
@@ -490,7 +490,7 @@ export default function ConstraintsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                      AI Scheduling Copilot & Conversation History
+                      Kaci &mdash; Timetable Assistant & Conversation History
                       <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                         Live Sync
                       </Badge>
@@ -602,7 +602,7 @@ export default function ConstraintsPage() {
                 >
                   <input
                     type="text"
-                    placeholder="Ask AI to modify constraints, check clashes, or optimize schedules..."
+                    placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules..."
                     value={inputPrompt}
                     onChange={(e) => setInputPrompt(e.target.value)}
                     className="flex-1 h-11 rounded-2xl border border-border bg-muted/40 px-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6]"

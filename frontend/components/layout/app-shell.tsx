@@ -19,6 +19,7 @@ import { LogOut, Search, User, Sparkles } from "lucide-react";
 import { TechBackground } from "@/components/ui/tech-background";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { ThemeToggle } from "@/components/theme/theme-provider";
+import { FloatingAiChat } from "@/components/layout/floating-ai-chat";
 
 interface UserProfile {
   name: string;
@@ -170,6 +171,9 @@ export function AppShell({
 
         {/* Content Body */}
         <main className="relative z-10 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+
+        {/* Global Floating AI Assistant */}
+        <FloatingAiChat />
       </SidebarInset>
 
       {/* Command palette overlay */}

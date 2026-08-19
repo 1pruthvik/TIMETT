@@ -747,33 +747,6 @@ export default function TimetablePage() {
           </div>
         </div>
 
-        {/* AI-Assisted Timetable Modification Bar */}
-        <GlassPanel className="p-4 border-border shadow-sm print:hidden">
-          <div className="flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-[#8B5CF6]/15 text-[#8B5CF6]">
-              <Bot className="size-4" />
-            </div>
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder='AI Timetable Modification: e.g. "Move all of Prof. Rao&apos;s classes away from Friday afternoon."'
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAIModification()}
-                className="w-full rounded-xl border border-border bg-card/60 px-4 py-2 text-sm text-foreground focus:border-[#8B5CF6] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 placeholder:text-muted-foreground/60"
-              />
-            </div>
-            <Button
-              onClick={handleAIModification}
-              disabled={aiModifying || !aiPrompt.trim()}
-              className="tt-gradient-btn rounded-xl gap-1.5 font-bold text-xs px-4 cursor-pointer"
-            >
-              <Wand2 className={`size-3.5 ${aiModifying ? "animate-spin" : ""}`} />
-              {aiModifying ? "Analyzing..." : "Propose Moves"}
-            </Button>
-          </div>
-        </GlassPanel>
-
         {/* View Switcher & Filter Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
           <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-2xl border border-border">

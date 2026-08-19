@@ -323,9 +323,9 @@ export function FloatingAiChat() {
             })}
 
             {isThinking && (
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/30 border border-border text-xs text-muted-foreground w-fit animate-pulse">
-                <Wand2 className="size-3.5 text-[#8B5CF6] animate-spin" />
-                <span>AI is analyzing scheduling rules...</span>
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-card border border-border text-xs text-muted-foreground w-fit shadow-xs">
+                <KaciLogo size={16} className="animate-pulse shrink-0" glow />
+                <span>Kaci is analyzing your request...</span>
               </div>
             )}
             <div ref={messagesEndRef} />

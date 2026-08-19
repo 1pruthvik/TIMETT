@@ -3,10 +3,18 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
-from app.db.session import get_db
+from app.db.database import SessionLocal
 from app.services.kaci_service import generate_kaci_response
 
 router = APIRouter(prefix="/kaci", tags=["Kaci AI"])
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 class ChatRequest(BaseModel):

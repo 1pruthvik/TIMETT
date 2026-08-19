@@ -144,16 +144,6 @@ export default function DashboardPage() {
                 <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
               </Button>
 
-              <Link href="/generations">
-                <Button
-                  variant="outline"
-                  className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground"
-                >
-                  <Clock className="size-4 text-[#8B5CF6]" />
-                  Run Logs
-                </Button>
-              </Link>
-
               <Link href="/timetable">
                 <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-5 cursor-pointer">
                   <Zap className="size-4" />
@@ -318,10 +308,10 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <Link href="/generations" className="block pt-2">
+            <Link href="/timetable" className="block pt-2">
               <Button variant="outline" className="w-full text-xs font-semibold rounded-xl border-border bg-card/60">
-                <Layers className="size-3.5 text-[#8B5CF6] mr-2" />
-                Generation History
+                <CalendarDays className="size-3.5 text-[#8B5CF6] mr-2" />
+                View Full Timetable Matrix
               </Button>
             </Link>
           </GlassPanel>

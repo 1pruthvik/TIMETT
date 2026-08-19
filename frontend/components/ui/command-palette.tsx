@@ -33,8 +33,7 @@ interface CommandItem {
 
 const COMMANDS: CommandItem[] = [
   { label: "Dashboard", desc: "Overview, stats & quick actions", href: "/dashboard", icon: LayoutDashboard, group: "Navigation" },
-  { label: "Master Timetable", desc: "Interactive period matrix & conflict checker", href: "/timetable", icon: CalendarDays, group: "Navigation" },
-  { label: "AI Generations", desc: "Historical solver generation runs", href: "/generations", icon: Sparkles, group: "Navigation" },
+  { label: "Master Timetable", desc: "Interactive period matrix, CP-SAT generation & conflict checker", href: "/timetable", icon: CalendarDays, group: "Navigation" },
   { label: "Faculty Directory", desc: "Professors, workloads & preferences", href: "/faculty", icon: Users, group: "Academic" },
   { label: "Subjects & Courses", desc: "Curriculum, credit hours & types", href: "/subjects", icon: BookOpen, group: "Academic" },
   { label: "Rooms & Labs", desc: "Capacities, equipment & room types", href: "/rooms", icon: DoorOpen, group: "Academic" },

@@ -48,11 +48,6 @@ const mainItems: NavItemDef[] = [
     url: "/timetable",
     icon: CalendarDays,
   },
-  {
-    title: "Generations",
-    url: "/generations",
-    icon: Sparkles,
-  },
 ];
 
 const managementItems: NavItemDef[] = [

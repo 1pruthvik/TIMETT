@@ -345,30 +345,34 @@ export function FloatingAiChat() {
           </div>
 
           {/* Input Footer */}
-          <div className="p-3 border-t border-border bg-card shrink-0">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                type="text"
-                placeholder="Ask AI to modify schedules or rules..."
+          <div className="p-2.5 border-t border-border bg-card shrink-0">
+            <div className="flex items-end gap-2">
+              <textarea
+                rows={1}
+                placeholder="Ask Kaci... (Shift + Enter for new line)"
                 value={inputPrompt}
                 onChange={(e) => setInputPrompt(e.target.value)}
-                className="flex-1 h-9 rounded-xl border border-border bg-muted/40 px-3 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (inputPrompt.trim() && !isThinking) {
+                      handleSendMessage();
+                    }
+                  }
+                }}
+                className="flex-1 min-h-[38px] max-h-24 resize-none rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6] leading-relaxed"
               />
               <Button
-                type="submit"
+                type="button"
+                onClick={() => handleSendMessage()}
                 disabled={!inputPrompt.trim() || isThinking}
                 size="icon"
-                className="size-9 rounded-xl tt-gradient-btn shrink-0 cursor-pointer shadow-sm"
+                className="size-9 rounded-xl tt-gradient-btn shrink-0 cursor-pointer shadow-sm mb-0.5"
+                title="Send Message (Enter)"
               >
                 <Send className="size-3.5" />
               </Button>
-            </form>
+            </div>
           </div>
         </div>
       )}

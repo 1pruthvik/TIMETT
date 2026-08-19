@@ -277,28 +277,32 @@ export default function KaciPage() {
           </div>
 
           {/* Input Form Box */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="relative flex items-center gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-1.5 shadow-lg focus-within:border-[#8B5CF6] transition-all"
-          >
-            <input
-              type="text"
-              placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules..."
+          <div className="relative flex items-end gap-2 rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-2 shadow-lg focus-within:border-[#8B5CF6] transition-all">
+            <textarea
+              rows={1}
+              placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules... (Shift + Enter for new line)"
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
-              className="flex-1 h-11 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (inputPrompt.trim() && !isThinking) {
+                    handleSendMessage();
+                  }
+                }
+              }}
+              className="flex-1 min-h-[42px] max-h-32 resize-none bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none leading-relaxed"
             />
             <Button
-              type="submit"
+              type="button"
+              onClick={() => handleSendMessage()}
               disabled={!inputPrompt.trim() || isThinking}
-              className="h-10 px-5 rounded-xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md"
+              className="h-10 px-5 rounded-xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md mb-0.5"
+              title="Send Message (Enter)"
             >
               <Send className="size-3.5" /> Send
             </Button>
-          </form>
+          </div>
         </div>
       </div>
     </AppShell>

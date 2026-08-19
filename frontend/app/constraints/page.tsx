@@ -13,6 +13,7 @@ import {
   CalendarDays,
   CheckCircle2,
 } from "lucide-react";
+import { KaciLogo } from "@/components/ui/kaci-logo";
 import { ChatMessage } from "@/components/layout/floating-ai-chat";
 
 const DEFAULT_SUGGESTIONS = [
@@ -159,9 +160,7 @@ export default function KaciPage() {
         {/* Seamless Header directly on page background */}
         <div className="flex items-center justify-between pb-4 mb-2 border-b border-border/60">
           <div className="flex items-center gap-3.5">
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-lg">
-              <Bot className="size-6" />
-            </div>
+            <KaciLogo size={44} glow />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-foreground">Kaci</h1>
@@ -195,9 +194,7 @@ export default function KaciPage() {
                 className={`flex items-start gap-3.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
               >
                 {!isUser && (
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30 shadow-xs mt-0.5">
-                    <Bot className="size-4.5" />
-                  </div>
+                  <KaciLogo size={32} className="mt-0.5" />
                 )}
 
                 <div

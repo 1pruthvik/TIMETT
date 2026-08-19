@@ -192,17 +192,13 @@ export function FloatingAiChat() {
         <div className="fixed bottom-6 right-6 z-50 print:hidden animate-fade-in">
           <button
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-3 px-4 py-3.5 rounded-full bg-gradient-to-r from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-2xl hover:shadow-[#8B5CF6]/40 hover:scale-105 transition-all duration-300 cursor-pointer border border-white/20"
+            className="group flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-2xl hover:shadow-[#8B5CF6]/50 hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer border border-white/25"
             title="Open Kaci (AI Scheduling Assistant)"
           >
             <div className="relative flex items-center justify-center">
-              <KaciLogo size={22} colorVariant="white" glow />
-              <span className="absolute -top-1 -right-1 size-2 rounded-full bg-emerald-400 border border-white" />
+              <KaciLogo size={28} colorVariant="white" glow />
+              <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-[#7C3AED]" />
             </div>
-            <span className="font-bold text-xs tracking-wide pr-1 hidden sm:inline-block">
-              Kaci
-            </span>
-            <Sparkles className="size-3.5 text-amber-300 group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       )}

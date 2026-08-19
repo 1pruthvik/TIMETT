@@ -6,14 +6,30 @@ interface KaciLogoProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string;
   className?: string;
   glow?: boolean;
+  colorVariant?: "gradient" | "white" | "current";
 }
 
 export function KaciLogo({
   size = 24,
   className = "",
-  glow = false,
+  glow = true,
+  colorVariant = "gradient",
   ...props
 }: KaciLogoProps) {
+  const strokeColor =
+    colorVariant === "white"
+      ? "#FFFFFF"
+      : colorVariant === "current"
+      ? "currentColor"
+      : "url(#kaci-brand-gradient)";
+
+  const eyeColor =
+    colorVariant === "white"
+      ? "#FFFFFF"
+      : colorVariant === "current"
+      ? "currentColor"
+      : "url(#kaci-brand-gradient)";
+
   return (
     <svg
       width={size}
@@ -21,83 +37,54 @@ export function KaciLogo({
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`shrink-0 transition-transform ${glow ? "drop-shadow-[0_0_12px_rgba(168,85,247,0.65)]" : ""} ${className}`}
+      className={`shrink-0 transition-transform ${glow ? "drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]" : ""} ${className}`}
       {...props}
     >
       <defs>
-        {/* Outer Radiant Gradient */}
-        <linearGradient id="kaci-outer-grad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+        {/* Modern Vibrant Purple -> Violet -> Cyan Gradient */}
+        <linearGradient id="kaci-brand-gradient" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#C084FC" />
           <stop offset="45%" stopColor="#8B5CF6" />
-          <stop offset="100%" stopColor="#4F46E5" />
+          <stop offset="100%" stopColor="#38BDF8" />
         </linearGradient>
-
-        {/* Inner Core Cyber Glow */}
-        <linearGradient id="kaci-core-grad" x1="12" y1="12" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#38BDF8" />
-          <stop offset="50%" stopColor="#818CF8" />
-          <stop offset="100%" stopColor="#C084FC" />
-        </linearGradient>
-
-        {/* Accent Sparkle Gradient */}
-        <linearGradient id="kaci-spark-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#FDE047" />
-          <stop offset="100%" stopColor="#F59E0B" />
-        </linearGradient>
-
-        {/* Glass reflection filter */}
-        <radialGradient id="kaci-specular" cx="35%" cy="30%" r="60%">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
-          <stop offset="40%" stopColor="#FFFFFF" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-        </radialGradient>
       </defs>
 
-      {/* Outer Hex-Octagonal Energy Shield */}
-      <rect
-        x="5"
-        y="5"
-        width="38"
-        height="38"
-        rx="12"
-        fill="url(#kaci-outer-grad)"
-        stroke="rgba(255,255,255,0.3)"
-        strokeWidth="1.5"
+      {/* 1. Antenna: Top Sphere & Stem */}
+      <circle cx="24" cy="7.5" r="2.2" fill={strokeColor} />
+      <path
+        d="M24 9.7V12.5"
+        stroke={strokeColor}
+        strokeWidth="2.6"
+        strokeLinecap="round"
       />
 
-      {/* Cybernetic Geometric Circuit Lattice */}
-      <circle cx="24" cy="24" r="14" stroke="rgba(255,255,255,0.25)" strokeWidth="1.2" strokeDasharray="3 2" />
-
-      {/* Central Holographic 'K' Neural Node */}
+      {/* 2. Top Dome (Head) */}
       <path
-        d="M17 14V34M17 24H21L29 14M22 24L31 34"
-        stroke="#FFFFFF"
-        strokeWidth="3.2"
+        d="M13.5 20.5C13.5 14.8 18 12.5 24 12.5C30 12.5 34.5 14.8 34.5 20.5"
+        stroke={strokeColor}
+        strokeWidth="2.8"
+        strokeLinecap="round"
+      />
+
+      {/* 3. Horizontal Orbital Visor Ring with Rounded Capsule Caps */}
+      <path
+        d="M34.5 20.5C38.2 20.5 41 22.3 41 24.5C41 26.7 38.2 28.5 34.5 28.5H13.5C9.8 28.5 7 26.7 7 24.5C7 22.3 9.8 20.5 13.5 20.5H34.5Z"
+        stroke={strokeColor}
+        strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
-      {/* Cybernetic Intelligence Spark Dots */}
-      <circle cx="31" cy="14" r="2.2" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="1" />
-      <circle cx="31" cy="34" r="2.2" fill="#F43F5E" stroke="#FFFFFF" strokeWidth="1" />
-      <circle cx="17" cy="14" r="2" fill="#34D399" />
-      <circle cx="17" cy="34" r="2" fill="#38BDF8" />
+      {/* 4. Two Glowing Mascot Eye Spheres */}
+      <circle cx="19" cy="24.5" r="2.4" fill={eyeColor} />
+      <circle cx="29" cy="24.5" r="2.4" fill={eyeColor} />
 
-      {/* Dynamic AI Quantum Sparkle Star */}
+      {/* 5. Bottom Chin Arc */}
       <path
-        d="M37 9L38 12L41 13L38 14L37 17L36 14L33 13L36 12L37 9Z"
-        fill="url(#kaci-spark-grad)"
-      />
-
-      {/* Top Glass Specular Shine */}
-      <rect
-        x="6"
-        y="6"
-        width="36"
-        height="20"
-        rx="10"
-        fill="url(#kaci-specular)"
-        opacity="0.6"
+        d="M14.2 28.5C14.2 34 18.5 38.5 24 38.5C29.5 38.5 33.8 34 33.8 28.5"
+        stroke={strokeColor}
+        strokeWidth="2.8"
+        strokeLinecap="round"
       />
     </svg>
   );

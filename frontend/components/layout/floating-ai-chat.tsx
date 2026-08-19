@@ -196,7 +196,7 @@ export function FloatingAiChat() {
             title="Open Kaci (AI Scheduling Assistant)"
           >
             <div className="relative flex items-center justify-center">
-              <KaciLogo size={22} glow />
+              <KaciLogo size={22} colorVariant="white" glow />
               <span className="absolute -top-1 -right-1 size-2 rounded-full bg-emerald-400 border border-white" />
             </div>
             <span className="font-bold text-xs tracking-wide pr-1 hidden sm:inline-block">

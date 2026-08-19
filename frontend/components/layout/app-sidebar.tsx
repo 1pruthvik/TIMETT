@@ -20,6 +20,7 @@ import {
   Sliders,
   Bot,
 } from "lucide-react";
+import { KaciLogo } from "@/components/ui/kaci-logo";
 
 import {
   Sidebar,
@@ -85,7 +86,7 @@ const managementItems: NavItemDef[] = [
   {
     title: "Kaci",
     url: "/constraints",
-    icon: Bot,
+    icon: KaciLogo,
   },
   {
     title: "Versions",

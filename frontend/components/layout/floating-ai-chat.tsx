@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   MessageSquare,
 } from "lucide-react";
+import { KaciLogo } from "@/components/ui/kaci-logo";
 
 export interface ChatMessage {
   id: string;
@@ -195,7 +196,7 @@ export function FloatingAiChat() {
             title="Open Kaci (AI Scheduling Assistant)"
           >
             <div className="relative flex items-center justify-center">
-              <Bot className="size-5 animate-pulse" />
+              <KaciLogo size={22} glow />
               <span className="absolute -top-1 -right-1 size-2 rounded-full bg-emerald-400 border border-white" />
             </div>
             <span className="font-bold text-xs tracking-wide pr-1 hidden sm:inline-block">
@@ -212,9 +213,7 @@ export function FloatingAiChat() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-muted/40 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#8B5CF6] to-[#6D28D9] text-white shadow-xs">
-                <Bot className="size-4.5" />
-              </div>
+              <KaciLogo size={32} glow />
               <div>
                 <h3 className="font-bold text-xs text-foreground flex items-center gap-1.5">
                   Kaci
@@ -271,9 +270,7 @@ export function FloatingAiChat() {
                   className={`flex items-start gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
                 >
                   {!isUser && (
-                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
-                      <Bot className="size-3.5" />
-                    </div>
+                    <KaciLogo size={24} className="mt-0.5" />
                   )}
 
                   <div

@@ -18,6 +18,7 @@ import {
   CalendarRange,
   User,
   Sliders,
+  Bot,
 } from "lucide-react";
 
 import {
@@ -82,9 +83,9 @@ const managementItems: NavItemDef[] = [
     icon: Clock,
   },
   {
-    title: "Constraints",
+    title: "AI & Constraints",
     url: "/constraints",
-    icon: Sliders,
+    icon: Bot,
   },
   {
     title: "Versions",

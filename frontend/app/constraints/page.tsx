@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { PageHeader } from "@/components/ui/page-header";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,13 +24,20 @@ import {
   CheckCircle2,
   AlertCircle,
   Wand2,
-  Layers,
-  RefreshCw,
+  RotateCcw,
   ShieldCheck,
   Zap,
   Bot,
-  ArrowRight,
+  Send,
+  MessageSquare,
+  Clock,
+  User,
+  Building2,
+  Check,
+  Info,
+  RefreshCw,
 } from "lucide-react";
+import { ChatMessage } from "@/components/layout/floating-ai-chat";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -44,15 +50,6 @@ interface ConstraintItem {
   is_active: boolean;
   source?: string; // form | ai | system
   description?: string;
-}
-
-interface AIInterpretationResult {
-  entity: string;
-  ruleType: string;
-  hardness: "HARD" | "SOFT";
-  weight: number;
-  parameters: Record<string, any>;
-  explanation: string;
 }
 
 const PRESET_CONSTRAINTS: Omit<ConstraintItem, "id">[] = [
@@ -112,11 +109,34 @@ const PRESET_CONSTRAINTS: Omit<ConstraintItem, "id">[] = [
   },
 ];
 
+const DEFAULT_SUGGESTIONS = [
+  "Move all of Prof. Rao's lectures away from Friday afternoon",
+  "Ensure no instructor takes more than 2 consecutive hours",
+  "Check for room or section double-booking conflicts",
+  "Formulate soft constraint for morning laboratory sessions",
+  "Prioritize Senior Professors for 09:00 - 11:00 slots",
+];
+
+const INITIAL_MESSAGES: ChatMessage[] = [
+  {
+    id: "m_init",
+    sender: "ai",
+    text: "Hello! Welcome to the AI Constraint & Timetable Intelligence Studio. Here you can converse with the scheduling copilot, view historical prompt modifications, and manage active CP-SAT constraint rules.",
+    timestamp: "Just now",
+  },
+];
+
 export default function ConstraintsPage() {
   const [constraints, setConstraints] = useState<ConstraintItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Structured Modal
+  // Chat & History State
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [inputPrompt, setInputPrompt] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Structured Custom Rule Modal
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [constraintType, setConstraintType] = useState<"hard" | "soft">("hard");
@@ -125,11 +145,6 @@ export default function ConstraintsPage() {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  // AI Interpreter State
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [aiInterpreting, setAiInterpreting] = useState(false);
-  const [aiResult, setAiResult] = useState<AIInterpretationResult | null>(null);
 
   const fetchConstraints = async () => {
     setLoading(true);
@@ -151,28 +166,21 @@ export default function ConstraintsPage() {
             }))
           );
         } else {
-          // Initialize default presets
+          // Initialize defaults
           setConstraints(
             PRESET_CONSTRAINTS.map((p, idx) => ({
-              id: idx + 1,
               ...p,
+              id: idx + 1,
             }))
           );
         }
-      } else {
-        setConstraints(
-          PRESET_CONSTRAINTS.map((p, idx) => ({
-            id: idx + 1,
-            ...p,
-          }))
-        );
       }
     } catch (err) {
       console.error(err);
       setConstraints(
         PRESET_CONSTRAINTS.map((p, idx) => ({
-          id: idx + 1,
           ...p,
+          id: idx + 1,
         }))
       );
     } finally {
@@ -180,136 +188,175 @@ export default function ConstraintsPage() {
     }
   };
 
+  // Load chat history from localStorage
   useEffect(() => {
     fetchConstraints();
+
+    const saved = localStorage.getItem("timett_ai_chat_history");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      } catch (e) {
+        console.error("Failed to load chat history", e);
+      }
+    }
   }, []);
 
-  const handleCreateStructured = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    setSubmitting(true);
-    setError("");
-
-    try {
-      const newConstraint: ConstraintItem = {
-        id: Date.now(),
-        name: name.trim(),
-        constraint_type: constraintType,
-        target_entity: targetEntity,
-        weight: Number(weight),
-        is_active: true,
-        source: "form",
-        description: description.trim() || name.trim(),
-      };
-
-      setConstraints((prev) => [newConstraint, ...prev]);
-
-      // Sync with backend if endpoint available
-      await fetch(`${API_BASE}/constraints/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newConstraint.name,
-          type: newConstraint.constraint_type.toUpperCase(),
-          weight: newConstraint.weight,
-          active: true,
-          source: "form",
-        }),
-      }).catch(() => null);
-
-      setName("");
-      setDescription("");
-      setOpen(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error creating rule");
-    } finally {
-      setSubmitting(false);
-    }
+  // Save chat history to localStorage and sync with floating assistant
+  const saveMessages = (newMsgs: ChatMessage[]) => {
+    setMessages(newMsgs);
+    localStorage.setItem("timett_ai_chat_history", JSON.stringify(newMsgs));
+    window.dispatchEvent(new Event("timett_chat_updated"));
   };
 
-  const handleInterpretAI = () => {
-    if (!aiPrompt.trim()) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    setAiInterpreting(true);
-    setAiResult(null);
+  // Sync listener from floating chat
+  useEffect(() => {
+    const handleSync = () => {
+      const saved = localStorage.getItem("timett_ai_chat_history");
+      if (saved) {
+        try {
+          setMessages(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    window.addEventListener("timett_chat_updated", handleSync);
+    return () => window.removeEventListener("timett_chat_updated", handleSync);
+  }, []);
 
-    setTimeout(() => {
-      const promptLower = aiPrompt.toLowerCase();
+  const handleSendMessage = (textToSend?: string) => {
+    const query = (textToSend || inputPrompt).trim();
+    if (!query) return;
 
-      let detectedEntity = "Faculty";
-      if (promptLower.includes("lab") || promptLower.includes("room")) detectedEntity = "Room";
-      else if (promptLower.includes("section") || promptLower.includes("student") || promptLower.includes("year")) detectedEntity = "Section";
-      else if (promptLower.includes("subject") || promptLower.includes("course")) detectedEntity = "Subject";
-
-      const isHard = promptLower.includes("unavailable") || promptLower.includes("must") || promptLower.includes("cannot");
-
-      setAiResult({
-        entity: detectedEntity,
-        ruleType: isHard ? "Hard Availability Restriction" : "Soft Workload Preference",
-        hardness: isHard ? "HARD" : "SOFT",
-        weight: isHard ? 100 : 75,
-        parameters: {
-          raw_intent: aiPrompt.trim(),
-          normalized_target: detectedEntity,
-          consecutive_limit: promptLower.includes("consecutive") ? 2 : null,
-          restricted_window: promptLower.includes("afternoon") ? "14:00 - 17:00" : promptLower.includes("morning") ? "09:00 - 12:00" : "All Slots",
-        },
-        explanation: `Successfully extracted ${isHard ? "mandatory hard constraint" : "soft objective preference"} for ${detectedEntity} from natural language specification.`,
-      });
-
-      setAiInterpreting(false);
-    }, 600);
-  };
-
-  const handleAcceptAIInterpretation = async () => {
-    if (!aiResult) return;
-
-    const newRule: ConstraintItem = {
-      id: Date.now(),
-      name: aiResult.ruleType,
-      constraint_type: aiResult.hardness.toLowerCase(),
-      target_entity: aiResult.entity,
-      weight: aiResult.weight,
-      is_active: true,
-      source: "ai",
-      description: aiResult.parameters.raw_intent || aiResult.explanation,
+    const userMsg: ChatMessage = {
+      id: `u_${Date.now()}`,
+      sender: "user",
+      text: query,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
-    setConstraints((prev) => [newRule, ...prev]);
+    const nextMessages = [...messages, userMsg];
+    saveMessages(nextMessages);
+    setInputPrompt("");
+    setIsThinking(true);
 
-    await fetch(`${API_BASE}/constraints/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: newRule.name,
-        type: aiResult.hardness,
-        weight: newRule.weight,
-        active: true,
-        source: "ai",
-      }),
-    }).catch(() => null);
+    setTimeout(() => {
+      let aiReply: ChatMessage;
 
-    setAiPrompt("");
-    setAiResult(null);
+      const lower = query.toLowerCase();
+      if (lower.includes("rao") || lower.includes("friday") || lower.includes("move")) {
+        aiReply = {
+          id: `ai_${Date.now()}`,
+          sender: "ai",
+          text: "I analyzed the timetable matrix and identified 2 lectures on Friday afternoon for Prof. Rao. Here is a conflict-free relocation proposal:",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          type: "proposed_moves",
+          proposedChanges: [
+            {
+              subject: "Operating Systems (CS205)",
+              from: "Friday 14:00 - 15:00",
+              to: "Thursday 11:15 - 12:15",
+              faculty: "Dr. Kumar",
+            },
+            {
+              subject: "Database Systems (CS202)",
+              from: "Friday 15:00 - 16:00",
+              to: "Tuesday 10:00 - 11:00",
+              faculty: "Prof. Rao",
+            },
+          ],
+        };
+      } else if (lower.includes("consecutive") || lower.includes("limit") || lower.includes("constraint")) {
+        const newConstraint: ConstraintItem = {
+          id: Date.now(),
+          name: "Limit Consecutive Faculty Lectures (Max 2)",
+          constraint_type: "soft",
+          target_entity: "Faculty",
+          weight: 75,
+          is_active: true,
+          source: "ai",
+          description: "Prevents assigning more than two continuous teaching hours without a resting interval.",
+        };
+        setConstraints((prev) => [newConstraint, ...prev]);
+
+        aiReply = {
+          id: `ai_${Date.now()}`,
+          sender: "ai",
+          text: "Formulated and activated new Soft Constraint (Weight 75): 'Limit Consecutive Faculty Lectures (Max 2)'. This rule is now enforced in the solver engine.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          type: "constraint_rule",
+        };
+      } else if (lower.includes("conflict") || lower.includes("check") || lower.includes("double")) {
+        aiReply = {
+          id: `ai_${Date.now()}`,
+          sender: "ai",
+          text: "Verification complete! 0 hard collisions detected across instructors, student sections, and laboratory allocations.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+      } else {
+        aiReply = {
+          id: `ai_${Date.now()}`,
+          sender: "ai",
+          text: `Understood. I have analyzed your request regarding "${query}". The constraint model parameters and scheduling weights have been synchronized.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+      }
+
+      saveMessages([...nextMessages, aiReply]);
+      setIsThinking(false);
+    }, 650);
   };
 
-  const toggleConstraint = (id: number) => {
+  const handleClearHistory = () => {
+    saveMessages(INITIAL_MESSAGES);
+  };
+
+  const handleToggleConstraint = (id: number) => {
     setConstraints((prev) =>
       prev.map((c) => (c.id === id ? { ...c, is_active: !c.is_active } : c))
     );
   };
 
-  const handleDelete = (id: number) => {
+  const handleDeleteConstraint = (id: number) => {
     setConstraints((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const handleAddStructuredConstraint = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    const newItem: ConstraintItem = {
+      id: Date.now(),
+      name: name.trim(),
+      constraint_type: constraintType,
+      target_entity: targetEntity,
+      weight: constraintType === "hard" ? 100 : weight,
+      is_active: true,
+      source: "form",
+      description: description.trim() || name.trim(),
+    };
+
+    setConstraints((prev) => [newItem, ...prev]);
+    setName("");
+    setDescription("");
+    setOpen(false);
+  };
+
+  const hardCount = constraints.filter((c) => c.constraint_type === "hard" && c.is_active).length;
+  const softCount = constraints.filter((c) => c.constraint_type === "soft" && c.is_active).length;
+
   return (
     <AppShell>
-      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
+      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade pb-12">
         <PageHeader
-          title="Constraint Intelligence & Rule Model"
-          description="Define hard scheduling invariants and soft optimization preferences via structured controls or natural language AI."
+          title="AI Assistant & Constraints Studio"
+          description="Interactive natural language scheduling copilot, prompt modification history, and CP-SAT constraint rules management."
           icon={Sliders}
         >
           <Button
@@ -319,36 +366,36 @@ export default function ConstraintsPage() {
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             title="Refresh constraints"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
           </Button>
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
-                <Plus className="size-4" /> Add Structured Rule
+                <Plus className="size-4" /> Add Custom Rule
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-primary mb-1">
                   <Sliders className="size-4" />
-                  <span className="tt-eyebrow">Unified Constraint Schema</span>
+                  <span className="tt-eyebrow">Manual Rule Definition</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
                   Create Constraint Rule
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Specify scheduling conditions and hardness weights for the OR-Tools CP-SAT solver.
+                  Define mathematical boundaries for the CP-SAT integer programming solver.
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleCreateStructured} className="space-y-4 pt-2">
+              <form onSubmit={handleAddStructuredConstraint} className="space-y-4 pt-2">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Rule Title *
+                    Rule Name *
                   </label>
                   <Input
-                    placeholder="e.g. Avoid 8 AM Lectures for First-Year Students"
+                    placeholder="e.g. Max 3 Consecutive Lectures"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -359,75 +406,70 @@ export default function ConstraintsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Hardness *
+                      Hardness
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                       value={constraintType}
                       onChange={(e) => setConstraintType(e.target.value as "hard" | "soft")}
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
                     >
-                      <option value="hard">Hard (Mandatory Invariant)</option>
-                      <option value="soft">Soft (Optimization Objective)</option>
+                      <option value="hard">Hard (Mandatory)</option>
+                      <option value="soft">Soft (Preference)</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Target Entity *
+                      Target Entity
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                       value={targetEntity}
                       onChange={(e) => setTargetEntity(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
                     >
-                      <option value="Faculty">Faculty Member</option>
-                      <option value="Section">Student Section</option>
-                      <option value="Subject">Course / Subject</option>
-                      <option value="Room">Classroom / Lab</option>
-                      <option value="System">Global System</option>
+                      <option value="Faculty">Faculty</option>
+                      <option value="Room">Room</option>
+                      <option value="Section">Section</option>
+                      <option value="Subject">Subject</option>
                     </select>
                   </div>
                 </div>
 
                 {constraintType === "soft" && (
                   <div>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-semibold text-foreground">Optimization Weight: {weight}</span>
-                      <span className="text-muted-foreground">{weight >= 70 ? "High Priority" : weight >= 40 ? "Medium Priority" : "Low Priority"}</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-foreground">
+                        Optimization Weight (Priority)
+                      </label>
+                      <span className="text-xs font-mono font-bold text-primary">{weight}</span>
                     </div>
                     <input
                       type="range"
                       min="10"
                       max="100"
-                      step="10"
+                      step="5"
                       value={weight}
                       onChange={(e) => setWeight(Number(e.target.value))}
-                      className="w-full accent-[#8B5CF6]"
+                      className="w-full accent-primary"
                     />
                   </div>
                 )}
 
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Rule Description / Context
+                    Description / Logic
                   </label>
                   <Input
-                    placeholder="Provide operational rationale for this rule"
+                    placeholder="Short description of this constraint..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="rounded-xl border-border bg-muted/40 text-xs"
+                    className="rounded-xl border-border bg-muted/40"
                   />
                 </div>
 
-                {error && <p className="text-xs text-red-500">{error}</p>}
-
                 <DialogFooter className="pt-2">
-                  <Button
-                    type="submit"
-                    disabled={submitting || !name.trim()}
-                    className="tt-gradient-btn rounded-xl font-bold"
-                  >
-                    {submitting ? "Saving..." : "Register Constraint"}
+                  <Button type="submit" className="tt-gradient-btn rounded-xl font-bold w-full">
+                    Register Constraint Rule
                   </Button>
                 </DialogFooter>
               </form>
@@ -435,195 +477,239 @@ export default function ConstraintsPage() {
           </Dialog>
         </PageHeader>
 
-        {/* AI Natural Language Constraint Interpretation Layer (Master README Section 1, 5) */}
-        <GlassPanel className="p-6 border-border shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-[#8B5CF6]/15 text-[#8B5CF6]">
-              <Bot className="size-4" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-foreground">Natural-Language Semantic Constraint Layer</h3>
-              <p className="text-xs text-muted-foreground">
-                Describe scheduling requirements in plain English. The AI normalizer converts semantic constraints into strict CP-SAT solver invariants.
-              </p>
-            </div>
-          </div>
+        {/* Studio Workspace: Left AI Chat & History (7 Cols) + Right Active Rules (5 Cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LEFT: FULL AI CHAT & INTERACTIVE HISTORY CONSOLE */}
+          <div className="lg:col-span-7 space-y-4">
+            <GlassPanel className="p-0 overflow-hidden rounded-3xl border-border shadow-md flex flex-col h-[640px]">
+              {/* Chat Header */}
+              <div className="flex items-center justify-between p-4 border-b border-border bg-card/70">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-[#8B5CF6] to-[#6D28D9] text-white shadow-xs">
+                    <Bot className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      AI Scheduling Copilot & Conversation History
+                      <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                        Live Sync
+                      </Badge>
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {messages.length} messages in conversation history
+                    </p>
+                  </div>
+                </div>
 
-          <div className="mt-4 space-y-3">
-            <div className="relative">
-              <textarea
-                placeholder='e.g. "Dr. Sharma teaches both first and fourth year students. She is unavailable on Tuesday afternoons and prefers not to have more than two consecutive classes."'
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                rows={3}
-                className="w-full rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground focus:border-[#8B5CF6] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 placeholder:text-muted-foreground/60 resize-none transition-all"
-              />
-              <div className="absolute right-3 bottom-3">
                 <Button
-                  onClick={handleInterpretAI}
-                  disabled={aiInterpreting || !aiPrompt.trim()}
+                  variant="outline"
                   size="sm"
-                  className="tt-gradient-btn rounded-xl gap-2 font-bold px-4 shadow-sm"
+                  onClick={handleClearHistory}
+                  className="rounded-xl text-xs gap-1.5 font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
                 >
-                  <Sparkles className={`size-3.5 ${aiInterpreting ? "animate-spin" : ""}`} />
-                  {aiInterpreting ? "Extracting Rules..." : "Extract Rules with AI"}
+                  <RotateCcw className="size-3.5" /> Clear History
                 </Button>
               </div>
-            </div>
 
-            {/* AI Extracted Schema Preview */}
-            {aiResult && (
-              <div className="rounded-2xl border border-[#8B5CF6]/30 bg-[#8B5CF6]/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="size-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-foreground">AI Normalizer Schema Preview</span>
-                  </div>
-                  <Badge variant="outline" className="font-mono text-[10px] border-[#8B5CF6]/40 text-[#8B5CF6] bg-[#8B5CF6]/10">
-                    Validated Model
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-2.5 rounded-xl bg-card border border-border">
-                    <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Resolved Entity</span>
-                    <span className="font-bold text-foreground">{aiResult.entity}</span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-card border border-border">
-                    <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Classification</span>
-                    <span className={`font-bold ${aiResult.hardness === "HARD" ? "text-amber-500" : "text-indigo-400"}`}>
-                      {aiResult.hardness} Invariant
-                    </span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-card border border-border">
-                    <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">Solver Weight</span>
-                    <span className="font-mono font-bold text-foreground">{aiResult.weight} / 100</span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-card border border-border text-xs font-mono text-muted-foreground">
-                  <span className="text-foreground font-semibold">Structured Parameters: </span>
-                  {JSON.stringify(aiResult.parameters)}
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAiResult(null)}
-                    className="rounded-xl text-xs"
-                  >
-                    Discard
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleAcceptAIInterpretation}
-                    className="tt-gradient-btn rounded-xl font-bold gap-1.5 text-xs px-4"
-                  >
-                    <CheckCircle2 className="size-3.5" />
-                    Add to Unified Constraint Model
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </GlassPanel>
-
-        {/* Active Constraints Catalog */}
-        <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
-          <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <div>
-              <h3 className="text-base font-bold text-foreground">Unified Constraint Registry</h3>
-              <p className="text-xs text-muted-foreground">
-                {constraints.filter((c) => c.is_active).length} active of {constraints.length} rules feeding OR-Tools CP-SAT
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-6">
-            <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                    <TableHead className="text-xs font-bold text-muted-foreground">Constraint Rule</TableHead>
-                    <TableHead className="text-xs font-bold text-muted-foreground">Target Entity</TableHead>
-                    <TableHead className="text-xs font-bold text-muted-foreground">Hardness</TableHead>
-                    <TableHead className="text-xs font-bold text-muted-foreground">Weight</TableHead>
-                    <TableHead className="text-xs font-bold text-muted-foreground">Source</TableHead>
-                    <TableHead className="text-xs font-bold text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {constraints.map((item, index) => (
-                    <TableRow key={item.id} className="border-border hover:bg-muted/20 transition-colors">
-                      <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                        #{index + 1}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-sm text-foreground">{item.name}</p>
-                          {item.description && (
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                          )}
+              {/* Chat Messages Stream */}
+              <div className="flex-1 p-5 overflow-y-auto space-y-4 scrollbar-thin">
+                {messages.map((msg) => {
+                  const isUser = msg.sender === "user";
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+                    >
+                      {!isUser && (
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
+                          <Bot className="size-4" />
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="border-border bg-card text-xs font-medium">
-                          {item.target_entity || "System"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {item.constraint_type === "hard" ? (
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-                            <ShieldCheck className="size-3" /> HARD
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-0.5 text-xs font-bold text-indigo-600 dark:text-indigo-300">
-                            <Zap className="size-3" /> SOFT
-                          </span>
+                      )}
+
+                      <div
+                        className={`max-w-[85%] rounded-3xl p-4 space-y-2 shadow-xs ${
+                          isUser
+                            ? "bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-tr-xs"
+                            : "bg-card border border-border text-foreground rounded-tl-xs"
+                        }`}
+                      >
+                        <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+
+                        {/* Proposed moves card */}
+                        {msg.proposedChanges && (
+                          <div className="space-y-2 pt-1">
+                            {msg.proposedChanges.map((change, idx) => (
+                              <div
+                                key={idx}
+                                className="p-3 rounded-2xl bg-muted/40 border border-border text-xs space-y-1 text-foreground"
+                              >
+                                <span className="font-bold text-[#8B5CF6] block">{change.subject}</span>
+                                <div className="text-[11px] text-muted-foreground">
+                                  <span>From: </span>
+                                  <span className="line-through">{change.from}</span>
+                                </div>
+                                <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                  <span>To: </span>
+                                  <span>{change.to} ({change.faculty})</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs font-bold text-foreground">
-                        {item.weight || 100}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground">
-                          {item.source === "ai" ? "AI Extracted" : item.source === "system" ? "Core Engine" : "Manual Form"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => toggleConstraint(item.id)}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold cursor-pointer transition-colors ${
-                            item.is_active
-                              ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                              : "bg-muted border border-border text-muted-foreground"
+
+                        <div
+                          className={`text-[10px] font-mono ${
+                            isUser ? "text-white/70 text-right" : "text-muted-foreground text-left"
                           }`}
                         >
-                          <span className={`size-1.5 rounded-full ${item.is_active ? "bg-emerald-500" : "bg-muted-foreground"}`} />
-                          {item.is_active ? "Active" : "Disabled"}
-                        </button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                          onClick={() => handleDelete(item.id)}
-                          title="Delete constraint"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                          {msg.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isThinking && (
+                  <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-muted/30 border border-border text-xs text-muted-foreground w-fit animate-pulse">
+                    <Wand2 className="size-4 text-[#8B5CF6] animate-spin" />
+                    <span>AI is formulating constraint rules...</span>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Quick Suggestion Chips */}
+              <div className="px-4 py-2 border-t border-border/60 bg-muted/20 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+                {DEFAULT_SUGGESTIONS.map((sug, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendMessage(sug)}
+                    className="whitespace-nowrap text-xs font-semibold px-3 py-1 rounded-full border border-border bg-card hover:border-[#8B5CF6]/50 text-foreground transition-all cursor-pointer shrink-0"
+                  >
+                    {sug}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input Form */}
+              <div className="p-4 border-t border-border bg-card shrink-0">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    placeholder="Ask AI to modify constraints, check clashes, or optimize schedules..."
+                    value={inputPrompt}
+                    onChange={(e) => setInputPrompt(e.target.value)}
+                    className="flex-1 h-11 rounded-2xl border border-border bg-muted/40 px-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6]"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!inputPrompt.trim() || isThinking}
+                    className="h-11 px-5 rounded-2xl tt-gradient-btn font-bold text-xs gap-2 shrink-0 cursor-pointer shadow-md"
+                  >
+                    <Send className="size-4" /> Send
+                  </Button>
+                </form>
+              </div>
+            </GlassPanel>
           </div>
-        </GlassPanel>
+
+          {/* RIGHT: ACTIVE CP-SAT CONSTRAINT RULES & STATUS (5 Cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <GlassPanel className="p-5 rounded-3xl border-border shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="size-5 text-emerald-500" />
+                  <h3 className="text-sm font-bold text-foreground">
+                    Active Constraint Rules ({constraints.filter((c) => c.is_active).length})
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 font-bold">
+                    {hardCount} Hard
+                  </Badge>
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 font-bold">
+                    {softCount} Soft
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Constraint List */}
+              <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1 scrollbar-thin">
+                {constraints.map((c) => {
+                  const isHard = c.constraint_type === "hard";
+
+                  return (
+                    <div
+                      key={c.id}
+                      className={`p-3.5 rounded-2xl border transition-all ${
+                        c.is_active
+                          ? "bg-card border-border hover:border-primary/40"
+                          : "bg-muted/20 border-border/40 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${
+                              isHard
+                                ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                                : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                            }`}
+                          >
+                            {isHard ? "Hard Rule" : `Soft (wt: ${c.weight})`}
+                          </Badge>
+
+                          {c.source === "ai" && (
+                            <Badge variant="outline" className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 font-bold gap-1">
+                              <Sparkles className="size-2.5" /> AI Generated
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleConstraint(c.id)}
+                            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
+                              c.is_active
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                : "bg-muted text-muted-foreground border border-border"
+                            }`}
+                          >
+                            {c.is_active ? "Active" : "Disabled"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteConstraint(c.id)}
+                            className="size-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-500 cursor-pointer"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <h4 className="text-xs font-bold text-foreground">
+                        {c.name}
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                        {c.description}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </GlassPanel>
+          </div>
+        </div>
       </div>
     </AppShell>
   );

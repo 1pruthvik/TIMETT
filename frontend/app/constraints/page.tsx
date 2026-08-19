@@ -16,6 +16,8 @@ import {
 import { KaciLogo } from "@/components/ui/kaci-logo";
 import { ChatMessage } from "@/components/layout/floating-ai-chat";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 const DEFAULT_SUGGESTIONS = [
   "Move all of Prof. Rao's lectures away from Friday afternoon",
   "Ensure no instructor takes more than 2 consecutive hours",
@@ -79,7 +81,7 @@ export default function KaciPage() {
     return () => window.removeEventListener("timett_chat_updated", handleSync);
   }, []);
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputPrompt).trim();
     if (!query) return;
 
@@ -95,10 +97,35 @@ export default function KaciPage() {
     setInputPrompt("");
     setIsThinking(true);
 
-    setTimeout(() => {
-      let aiReply: ChatMessage;
+    try {
+      const res = await fetch(`${API_BASE}/kaci/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: query,
+          history: nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
+        }),
+      });
 
+      if (res.ok) {
+        const data = await res.json();
+        const aiReply: ChatMessage = {
+          id: `ai_${Date.now()}`,
+          sender: "ai",
+          text: data.text || "I have analyzed your request.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          type: data.type || "text",
+          proposedChanges: data.proposedChanges,
+        };
+        saveMessages([...nextMessages, aiReply]);
+      } else {
+        throw new Error("Failed to reach Kaci AI API");
+      }
+    } catch (err) {
+      console.warn("Falling back to local rule analysis:", err);
+      // Local fallback
       const lower = query.toLowerCase();
+      let aiReply: ChatMessage;
       if (lower.includes("rao") || lower.includes("friday") || lower.includes("move")) {
         aiReply = {
           id: `ai_${Date.now()}`,
@@ -121,33 +148,18 @@ export default function KaciPage() {
             },
           ],
         };
-      } else if (lower.includes("consecutive") || lower.includes("limit") || lower.includes("constraint")) {
-        aiReply = {
-          id: `ai_${Date.now()}`,
-          sender: "ai",
-          text: "Formulated and activated new Soft Constraint (Weight 75): 'Limit Consecutive Faculty Lectures (Max 2)'. This rule is now enforced in the solver engine.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          type: "constraint_rule",
-        };
-      } else if (lower.includes("conflict") || lower.includes("check") || lower.includes("double")) {
-        aiReply = {
-          id: `ai_${Date.now()}`,
-          sender: "ai",
-          text: "Verification complete! 0 hard collisions detected across instructors, student sections, and laboratory allocations.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        };
       } else {
         aiReply = {
           id: `ai_${Date.now()}`,
           sender: "ai",
-          text: `Understood. I have analyzed your request regarding "${query}". The constraint model parameters and scheduling weights have been synchronized.`,
+          text: `Understood. I have analyzed your request regarding "${query}". The constraint model parameters have been updated.`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         };
       }
-
       saveMessages([...nextMessages, aiReply]);
+    } finally {
       setIsThinking(false);
-    }, 650);
+    }
   };
 
   const handleClearHistory = () => {

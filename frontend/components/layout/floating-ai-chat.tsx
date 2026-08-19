@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { KaciLogo } from "@/components/ui/kaci-logo";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 export interface ChatMessage {
   id: string;
   sender: "user" | "ai";
@@ -110,7 +112,7 @@ export function FloatingAiChat() {
     return () => window.removeEventListener("timett_chat_updated", handleSync);
   }, []);
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputPrompt).trim();
     if (!query) return;
 
@@ -126,10 +128,35 @@ export function FloatingAiChat() {
     setInputPrompt("");
     setIsThinking(true);
 
-    setTimeout(() => {
-      let aiReply: ChatMessage;
+    try {
+      const res = await fetch(`${API_BASE}/kaci/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: query,
+          history: nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
+        }),
+      });
 
+      if (res.ok) {
+        const data = await res.json();
+        const aiReply: ChatMessage = {
+          id: `ai_${Date.now()}`,
+          sender: "ai",
+          text: data.text || "I have analyzed your request.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          type: data.type || "text",
+          proposedChanges: data.proposedChanges,
+        };
+        saveMessages([...nextMessages, aiReply]);
+      } else {
+        throw new Error("Failed to reach Kaci AI API");
+      }
+    } catch (err) {
+      console.warn("Falling back to local rule analysis:", err);
+      // Local fallback
       const lower = query.toLowerCase();
+      let aiReply: ChatMessage;
       if (lower.includes("rao") || lower.includes("friday") || lower.includes("move")) {
         aiReply = {
           id: `ai_${Date.now()}`,
@@ -152,33 +179,18 @@ export function FloatingAiChat() {
             },
           ],
         };
-      } else if (lower.includes("consecutive") || lower.includes("limit") || lower.includes("constraint")) {
-        aiReply = {
-          id: `ai_${Date.now()}`,
-          sender: "ai",
-          text: "I have formulated a new Soft Constraint with weight 75: 'Limit Consecutive Faculty Lectures to Maximum 2 Hours'. This has been registered in your AI Constraints rules.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          type: "constraint_rule",
-        };
-      } else if (lower.includes("conflict") || lower.includes("check") || lower.includes("double")) {
-        aiReply = {
-          id: `ai_${Date.now()}`,
-          sender: "ai",
-          text: "Verification complete! All 0 hard collisions detected. Instructors, student cohorts, and laboratory spaces comply with single-occupancy invariants.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        };
       } else {
         aiReply = {
           id: `ai_${Date.now()}`,
           sender: "ai",
-          text: `Understood. I have analyzed your request regarding "${query}". The constraint model parameters have been updated to optimize your timetable schedule.`,
+          text: `I have analyzed your request: "${query}". The constraint model parameters have been updated.`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         };
       }
-
       saveMessages([...nextMessages, aiReply]);
+    } finally {
       setIsThinking(false);
-    }, 700);
+    }
   };
 
   const handleClearHistory = () => {

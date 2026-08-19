@@ -20,6 +20,7 @@ from app.api.routes.constraints import router as constraint_router
 from app.api.routes.timetable_versions import router as timetable_version_router
 from app.api.routes.generation_runs import router as generation_run_router
 from app.api.routes.generator import router as generator_router
+from app.api.routes.kaci import router as kaci_router
 
 
 app = FastAPI(
@@ -60,4 +61,6 @@ app.include_router(constraint_router)
 app.include_router(timetable_version_router)
 app.include_router(generation_run_router)
 app.include_router(generator_router)
+app.include_router(kaci_router)
+
 

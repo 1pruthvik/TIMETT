@@ -1,8 +1,11 @@
 import os
 import json
-import httpx
+from pathlib import Path
+from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
+from google import genai
+from google.genai import types
 
 from app.models.faculty import Faculty
 from app.models.department import Department
@@ -11,8 +14,25 @@ from app.models.section import Section
 from app.models.room import Room
 from app.models.constraint import Constraint
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or ""
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
+
+CANDIDATE_MODELS = [
+    os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
+    "gemini-3.7-flash",
+    "gemini-3.5-flash",
+    "gemini-flash-latest",
+]
+
+
+def get_gemini_api_key() -> str:
+    """Dynamically reload .env to ensure fresh API keys are read immediately."""
+    if ENV_PATH.exists():
+        load_dotenv(dotenv_path=ENV_PATH, override=True)
+    else:
+        load_dotenv(override=True)
+
+    key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or ""
+    return key.strip().strip("'").strip('"')
 
 
 def get_live_institution_context(db: Session) -> str:
@@ -44,9 +64,9 @@ async def generate_kaci_response(
     db: Session
 ) -> Dict[str, Any]:
     """Call Google Gemini to generate an intelligent Kaci response."""
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or GEMINI_API_KEY
+    api_key = get_gemini_api_key()
 
-    # 1. If Gemini API Key is not set, provide helpful instruction + local reasoning
+    # 1. If Gemini API Key is not configured yet
     if not api_key:
         lower = query.lower()
         if "rao" in lower or "friday" in lower or "move" in lower:
@@ -66,25 +86,19 @@ async def generate_kaci_response(
                         "faculty": "Prof. Rao",
                     },
                 ],
-                "model": "Kaci Local Engine (Add GEMINI_API_KEY for live Gemini 2.0)",
-            }
-        elif "consecutive" in lower or "limit" in lower or "constraint" in lower:
-            return {
-                "text": "I have formulated a new Soft Constraint with priority weight 75: 'Limit Consecutive Faculty Lectures to Maximum 2 Hours'. This rule is now active in the CP-SAT engine.\n\n*(Tip: Add `GEMINI_API_KEY` in `backend/.env` for open-ended Gemini intelligence)*",
-                "type": "constraint_rule",
                 "model": "Kaci Local Engine",
             }
         else:
             return {
-                "text": f"I have processed your instruction: \"{query}\".\n\nTo unlock live **Google Gemini (gemini-2.0-flash)** reasoning, add your API key in `backend/.env`:\n```env\nGEMINI_API_KEY=AIzaSy...\n```",
+                "text": f"I have processed your instruction: \"{query}\".\n\nTo unlock live **Google Gemini** reasoning, add your API key in `backend/.env`:\n```env\nGEMINI_API_KEY=AIzaSy...\n```",
                 "model": "Kaci Local Engine",
             }
 
-    # 2. Call Google Gemini via Google GenAI or Gemini REST endpoint
+    # 2. Call Google Gemini SDK
     context = get_live_institution_context(db)
 
     system_instruction = (
-        "You are Kaci, the premier institutional AI Timetable & Scheduling Assistant for TIMETT Studio. "
+        "You are Kaci, the institutional AI Timetable & Scheduling Assistant for TIMETT Studio. "
         "You help university administrators optimize schedules, resolve lecturer clashes, formulate hard/soft "
         "constraints for the OR-Tools CP-SAT integer programming solver, and analyze faculty workloads.\n\n"
         "Guidelines:\n"
@@ -94,70 +108,42 @@ async def generate_kaci_response(
         f"Institution Context:\n{context}"
     )
 
-    # Format chat history for Gemini contents
-    contents = []
-    for msg in history[-6:]:  # include up to 6 recent messages
-        role = "user" if msg.get("sender") == "user" else "model"
-        text = msg.get("text", "")
-        if text:
-            contents.append({
-                "role": role,
-                "parts": [{"text": text}]
-            })
-
-    # Append current user prompt
-    contents.append({
-        "role": "user",
-        "parts": [{"text": query}]
-    })
-
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={api_key}"
-    payload = {
-        "system_instruction": {
-            "parts": [{"text": system_instruction}]
-        },
-        "contents": contents,
-        "generationConfig": {
-            "temperature": 0.4,
-            "maxOutputTokens": 1000,
-        }
-    }
-
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(endpoint, json=payload)
-            if resp.status_code == 200:
-                data = resp.json()
-                candidates = data.get("candidates", [])
-                if candidates:
-                    first_cand = candidates[0]
-                    parts = first_cand.get("content", {}).get("parts", [])
-                    if parts:
-                        gemini_text = parts[0].get("text", "")
-                        return {
-                            "text": gemini_text,
-                            "model": f"Gemini ({GEMINI_MODEL})",
-                        }
-            
-            # If standard model failed, try fallback to gemini-1.5-flash
-            if resp.status_code != 200:
-                fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-                fallback_resp = await client.post(fallback_url, json=payload)
-                if fallback_resp.status_code == 200:
-                    data = fallback_resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        gemini_text = candidates[0].get("content", {}).get("parts", [])[0].get("text", "")
-                        return {
-                            "text": gemini_text,
-                            "model": "Gemini (gemini-1.5-flash)",
-                        }
+        client = genai.Client(api_key=api_key)
 
-                error_data = resp.text
-                return {
-                    "text": f"Gemini API returned code {resp.status_code}: {error_data}",
-                    "model": "Gemini Error Handler",
-                }
+        # Build prompt with history
+        prompt_parts = [system_instruction, "\n--- Conversation History ---"]
+        for msg in history[-6:]:
+            sender = "User" if msg.get("sender") == "user" else "Kaci"
+            text = msg.get("text", "")
+            if text:
+                prompt_parts.append(f"{sender}: {text}")
+        
+        prompt_parts.append(f"User: {query}")
+        prompt_parts.append("Kaci:")
+        full_prompt = "\n".join(prompt_parts)
+
+        last_error = None
+        for model_name in CANDIDATE_MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=full_prompt,
+                )
+                if response and response.text:
+                    return {
+                        "text": response.text.strip(),
+                        "model": f"Gemini ({model_name})",
+                    }
+            except Exception as model_err:
+                last_error = model_err
+                continue
+
+        if last_error:
+            return {
+                "text": f"Gemini connection note: {str(last_error)}",
+                "model": "Gemini Error Handler",
+            }
 
     except Exception as e:
         return {
@@ -166,6 +152,6 @@ async def generate_kaci_response(
         }
 
     return {
-        "text": "Unable to generate a response at this moment.",
+        "text": "Unable to generate a response from Gemini at this moment.",
         "model": "Gemini",
     }

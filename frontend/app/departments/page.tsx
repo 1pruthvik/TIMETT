@@ -342,8 +342,20 @@ export default function DepartmentsPage() {
       });
 
       if (res.ok) {
+        const newSec: Section = await res.json();
+        const updatedSecs = [...sections, newSec];
+        setSections(updatedSecs);
         setCustomSectionName("");
-        await fetchData();
+
+        // Update editConfigs in real-time
+        setEditConfigs((prev) =>
+          prev.map((sem) => {
+            const matching = updatedSecs.filter(
+              (s) => s.department_id === editingDept.id && isSectionForSemester(s.name, sem.semesterName)
+            );
+            return { ...sem, sectionCount: matching.length };
+          })
+        );
       }
     } catch (err) {
       console.error(err);
@@ -366,8 +378,13 @@ export default function DepartmentsPage() {
       });
 
       if (res.ok) {
+        const newRoom: Room = await res.json();
+        const updatedRooms = [...rooms, newRoom];
+        setRooms(updatedRooms);
         setCustomLabName("");
-        await fetchData();
+
+        const newDeptLabs = getDeptLabs(editingDept, updatedRooms);
+        setEditDeptLabCount(newDeptLabs.length.toString());
       }
     } catch (err) {
       console.error(err);
@@ -380,7 +397,19 @@ export default function DepartmentsPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        setSections((prev) => prev.filter((s) => s.id !== secId));
+        const updatedSecs = sections.filter((s) => s.id !== secId);
+        setSections(updatedSecs);
+
+        if (editingDept) {
+          setEditConfigs((prev) =>
+            prev.map((sem) => {
+              const matching = updatedSecs.filter(
+                (s) => s.department_id === editingDept.id && isSectionForSemester(s.name, sem.semesterName)
+              );
+              return { ...sem, sectionCount: matching.length };
+            })
+          );
+        }
       }
     } catch (err) {
       console.error(err);
@@ -393,7 +422,13 @@ export default function DepartmentsPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        setRooms((prev) => prev.filter((r) => r.id !== roomId));
+        const updatedRooms = rooms.filter((r) => r.id !== roomId);
+        setRooms(updatedRooms);
+
+        if (editingDept) {
+          const remainingLabs = getDeptLabs(editingDept, updatedRooms);
+          setEditDeptLabCount(remainingLabs.length.toString());
+        }
       }
     } catch (err) {
       console.error(err);
@@ -423,9 +458,9 @@ export default function DepartmentsPage() {
         throw new Error(errData.detail || "Failed to update department");
       }
 
-      // 2. Sync sections for the academic terms semesters
+      // 2. Sync sections for the academic terms semesters (both increasing and decreasing)
       const deptShort = getDeptAcronym(editName.trim());
-      const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+      const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
       for (const conf of editConfigs) {
         const currentSemSecs = sections.filter(
@@ -433,6 +468,7 @@ export default function DepartmentsPage() {
         );
 
         if (conf.sectionCount > currentSemSecs.length) {
+          // Increase sections
           const needed = conf.sectionCount - currentSemSecs.length;
           const semDigit = conf.semesterName.match(/\d+/)?.[0] || conf.semesterName;
           for (let i = 0; i < needed; i++) {
@@ -448,14 +484,24 @@ export default function DepartmentsPage() {
               }),
             }).catch(() => null);
           }
+        } else if (conf.sectionCount < currentSemSecs.length) {
+          // Decrease sections by removing excess
+          const toRemoveCount = currentSemSecs.length - conf.sectionCount;
+          const secsToRemove = currentSemSecs.slice(currentSemSecs.length - toRemoveCount);
+          for (const sec of secsToRemove) {
+            await fetch(`${API_BASE}/sections/${sec.id}`, {
+              method: "DELETE",
+            }).catch(() => null);
+          }
         }
       }
 
-      // 3. Sync department labs
-      const targetNumLabs = parseInt(editDeptLabCount) || 0;
+      // 3. Sync department labs (both increasing and decreasing)
+      const targetNumLabs = Math.max(0, parseInt(editDeptLabCount) || 0);
       const currentDeptLabs = getDeptLabs(editingDept, rooms);
 
       if (targetNumLabs > currentDeptLabs.length) {
+        // Increase labs
         const neededLabs = targetNumLabs - currentDeptLabs.length;
         for (let j = 1; j <= neededLabs; j++) {
           const labIdx = currentDeptLabs.length + j;
@@ -469,6 +515,15 @@ export default function DepartmentsPage() {
               room_type: "Lab",
               institution_id: institutionId,
             }),
+          }).catch(() => null);
+        }
+      } else if (targetNumLabs < currentDeptLabs.length) {
+        // Decrease labs by removing excess
+        const toRemoveLabCount = currentDeptLabs.length - targetNumLabs;
+        const labsToRemove = currentDeptLabs.slice(currentDeptLabs.length - toRemoveLabCount);
+        for (const lab of labsToRemove) {
+          await fetch(`${API_BASE}/rooms/${lab.id}`, {
+            method: "DELETE",
           }).catch(() => null);
         }
       }

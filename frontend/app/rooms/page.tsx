@@ -650,7 +650,7 @@ export default function RoomsPage() {
                           </h4>
                         </div>
                         <span className="text-[11px] text-muted-foreground font-semibold">
-                          Enter Room No.
+                          Allocated Room No.
                         </span>
                       </div>
 
@@ -695,42 +695,34 @@ export default function RoomsPage() {
                                       </span>
                                     </div>
 
-                                    <div className="w-full sm:w-60 flex items-center gap-1.5">
-                                      <Input
-                                        placeholder="Room (e.g. 301)"
-                                        value={sectionRoomText[sec.id] || ""}
-                                        onChange={(e) =>
-                                          handleSectionRoomChange(sec.id, e.target.value)
-                                        }
-                                        onBlur={(e) =>
-                                          handleSectionRoomBlur(sec.id, e.target.value)
-                                        }
-                                        onKeyDown={(e) => {
-                                          if (e.key === "Enter") {
-                                            (e.target as HTMLInputElement).blur();
-                                          }
-                                        }}
-                                        className="h-8 text-xs rounded-xl bg-muted/40 font-semibold focus:border-primary font-mono"
-                                      />
+                                    {/* Non-editable Room Display Box + Edit Pencil Icon */}
+                                    <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
+                                      <div className="flex-1 h-8 px-3 rounded-xl bg-muted/40 border border-border/70 flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
+                                        {sectionRoomText[sec.id] ? (
+                                          <span>{sectionRoomText[sec.id]}</span>
+                                        ) : (
+                                          <span className="text-muted-foreground/40 font-normal italic text-[11px]">Unassigned</span>
+                                        )}
+                                      </div>
 
                                       <Button
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => openEditSectionModal(sec)}
-                                        className="size-7 rounded-lg text-muted-foreground hover:text-primary shrink-0 cursor-pointer"
-                                        title="Edit section"
+                                        className="size-8 rounded-lg text-muted-foreground hover:text-[#8B5CF6] hover:bg-[#8B5CF6]/10 shrink-0 cursor-pointer"
+                                        title="Edit section & room number"
                                       >
-                                        <Pencil className="size-3" />
+                                        <Pencil className="size-3.5" />
                                       </Button>
 
                                       <Button
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => handleDeleteSection(sec.id)}
-                                        className="size-7 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
+                                        className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 shrink-0 cursor-pointer"
                                         title="Delete section"
                                       >
-                                        <Trash2 className="size-3" />
+                                        <Trash2 className="size-3.5" />
                                       </Button>
                                     </div>
                                   </div>
@@ -752,7 +744,7 @@ export default function RoomsPage() {
                           </h4>
                         </div>
                         <span className="text-[11px] text-muted-foreground font-semibold">
-                          Enter Lab Room No.
+                          Allocated Lab Room No.
                         </span>
                       </div>
 
@@ -776,30 +768,22 @@ export default function RoomsPage() {
                                 </span>
                               </div>
 
-                              <div className="w-full sm:w-60 flex items-center gap-1.5">
-                                <Input
-                                  placeholder="Lab Room (e.g. Lab 2)"
-                                  value={labRoomText[lab.id] || lab.name}
-                                  onChange={(e) =>
-                                    handleLabRoomChange(lab.id, e.target.value)
-                                  }
-                                  onBlur={(e) =>
-                                    handleLabRoomBlur(lab.id, e.target.value)
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      (e.target as HTMLInputElement).blur();
-                                    }
-                                  }}
-                                  className="h-8 text-xs rounded-xl bg-muted/40 font-semibold focus:border-amber-500 font-mono"
-                                />
+                              {/* Non-editable Lab Room Display Box + Edit Pencil Icon */}
+                              <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
+                                <div className="flex-1 h-8 px-3 rounded-xl bg-muted/40 border border-border/70 flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
+                                  {labRoomText[lab.id] ? (
+                                    <span>{labRoomText[lab.id]}</span>
+                                  ) : (
+                                    <span>{lab.name}</span>
+                                  )}
+                                </div>
 
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => openEditLabModal(lab)}
-                                  className="size-8 rounded-lg text-muted-foreground hover:text-amber-500 shrink-0 cursor-pointer"
-                                  title="Edit lab"
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 shrink-0 cursor-pointer"
+                                  title="Edit lab & room number"
                                 >
                                   <Pencil className="size-3.5" />
                                 </Button>
@@ -808,7 +792,7 @@ export default function RoomsPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleDeleteLab(lab.id)}
-                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 shrink-0 cursor-pointer"
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 shrink-0 cursor-pointer"
                                   title="Delete lab"
                                 >
                                   <Trash2 className="size-3.5" />

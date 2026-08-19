@@ -253,8 +253,8 @@ export default function KaciPage() {
           })}
 
           {isThinking && (
-            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-muted/30 border border-border text-xs text-muted-foreground w-fit animate-pulse">
-              <Wand2 className="size-4 text-[#8B5CF6] animate-spin" />
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-card/60 backdrop-blur-md border border-border text-xs text-muted-foreground w-fit shadow-xs">
+              <KaciLogo size={20} className="animate-pulse shrink-0" glow />
               <span>Kaci is analyzing your request...</span>
             </div>
           )}

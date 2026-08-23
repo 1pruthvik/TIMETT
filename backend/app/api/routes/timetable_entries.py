@@ -26,9 +26,38 @@ def create(data: TimetableEntryCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[TimetableEntryResponse])
-def get_all(timetable_id: int | None = None, db: Session = Depends(get_db)):
+def get_all(
+    timetable_id: int | None = None,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
     if timetable_id:
         return db.query(TimetableEntry).filter(TimetableEntry.timetable_id == timetable_id).all()
+    if institution_id:
+        from app.models.timetable import Timetable
+        from app.models.subject_offering import SubjectOffering
+        from app.models.subject import Subject
+        from app.models.department import Department
+        latest_tt = (
+            db.query(Timetable)
+            .join(TimetableEntry, Timetable.id == TimetableEntry.timetable_id)
+            .join(SubjectOffering, TimetableEntry.subject_offering_id == SubjectOffering.id)
+            .join(Subject, SubjectOffering.subject_id == Subject.id)
+            .join(Department, Subject.department_id == Department.id)
+            .filter(Department.institution_id == institution_id)
+            .order_by(Timetable.id.desc())
+            .first()
+        )
+        if not latest_tt:
+            latest_tt = db.query(Timetable).order_by(Timetable.id.desc()).first()
+
+        if latest_tt:
+            return (
+                db.query(TimetableEntry)
+                .filter(TimetableEntry.timetable_id == latest_tt.id)
+                .all()
+            )
+        return []
     return db.query(TimetableEntry).all()
 
 

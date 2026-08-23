@@ -193,6 +193,11 @@ export default function TimetablePage() {
       const user = storedUser ? JSON.parse(storedUser) : null;
       const userInstId = user?.institution_id || 1;
 
+      // First get latest timetable for institution
+      const latestTtRes = await fetch(`${API_BASE}/timetables/latest?institution_id=${userInstId}`).catch(() => null);
+      const latestTt = (latestTtRes && latestTtRes.ok) ? await latestTtRes.json() : null;
+      const ttParam = latestTt?.id ? `?timetable_id=${latestTt.id}` : `?institution_id=${userInstId}`;
+
       const [slotRes, offRes, subRes, facRes, roomRes, secRes, entryRes] = await Promise.all([
         fetch(`${API_BASE}/time-slots/`).catch(() => null),
         fetch(`${API_BASE}/subject-offerings/?institution_id=${userInstId}`).catch(() => null),
@@ -200,7 +205,7 @@ export default function TimetablePage() {
         fetch(`${API_BASE}/faculty/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/rooms/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/timetable-entries/`).catch(() => null),
+        fetch(`${API_BASE}/timetable-entries/${ttParam}`).catch(() => null),
       ]);
 
       const loadedSlots: TimeSlot[] = (slotRes && slotRes.ok) ? await slotRes.json() : [];
@@ -508,9 +513,16 @@ export default function TimetablePage() {
     );
     if (!slot) return [];
 
+    // Deduplicate entries by unique (subject_offering_id, room_id, time_slot_id)
+    const seen = new Set<string>();
+
     return entries
       .filter((e) => e.time_slot_id === slot.id)
       .filter((e) => {
+        const key = `${e.subject_offering_id}-${e.room_id}-${e.time_slot_id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+
         const off = offerings.find((o) => o.id === e.subject_offering_id);
         if (!off) return false;
 

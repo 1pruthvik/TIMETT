@@ -362,3 +362,61 @@
 @media (prefers-reduced-motion: reduce) {
   .tt-boot-grid, .tt-boot-mark { animation: none; }
 }
+
+/* ── Print / Save as PDF Landscape Styles (Strict 1-Page Portal Engine) ── */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0 !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: "Times New Roman", Times, serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    max-height: 210mm !important;
+    overflow: hidden !important;
+  }
+
+  /* Hide everything under body except the portal #official-print-document */
+  body > *:not(#official-print-document) {
+    display: none !important;
+  }
+
+  /* Force show the portal #official-print-document */
+  #official-print-document {
+    display: block !important;
+    visibility: visible !important;
+    position: fixed !important;
+    left: 4mm !important;
+    top: 4mm !important;
+    width: 289mm !important;
+    height: 202mm !important;
+    max-height: 202mm !important;
+    z-index: 9999999 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    font-family: "Times New Roman", Times, serif !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-before: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #official-print-document * {
+    visibility: visible !important;
+  }
+}
+

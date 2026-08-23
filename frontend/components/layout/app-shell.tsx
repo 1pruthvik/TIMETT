@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { WorkspaceBoot } from "@/components/feedback/workspace-boot";
+import { FloatingAiChat } from "@/components/layout/floating-ai-chat";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -624,6 +625,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <CommandPalette />
+      <FloatingAiChat />
     </div>
   );
 }

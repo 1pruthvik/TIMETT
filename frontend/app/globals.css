@@ -62,7 +62,7 @@
   --popover: rgba(255, 255, 255, 0.88);
   --popover-foreground: #08080E;
 
-  --primary: #4C1D95;
+  --primary: #9F1D2E;
   --primary-foreground: #FFFFFF;
 
   --secondary: rgba(255, 255, 255, 0.35);
@@ -71,25 +71,25 @@
   --muted: rgba(220, 230, 245, 0.4);
   --muted-foreground: #1E293B;
 
-  --accent: rgba(76, 29, 149, 0.1);
-  --accent-foreground: #4C1D95;
+  --accent: rgba(159, 29, 46, 0.09);
+  --accent-foreground: #8B1A2A;
 
   --destructive: #DC2626;
 
   --border: rgba(255, 255, 255, 0.7);
   --input: rgba(255, 255, 255, 0.75);
-  --ring: rgba(76, 29, 149, 0.5);
+  --ring: rgba(159, 29, 46, 0.42);
 
   --radius: 0.875rem;
 
   --sidebar: rgba(255, 255, 255, 0.6);
   --sidebar-foreground: #1E293B;
-  --sidebar-primary: #4C1D95;
+  --sidebar-primary: #9F1D2E;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(76, 29, 149, 0.08);
+  --sidebar-accent: rgba(159, 29, 46, 0.08);
   --sidebar-accent-foreground: #08080E;
   --sidebar-border: rgba(255, 255, 255, 0.65);
-  --sidebar-ring: rgba(76, 29, 149, 0.4);
+  --sidebar-ring: rgba(159, 29, 46, 0.35);
 }
 
 .dark {
@@ -104,7 +104,7 @@
   --popover: rgba(8, 8, 16, 0.88);
   --popover-foreground: #F8F8FA;
 
-  --primary: #8B5CF6;
+  --primary: #C53B4C;
   --primary-foreground: #FFFFFF;
 
   --secondary: rgba(255, 255, 255, 0.03);
@@ -113,23 +113,23 @@
   --muted: rgba(255, 255, 255, 0.025);
   --muted-foreground: #828294;
 
-  --accent: rgba(139, 92, 246, 0.14);
-  --accent-foreground: #C084FC;
+  --accent: rgba(197, 59, 76, 0.14);
+  --accent-foreground: #F1A3AD;
 
   --destructive: #F87171;
 
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.08);
-  --ring: rgba(139, 92, 246, 0.5);
+  --ring: rgba(197, 59, 76, 0.42);
 
   --sidebar: rgba(5, 5, 12, 0.55);
   --sidebar-foreground: #828294;
-  --sidebar-primary: #8B5CF6;
+  --sidebar-primary: #C53B4C;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(139, 92, 246, 0.1);
+  --sidebar-accent: rgba(197, 59, 76, 0.1);
   --sidebar-accent-foreground: #F8F8FA;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: rgba(139, 92, 246, 0.4);
+  --sidebar-ring: rgba(197, 59, 76, 0.35);
 }
 
 @layer base {
@@ -257,24 +257,24 @@
 
 /* Dark Imperial Purple Gradient Pill Button */
 .tt-gradient-btn {
-  background: linear-gradient(135deg, #3B0764 0%, #4C1D95 40%, #581C87 80%, #6D28D9 100%);
+  background: linear-gradient(135deg, #7F1D2D 0%, #9F1D2E 45%, #B52D3E 100%);
   color: #FFFFFF;
-  box-shadow: 0 0 25px -3px rgba(76, 29, 149, 0.6), 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 25px -12px rgba(127, 29, 45, 0.7), 0 4px 12px rgba(0,0,0,0.3);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .tt-gradient-btn {
-  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 40%, #8B5CF6 80%, #A855F7 100%);
-  box-shadow: 0 0 25px -3px rgba(124, 58, 237, 0.5), 0 4px 12px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #8F2635 0%, #B53648 55%, #D15361 100%);
+  box-shadow: 0 10px 25px -12px rgba(181, 54, 72, 0.6), 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .tt-gradient-btn:hover {
-  box-shadow: 0 0 36px -1px rgba(76, 29, 149, 0.75), 0 6px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 30px -10px rgba(127, 29, 45, 0.7), 0 6px 16px rgba(0,0,0,0.4);
   transform: translateY(-1.5px);
 }
 
 .dark .tt-gradient-btn:hover {
-  box-shadow: 0 0 36px -1px rgba(139, 92, 246, 0.7), 0 6px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 30px -10px rgba(181, 54, 72, 0.65), 0 6px 16px rgba(0,0,0,0.4);
 }
 
 .tt-gradient-btn:active {
@@ -283,13 +283,13 @@
 
 /* Dark Imperial Purple Gradient Text Highlight */
 .tt-gradient-text {
-  background: linear-gradient(135deg, #3B0764 0%, #581C87 50%, #7C3AED 100%);
+  background: linear-gradient(135deg, #7F1D2D 0%, #9F1D2E 50%, #C2414F 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .dark .tt-gradient-text {
-  background: linear-gradient(135deg, #A855F7 0%, #C084FC 50%, #E9D5FF 100%);
+  background: linear-gradient(135deg, #E38A94 0%, #F1A3AD 50%, #FFE0E3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -329,9 +329,94 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(76, 29, 149, 0.35);
+  background: rgba(159, 29, 46, 0.3);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(76, 29, 149, 0.6);
+  background: rgba(197, 59, 76, 0.5);
 }
+
+/* Secure workspace boot sequence — visual only, never grants permissions. */
+.tt-boot-grid {
+  background-image:
+    linear-gradient(rgba(106,72,56,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(106,72,56,.055) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 60%, rgba(185, 55, 64, .13), transparent 52%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+  mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+  animation: tt-grid-drift 8s linear infinite;
+}
+
+.dark .tt-boot-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 60%, rgba(129, 34, 48, .26), transparent 52%);
+}
+
+.tt-boot-mark { animation: tt-boot-mark 1.6s ease-in-out infinite; }
+
+@keyframes tt-grid-drift { to { background-position: 44px 44px, 44px 44px, center; } }
+@keyframes tt-boot-mark { 50% { transform: translateY(-4px); box-shadow: 0 0 34px rgba(197,59,76,.22); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-boot-grid, .tt-boot-mark { animation: none; }
+}
+
+/* ── Print / Save as PDF Landscape Styles (Strict 1-Page Portal Engine) ── */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0 !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: "Times New Roman", Times, serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    max-height: 210mm !important;
+    overflow: hidden !important;
+  }
+
+  /* Hide everything under body except the portal #official-print-document */
+  body > *:not(#official-print-document) {
+    display: none !important;
+  }
+
+  /* Force show the portal #official-print-document */
+  #official-print-document {
+    display: block !important;
+    visibility: visible !important;
+    position: fixed !important;
+    left: 4mm !important;
+    top: 4mm !important;
+    width: 289mm !important;
+    height: 202mm !important;
+    max-height: 202mm !important;
+    z-index: 9999999 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    font-family: "Times New Roman", Times, serif !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-before: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #official-print-document * {
+    visibility: visible !important;
+  }
+}
+

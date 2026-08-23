@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sun, Moon, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sun, Moon } from "lucide-react";
 
 type Theme = "dark" | "light";
 
@@ -76,20 +75,18 @@ export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <button
       onClick={toggleTheme}
-      className="relative h-8 gap-1.5 rounded-xl border border-border bg-card/60 backdrop-blur-md px-2.5 text-xs font-semibold text-foreground transition-all duration-300 hover:border-[#4C1D95]/40 dark:hover:border-[#8B5CF6]/40 hover:bg-card/90 cursor-pointer"
+      className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-card hover:text-foreground cursor-pointer backdrop-blur-sm"
       aria-label="Toggle theme"
     >
-      <div className="relative size-4">
-        <Sun className="absolute inset-0 size-4 rotate-0 scale-100 text-amber-500 transition-transform duration-300 dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute inset-0 size-4 rotate-90 scale-0 text-violet-400 transition-transform duration-300 dark:rotate-0 dark:scale-100" />
-      </div>
-      <span className="hidden sm:inline capitalize font-mono text-[11px] text-muted-foreground">
+      <span className="relative size-4 flex items-center justify-center">
+        <Sun className="absolute size-4 rotate-0 scale-100 text-amber-500 transition-transform duration-300 dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute size-4 rotate-90 scale-0 text-blue-400 transition-transform duration-300 dark:rotate-0 dark:scale-100" />
+      </span>
+      <span className="capitalize font-medium text-[11px]">
         {theme}
       </span>
-    </Button>
+    </button>
   );
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -77,7 +76,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full font-sans transition-colors duration-300">
         <ThemeProvider>
-          <TooltipProvider delay={150}>{children}</TooltipProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>

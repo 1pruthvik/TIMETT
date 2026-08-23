@@ -8,9 +8,16 @@ import { GlassPanel } from "@/components/ui/glass-panel";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
-import { Sparkles, CalendarDays, ArrowUpRight, RefreshCw, CheckCircle2, Zap, Clock, ShieldCheck } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+import { api, friendlyApiError } from "@/lib/api";
+import {
+  Sparkles,
+  CalendarDays,
+  ArrowUpRight,
+  RefreshCw,
+  CheckCircle2,
+  Zap,
+  Trash2,
+} from "lucide-react";
 
 interface Timetable {
   id: number;
@@ -19,19 +26,22 @@ interface Timetable {
   status: string;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 export default function GenerationsPage() {
   const [timetables, setTimetables] = useState<Timetable[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchTimetables = async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await fetch(`${API_BASE}/timetables/`);
-      if (res.ok) {
-        setTimetables(await res.json());
-      }
-    } catch (err) {
-      console.error("Failed to fetch generated timetables", err);
+      setTimetables(await api<Timetable[]>("/timetables/"));
+    } catch (reason) {
+      console.error("Unable to load generation history", reason);
+      setError(friendlyApiError(reason));
     } finally {
       setLoading(false);
     }
@@ -40,6 +50,30 @@ export default function GenerationsPage() {
   useEffect(() => {
     fetchTimetables();
   }, []);
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}" (ID #${id})?`)) {
+      return;
+    }
+
+    setDeletingId(id);
+    try {
+      const res = await fetch(`${API_BASE}/timetables/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setTimetables((prev) => prev.filter((t) => t.id !== id));
+      } else {
+        setError("Failed to delete timetable run.");
+      }
+    } catch (err) {
+      console.error("Failed to delete timetable", err);
+      setError("Error connecting to server to delete timetable.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <AppShell>
@@ -56,7 +90,9 @@ export default function GenerationsPage() {
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             title="Refresh runs"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
+            <RefreshCw
+              className={`size-4 ${loading ? "animate-spin text-primary" : ""}`}
+            />
           </Button>
 
           <Link href="/timetable">
@@ -67,12 +103,24 @@ export default function GenerationsPage() {
           </Link>
         </PageHeader>
 
+        {error && (
+          <div className="flex items-center justify-between rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
+            <span>{error}</span>
+            <Button variant="ghost" size="sm" onClick={fetchTimetables}>
+              Retry
+            </Button>
+          </div>
+        )}
+
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
             <div>
-              <h3 className="text-base font-bold text-foreground">Solved Solution Runs</h3>
+              <h3 className="text-base font-bold text-foreground">
+                Solved Solution Runs
+              </h3>
               <p className="text-xs text-muted-foreground">
-                {timetables.length} {timetables.length === 1 ? "run" : "runs"} verified in database
+                {timetables.length} {timetables.length === 1 ? "run" : "runs"}{" "}
+                verified in database
               </p>
             </div>
           </div>
@@ -106,7 +154,9 @@ export default function GenerationsPage() {
 
                       <div className="space-y-1">
                         <div className="flex items-center gap-2.5">
-                          <p className="font-bold text-sm text-foreground">{tt.name}</p>
+                          <p className="font-bold text-sm text-foreground">
+                            {tt.name}
+                          </p>
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                             <CheckCircle2 className="size-3" />
                             {tt.status}
@@ -117,21 +167,40 @@ export default function GenerationsPage() {
                           <span>•</span>
                           <span>Semester #{tt.semester_id}</span>
                           <span>•</span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">0 Hard Conflicts</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                            0 Hard Conflicts
+                          </span>
                         </p>
                       </div>
                     </div>
 
-                    <Link href="/timetable">
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <Link href="/timetable">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 rounded-xl gap-2 text-xs font-semibold border-border bg-card hover:bg-muted group-hover:border-primary/40 transition-colors cursor-pointer"
+                        >
+                          Inspect Timetable
+                          <ArrowUpRight className="size-3.5" />
+                        </Button>
+                      </Link>
+
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-9 rounded-xl gap-2 text-xs font-semibold border-border bg-card hover:bg-muted group-hover:border-primary/40 transition-colors"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(tt.id, tt.name)}
+                        disabled={deletingId === tt.id}
+                        className="size-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        title="Delete timetable run"
                       >
-                        Inspect Timetable
-                        <ArrowUpRight className="size-3.5" />
+                        <Trash2
+                          className={`size-4 ${
+                            deletingId === tt.id ? "animate-spin" : ""
+                          }`}
+                        />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 ))}
               </div>

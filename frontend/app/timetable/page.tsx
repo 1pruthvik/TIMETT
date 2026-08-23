@@ -634,7 +634,7 @@ export default function TimetablePage() {
     activeDays.forEach((day) => {
       timelineCols.forEach((col) => {
         if (col.type === "break") return;
-        const cellEntries = getCellEntries(day, col);
+        const cellEntries = getCellEntries(day, `${col.startTime} - ${col.endTime}`);
         cellEntries.forEach((entry) => {
           csv += `"${day}","${col.label} (${col.startTime}-${col.endTime})","${entry.subject}","${entry.code}","${entry.faculty}","${entry.room}","${entry.section}"\n`;
         });
@@ -696,7 +696,7 @@ export default function TimetablePage() {
           room: rm?.name || "Room",
           section: sec?.name || "Section",
           day,
-          period: `${col.startTime} - ${col.endTime}`,
+          period,
           slotId: slot.id,
           subjectId: sub?.id || 0,
           facultyId: fac?.id || 0,
@@ -799,7 +799,7 @@ export default function TimetablePage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {DAYS.map((day, dayIdx) => (
+                          {DEFAULT_DAYS.map((day: string, dayIdx: number) => (
                             <tr key={day} className="border-b border-black h-[56px]">
                               <td className="bg-white font-black text-xs border border-black p-1.5 align-middle uppercase text-center w-24 whitespace-pre-line leading-tight">
                                 {DAY_DATES[day] || day}
@@ -1262,7 +1262,7 @@ export default function TimetablePage() {
                   );
                 }
 
-                const cellEntries = getCellEntries(activeMobileDay, col);
+                const cellEntries = getCellEntries(activeMobileDay, `${col.startTime} - ${col.endTime}`);
 
                 return (
                   <GlassPanel key={idx} className="p-4 border-border shadow-xs">

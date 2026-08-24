@@ -608,7 +608,7 @@ export default function TimetablePage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade pb-12">
+      <div className="space-y-6 w-full max-w-[1720px] mx-auto tt-animate-fade pb-12 px-2 sm:px-4">
         {/* Printable Header - Shown only when printing */}
         <div className="hidden print:block mb-6 text-center border-b pb-4">
           <h1 className="text-2xl font-bold">INSTITUTIONAL TIMETABLE MASTER SCHEDULE</h1>

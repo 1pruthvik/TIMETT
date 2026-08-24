@@ -94,14 +94,14 @@
 
 .dark {
   /* Absolute Deepest Pitch-Black Obsidian Void */
-  --background: #010103;
+  --background: #000000;
   --foreground: #F8F8FA;
 
   /* Pure Colorless Obsidian Transparent Glass */
   --card: rgba(255, 255, 255, 0.035);
   --card-foreground: #F8F8FA;
 
-  --popover: rgba(8, 8, 16, 0.88);
+  --popover: rgba(8, 8, 16, 0.92);
   --popover-foreground: #F8F8FA;
 
   --primary: #8B5CF6;
@@ -110,25 +110,25 @@
   --secondary: rgba(255, 255, 255, 0.03);
   --secondary-foreground: #F8F8FA;
 
-  --muted: rgba(255, 255, 255, 0.025);
-  --muted-foreground: #828294;
+  --muted: rgba(255, 255, 255, 0.03);
+  --muted-foreground: #9494A8;
 
   --accent: rgba(139, 92, 246, 0.14);
   --accent-foreground: #C084FC;
 
   --destructive: #F87171;
 
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.07);
   --ring: rgba(139, 92, 246, 0.5);
 
-  --sidebar: rgba(5, 5, 12, 0.55);
-  --sidebar-foreground: #828294;
+  --sidebar: rgba(0, 0, 0, 0.7);
+  --sidebar-foreground: #9494A8;
   --sidebar-primary: #8B5CF6;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(139, 92, 246, 0.1);
   --sidebar-accent-foreground: #F8F8FA;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-border: rgba(255, 255, 255, 0.07);
   --sidebar-ring: rgba(139, 92, 246, 0.4);
 }
 

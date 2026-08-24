@@ -235,16 +235,17 @@ export default function RoomsPage() {
         const secsData: Section[] = await secRes.json();
         setSections(secsData);
 
-        // Load saved text room numbers with DB priority
-        const savedSecMap = localStorage.getItem(`timett_section_room_names_${userInstId}`);
-        const parsedMap = savedSecMap ? JSON.parse(savedSecMap) : {};
-        const combinedMap: Record<number, string> = { ...parsedMap };
+        const newSecMap: Record<number, string> = {};
         secsData.forEach((s) => {
           if (s.room_number) {
-            combinedMap[s.id] = s.room_number;
+            newSecMap[s.id] = s.room_number;
           }
         });
-        setSectionRoomText(combinedMap);
+        setSectionRoomText(newSecMap);
+        localStorage.setItem(
+          `timett_section_room_names_${userInstId}`,
+          JSON.stringify(newSecMap)
+        );
       }
       if (semRes && semRes.ok) {
         setAcademicSemesters(await semRes.json());
@@ -739,8 +740,8 @@ export default function RoomsPage() {
                                     {/* Non-editable Room Display Box + Edit Pencil Icon */}
                                     <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
                                       <div className="flex-1 h-8 px-3 rounded-xl bg-muted/40 border border-border/70 flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
-                                        {sectionRoomText[sec.id] ? (
-                                          <span>{sectionRoomText[sec.id]}</span>
+                                        {sec.room_number || sectionRoomText[sec.id] ? (
+                                          <span>{sec.room_number || sectionRoomText[sec.id]}</span>
                                         ) : (
                                           <span className="text-muted-foreground/40 font-normal italic text-[11px]">Unassigned</span>
                                         )}

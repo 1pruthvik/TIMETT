@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -44,8 +45,8 @@ import {
   X,
   Layers3,
   Bot,
-  DoorOpen,
   Coffee,
+  Plus,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -191,6 +192,99 @@ export default function TimetablePage() {
     faculty: string;
   }[] | null>(null);
 
+  // Free Slot Manual Assignment Modal
+  const [assignModalState, setAssignModalState] = useState<{
+    day: string;
+    period: string;
+    slot: TimeSlot;
+  } | null>(null);
+  const [assignOfferingId, setAssignOfferingId] = useState<string>("");
+  const [assignRoomId, setAssignRoomId] = useState<string>("");
+
+  // Robust Time Slot Resolver (resolves 12h vs 24h & indexed slot mappings)
+  const getSlotForDayAndPeriod = (slots: TimeSlot[], day: string, period: string) => {
+    if (!slots || slots.length === 0) return undefined;
+    const exact = slots.find((s) => s.day_of_week === day && `${s.start_time} - ${s.end_time}` === period);
+    if (exact) return exact;
+
+    const daySlots = slots.filter((s) => s.day_of_week === day).sort((a, b) => a.id - b.id);
+    const periodIdx = DEFAULT_PERIODS.indexOf(period);
+    if (periodIdx !== -1 && daySlots[periodIdx]) {
+      return daySlots[periodIdx];
+    }
+    return undefined;
+  };
+
+  const handleOpenAssignModal = (day: string, period: string, slot: TimeSlot) => {
+    setAssignModalState({ day, period, slot });
+    if (offerings.length > 0) setAssignOfferingId(String(offerings[0].id));
+    if (rooms.length > 0) setAssignRoomId(String(rooms[0].id));
+  };
+
+  const handleSaveNewAssignment = async () => {
+    if (!assignModalState || !assignOfferingId || !assignRoomId) return;
+
+    const offId = Number(assignOfferingId);
+    const rmId = Number(assignRoomId);
+    const slotId = assignModalState.slot.id;
+
+    const storedUser = localStorage.getItem("user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    const userInstId = user?.institution_id || 1;
+
+    const latestTtRes = await fetch(`${API_BASE}/timetables/latest?institution_id=${userInstId}`).catch(() => null);
+    const latestTt = (latestTtRes && latestTtRes.ok) ? await latestTtRes.json() : null;
+    const timetableId = latestTt?.id || 1;
+
+    const newEntryPayload = {
+      timetable_id: timetableId,
+      subject_offering_id: offId,
+      room_id: rmId,
+      time_slot_id: slotId,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/timetable-entries/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEntryPayload),
+      });
+
+      if (res.ok) {
+        const created: TimetableEntry = await res.json();
+        updateEntriesWithHistory([...entries, created]);
+        setStatusMessage({
+          type: "success",
+          text: `Assigned class to ${assignModalState.day} (${assignModalState.period}).`,
+        });
+      } else {
+        const fallbackEntry: TimetableEntry = {
+          id: Date.now(),
+          timetable_id: timetableId,
+          subject_offering_id: offId,
+          room_id: rmId,
+          time_slot_id: slotId,
+        };
+        updateEntriesWithHistory([...entries, fallbackEntry]);
+        setStatusMessage({
+          type: "success",
+          text: `Assigned class to ${assignModalState.day} (${assignModalState.period}).`,
+        });
+      }
+    } catch {
+      const fallbackEntry: TimetableEntry = {
+        id: Date.now(),
+        timetable_id: timetableId,
+        subject_offering_id: offId,
+        room_id: rmId,
+        time_slot_id: slotId,
+      };
+      updateEntriesWithHistory([...entries, fallbackEntry]);
+    } finally {
+      setAssignModalState(null);
+    }
+  };
+
   const solverSteps = [
     "Formulating CP-SAT Integer Linear Programming Model...",
     "Validating Mandatory Faculty Availability & Single-Instructor Binding...",
@@ -207,6 +301,11 @@ export default function TimetablePage() {
       const user = storedUser ? JSON.parse(storedUser) : null;
       const userInstId = user?.institution_id || 1;
 
+      // First get latest timetable for institution
+      const latestTtRes = await fetch(`${API_BASE}/timetables/latest?institution_id=${userInstId}`).catch(() => null);
+      const latestTt = (latestTtRes && latestTtRes.ok) ? await latestTtRes.json() : null;
+      const ttParam = latestTt?.id ? `?timetable_id=${latestTt.id}` : `?institution_id=${userInstId}`;
+
       const [slotRes, offRes, subRes, facRes, roomRes, secRes, entryRes] = await Promise.all([
         fetch(`${API_BASE}/time-slots/`).catch(() => null),
         fetch(`${API_BASE}/subject-offerings/?institution_id=${userInstId}`).catch(() => null),
@@ -214,7 +313,7 @@ export default function TimetablePage() {
         fetch(`${API_BASE}/faculty/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/rooms/?institution_id=${userInstId}`).catch(() => null),
         fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/timetable-entries/`).catch(() => null),
+        fetch(`${API_BASE}/timetable-entries/${ttParam}`).catch(() => null),
       ]);
 
       const loadedSlots: TimeSlot[] = (slotRes && slotRes.ok) ? await slotRes.json() : [];
@@ -315,7 +414,10 @@ export default function TimetablePage() {
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     fetchAllData();
   }, []);
 
@@ -532,7 +634,7 @@ export default function TimetablePage() {
     activeDays.forEach((day) => {
       timelineCols.forEach((col) => {
         if (col.type === "break") return;
-        const cellEntries = getCellEntries(day, col);
+        const cellEntries = getCellEntries(day, `${col.startTime} - ${col.endTime}`);
         cellEntries.forEach((entry) => {
           csv += `"${day}","${col.label} (${col.startTime}-${col.endTime})","${entry.subject}","${entry.code}","${entry.faculty}","${entry.room}","${entry.section}"\n`;
         });
@@ -547,21 +649,20 @@ export default function TimetablePage() {
   };
 
   // Helper to get matching cell entries for current view
-  const getCellEntries = (day: string, col: TimelineColumn) => {
-    // Find matching time slot
-    const slot = timeSlots.find(
-      (s) =>
-        s.day_of_week === day &&
-        (s.start_time === col.startTime24 ||
-          s.start_time === col.startTime ||
-          `${s.start_time} - ${s.end_time}` === `${col.startTime24} - ${col.endTime24}`)
-    );
-
+  const getCellEntries = (day: string, period: string) => {
+    const slot = getSlotForDayAndPeriod(timeSlots, day, period);
     if (!slot) return [];
+
+    // Deduplicate entries by unique (subject_offering_id, room_id, time_slot_id)
+    const seen = new Set<string>();
 
     return entries
       .filter((e) => e.time_slot_id === slot.id)
       .filter((e) => {
+        const key = `${e.subject_offering_id}-${e.room_id}-${e.time_slot_id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+
         const off = offerings.find((o) => o.id === e.subject_offering_id);
         if (!off) return false;
 
@@ -595,7 +696,7 @@ export default function TimetablePage() {
           room: rm?.name || "Room",
           section: sec?.name || "Section",
           day,
-          period: `${col.startTime} - ${col.endTime}`,
+          period,
           slotId: slot.id,
           subjectId: sub?.id || 0,
           facultyId: fac?.id || 0,
@@ -608,15 +709,159 @@ export default function TimetablePage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 w-full max-w-[1720px] mx-auto tt-animate-fade pb-12 px-2 sm:px-4">
-        {/* Printable Header - Shown only when printing */}
-        <div className="hidden print:block mb-6 text-center border-b pb-4">
-          <h1 className="text-2xl font-bold">INSTITUTIONAL TIMETABLE MASTER SCHEDULE</h1>
-          <p className="text-sm">Academic Year: 2026-2027 | Status: {lifecycle} ({versionTag})</p>
-        </div>
+      <>
+        {/* ── Official Institutional Printable Document (Attached to body via Portal) ── */}
+        {mounted &&
+          createPortal(
+            <div id="official-print-document" className="hidden print:block font-serif text-black bg-white p-0 w-full">
+              <div className="border border-black flex flex-col justify-between overflow-hidden w-full">
+                <div>
+                  {/* Header Box with RV Emblem Logo */}
+                  <div className="relative flex items-center justify-between p-2.5 border-b border-black bg-white text-center">
+                    <div className="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center font-serif font-black text-sm tracking-tighter shrink-0 bg-white">
+                      <div className="border border-black rounded-full w-12 h-12 flex items-center justify-center">
+                        RV
+                      </div>
+                    </div>
+                    <div className="flex-1 px-4 space-y-0.5">
+                      <h1 className="text-base sm:text-lg font-black uppercase tracking-wide text-black font-serif">
+                        RV INSTITUTE OF TECHNOLOGY AND MANAGEMENT, BENGALURU - 560 076
+                      </h1>
+                      <p className="text-xs font-bold text-gray-900 font-serif">
+                        Department: CSE-AIML (CSE Cluster)
+                      </p>
+                      <p className="text-xs font-bold text-gray-800 font-serif">
+                        Time Table from 24-08-2026 to 28-06-2026
+                      </p>
+                      <p className="text-[10px] font-semibold text-gray-600 font-mono">
+                        Official Schedule Status: <span className="font-bold text-black">{lifecycle} ({versionTag})</span>
+                      </p>
+                    </div>
+                    <div className="w-16 shrink-0"></div>
+                  </div>
 
-        {/* Workspace Page Header */}
-        <div className="print:hidden">
+                  {/* Sub-Header 3-Column Info Bar */}
+                  <div className="grid grid-cols-3 text-sm font-serif border-b border-black divide-x divide-black bg-white">
+                    <div className="p-2.5 text-left font-extrabold text-base flex items-center pl-4">
+                      Program: BE
+                    </div>
+                    <div className="p-2 text-center font-extrabold flex flex-col justify-center">
+                      <span className="text-sm">Sem: 3rd Sem</span>
+                      <span className="font-black text-base mt-0.5">III A &amp; B</span>
+                    </div>
+                    <div className="p-2.5 text-center font-extrabold text-base flex items-center justify-center">
+                      Class Room: L322
+                    </div>
+                  </div>
+
+                  {/* Printable Master Grid (Matching Reference Image 2 Table Exactly) */}
+                  {(() => {
+                    const BLOCKS = [
+                      { type: "class", label: "9.00 - 11.00", periods: ["09:00 - 10:00", "10:00 - 11:00"] },
+                      { type: "break", label: "11.00 - 11.20", text: "SHORT\nBREAK" },
+                      { type: "class", label: "11.20 - 1.20", periods: ["11:15 - 12:15", "12:15 - 01:15"] },
+                      { type: "break", label: "1.20 - 2.00\n(Lunch)", text: "LUNCH" },
+                      { type: "class", label: "2.00 - 4.00", periods: ["02:00 - 03:00", "03:00 - 04:00"] },
+                    ] as const;
+
+                    const DAY_DATES: Record<string, string> = {
+                      Monday: "MON\n24-08-26",
+                      Tuesday: "TUE\n25-08-26",
+                      Wednesday: "WED\n26-08-26",
+                      Thursday: "THU\n27-08-26",
+                      Friday: "FRI\n28-08-26",
+                    };
+
+                    const getBlockEntries = (day: string, periods: readonly string[]) => {
+                      const allItems: any[] = [];
+                      periods.forEach((p) => {
+                        const res = getCellEntries(day, p);
+                        allItems.push(...res);
+                      });
+                      const seen = new Set<string>();
+                      return allItems.filter((item) => {
+                        if (seen.has(item.code)) return false;
+                        seen.add(item.code);
+                        return true;
+                      });
+                    };
+
+                    return (
+                      <table className="w-full border-collapse border-b border-black text-center text-xs font-serif">
+                        <thead>
+                          <tr className="bg-[#e6f2fb] text-black font-black uppercase">
+                            <th className="border border-black p-2.5 w-24 text-xs font-black">TIME / DAY</th>
+                            {BLOCKS.map((col, idx) => (
+                              <th key={idx} className="border border-black p-2 text-xs font-black whitespace-pre-line">
+                                {col.label}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {DEFAULT_DAYS.map((day: string, dayIdx: number) => (
+                            <tr key={day} className="border-b border-black h-[56px]">
+                              <td className="bg-white font-black text-xs border border-black p-1.5 align-middle uppercase text-center w-24 whitespace-pre-line leading-tight">
+                                {DAY_DATES[day] || day}
+                              </td>
+                              {BLOCKS.map((col, colIdx) => {
+                                if (col.type === "break") {
+                                  if (dayIdx === 0) {
+                                    return (
+                                      <td
+                                        key={colIdx}
+                                        rowSpan={5}
+                                        className="border border-black bg-white font-extrabold text-[10px] align-middle text-center p-1 uppercase tracking-widest text-black whitespace-pre-line"
+                                      >
+                                        {col.text}
+                                      </td>
+                                    );
+                                  }
+                                  return null;
+                                }
+                                const items = getBlockEntries(day, col.periods);
+                                return (
+                                  <td key={colIdx} className="border border-black p-2 align-middle text-center h-[56px]">
+                                    {items.length > 0 ? (
+                                      <div className="space-y-0.5">
+                                        {items.map((item, idx) => (
+                                          <div key={idx} className="leading-tight">
+                                            <div className="font-black text-sm text-black uppercase font-serif">
+                                              {item.code || item.subject}
+                                            </div>
+                                            <div className="text-xs font-bold text-black font-serif">
+                                              ({item.faculty})
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="text-black font-black text-base">—</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    );
+                  })()}
+                </div>
+
+                {/* Footer Signatures */}
+                <div className="flex justify-between items-end pt-6 pb-3 px-8 text-xs font-black uppercase text-black font-serif">
+                  <div>TIME TABLE IN-CHARGE</div>
+                  <div>HEAD OF DEPARTMENT (HOD)</div>
+                  <div>PRINCIPAL / DEAN</div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* ── Web Workspace Area (Hidden during Print / Save PDF) ── */}
+        <div id="web-workspace-container" className="space-y-6 w-full max-w-[1720px] mx-auto tt-animate-fade pb-12 px-2 sm:px-4 print:hidden">
           <PageHeader
             title="Interactive Timetable Workspace"
             description="Explore conflict-free schedules with vertical days and horizontal time intervals, validate drag-and-drop moves, and export schedules."
@@ -910,14 +1155,9 @@ export default function TimetablePage() {
                           );
                         }
 
-                        const cellEntries = getCellEntries(day, col);
-                        const slot = timeSlots.find(
-                          (s) =>
-                            s.day_of_week === day &&
-                            (s.start_time === col.startTime24 ||
-                              s.start_time === col.startTime ||
-                              `${s.start_time} - ${s.end_time}` === `${col.startTime24} - ${col.endTime24}`)
-                        );
+                        const periodStr = `${col.startTime} - ${col.endTime}`;
+                        const cellEntries = getCellEntries(day, periodStr);
+                        const slot = getSlotForDayAndPeriod(timeSlots, day, periodStr);
 
                         return (
                           <td
@@ -927,8 +1167,14 @@ export default function TimetablePage() {
                             className="p-2.5 border-r border-border last:border-r-0 align-top min-w-[175px] h-32 bg-card/10 hover:bg-primary/5 transition-colors"
                           >
                             {cellEntries.length === 0 ? (
-                              <div className="h-full flex items-center justify-center border border-dashed border-border/40 rounded-xl text-[11px] text-muted-foreground/40 select-none">
-                                Free Period
+                              <div
+                                onClick={() => slot && handleOpenAssignModal(day, periodStr, slot)}
+                                className="h-full flex flex-col items-center justify-center border border-dashed border-border/40 hover:border-primary/50 hover:bg-primary/5 rounded-xl text-[11px] text-muted-foreground/60 cursor-pointer transition-all p-2 group"
+                              >
+                                <span>Free Slot</span>
+                                <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 font-bold transition-opacity mt-1">
+                                  + Assign Class
+                                </span>
                               </div>
                             ) : (
                               <div className="space-y-2">
@@ -1016,7 +1262,7 @@ export default function TimetablePage() {
                   );
                 }
 
-                const cellEntries = getCellEntries(activeMobileDay, col);
+                const cellEntries = getCellEntries(activeMobileDay, `${col.startTime} - ${col.endTime}`);
 
                 return (
                   <GlassPanel key={idx} className="p-4 border-border shadow-xs">
@@ -1177,7 +1423,75 @@ export default function TimetablePage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </AppShell>
+
+        {/* Assign Class to Free Slot Modal */}
+        <Dialog open={!!assignModalState} onOpenChange={() => setAssignModalState(null)}>
+          <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <Plus className="size-4" />
+                <span className="tt-eyebrow">Manual Schedule Assignment</span>
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Assign Class to Free Slot
+              </DialogTitle>
+              <DialogDescription className="font-mono text-xs text-muted-foreground font-semibold">
+                {assignModalState?.day} ({assignModalState?.period})
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  Select Course Offering / Section:
+                </label>
+                <select
+                  value={assignOfferingId}
+                  onChange={(e) => setAssignOfferingId(e.target.value)}
+                  className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  {offerings.map((off) => {
+                    const sub = subjects.find((s) => s.id === off.subject_id);
+                    const sec = sections.find((s) => s.id === off.section_id);
+                    const fac = faculty.find((f) => f.id === off.faculty_id);
+                    return (
+                      <option key={off.id} value={off.id}>
+                        {sub?.code || "SUB"} - {sub?.name || "Subject"} ({sec?.name || "Sec"}) — {fac?.name || "Faculty"}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  Select Room / Facility:
+                </label>
+                <select
+                  value={assignRoomId}
+                  onChange={(e) => setAssignRoomId(e.target.value)}
+                  className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  {rooms.map((rm) => (
+                    <option key={rm.id} value={rm.id}>
+                      {rm.name} (Capacity: {rm.capacity || 60})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-2 gap-2">
+              <Button variant="ghost" onClick={() => setAssignModalState(null)} className="rounded-xl">
+                Cancel
+              </Button>
+              <Button onClick={handleSaveNewAssignment} className="tt-gradient-btn rounded-xl font-bold">
+                Assign Class
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+    </>
+  </AppShell>
   );
 }

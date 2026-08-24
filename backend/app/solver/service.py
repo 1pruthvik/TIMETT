@@ -140,6 +140,11 @@ def generate_timetable(db: Session, semester_id: int | None = None, institution_
             if a.faculty_id == offering.faculty_id
         ]
 
+        # If faculty has no explicit availability restrictions configured in database,
+        # default to available for ALL slots!
+        if not faculty_availability:
+            continue
+
         for s, slot in enumerate(slots):
 
             is_available = False
@@ -194,17 +199,11 @@ def generate_timetable(db: Session, semester_id: int | None = None, institution_
         )
 
         if section is None:
-            return {
-                "status": "error",
-                "message": (
-                    f"Section {offering.section_id} "
-                    "not found"
-                ),
-            }
+            continue
 
         for r, room in enumerate(rooms):
 
-            if room.capacity < section.student_count:
+            if room.capacity > 0 and section.student_count > 0 and room.capacity < section.student_count:
 
                 for s in range(len(slots)):
                     model.Add(

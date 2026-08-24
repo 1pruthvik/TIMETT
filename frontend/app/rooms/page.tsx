@@ -189,12 +189,28 @@ export default function RoomsPage() {
   const [submittingLabEdit, setSubmittingLabEdit] = useState(false);
   const [editLabError, setEditLabError] = useState("");
 
+  // Master Inventory Filter
+  const [masterRoomSearch, setMasterRoomSearch] = useState("");
+  const [masterTypeFilter, setMasterTypeFilter] = useState<string>("ALL");
+
   // Create Physical Space Modal
   const [createSpaceOpen, setCreateSpaceOpen] = useState(false);
   const [spaceName, setSpaceName] = useState("");
   const [spaceType, setSpaceType] = useState("Classroom");
   const [spaceCapacity, setSpaceCapacity] = useState("60");
   const [submittingSpace, setSubmittingSpace] = useState(false);
+
+  const handleDeleteRoom = async (roomId: number) => {
+    if (!confirm("Are you sure you want to delete this space?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/rooms/${roomId}`, { method: "DELETE" });
+      if (res.ok) {
+        setRooms((prev) => prev.filter((r) => r.id !== roomId));
+      }
+    } catch (err) {
+      console.error("Error deleting room", err);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -809,6 +825,117 @@ export default function RoomsPage() {
             })}
           </div>
         )}
+
+        {/* Master Campus Physical Spaces Inventory (All Classrooms, Labs, Auditoriums, Seminar Halls) */}
+        <GlassPanel className="p-6 border-border shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-500">
+                <DoorOpen className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-foreground">
+                  Master Physical Rooms & Labs Inventory ({rooms.length})
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Complete register of all physical classrooms, specialized labs, seminar halls, and auditoriums across floors
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative w-full sm:w-64">
+                <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Filter room or lab (e.g. L101, Lab)..."
+                  value={masterRoomSearch}
+                  onChange={(e) => setMasterRoomSearch(e.target.value)}
+                  className="pl-8 h-8 rounded-xl bg-card border-border text-xs"
+                />
+              </div>
+
+              <select
+                value={masterTypeFilter}
+                onChange={(e) => setMasterTypeFilter(e.target.value)}
+                className="h-8 rounded-xl border border-border bg-card px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
+              >
+                <option value="ALL">All Types ({rooms.length})</option>
+                <option value="CLASSROOM">Classrooms ({rooms.filter((r) => r.room_type !== "Lab" && !r.room_type?.includes("AUD") && !r.room_type?.includes("SEM")).length})</option>
+                <option value="LAB">Labs ({rooms.filter((r) => r.room_type === "Lab" || r.room_type === "LAB").length})</option>
+                <option value="AUDITORIUM">Auditoriums ({rooms.filter((r) => r.room_type?.includes("AUD")).length})</option>
+                <option value="SEMINAR_HALL">Seminar Halls ({rooms.filter((r) => r.room_type?.includes("SEM")).length})</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Grid of All Master Rooms */}
+          {rooms.length === 0 ? (
+            <div className="py-8 text-center text-xs text-muted-foreground">
+              No physical rooms or labs registered in this workspace yet. Add them above or ask Kaci!
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
+              {rooms
+                .filter((r) => {
+                  const matchesSearch = r.name.toLowerCase().includes(masterRoomSearch.toLowerCase()) || (r.room_type || "").toLowerCase().includes(masterRoomSearch.toLowerCase());
+                  if (!matchesSearch) return false;
+                  if (masterTypeFilter === "ALL") return true;
+                  if (masterTypeFilter === "LAB") return r.room_type === "Lab" || r.room_type === "LAB";
+                  if (masterTypeFilter === "AUDITORIUM") return r.room_type?.includes("AUD");
+                  if (masterTypeFilter === "SEMINAR_HALL") return r.room_type?.includes("SEM");
+                  if (masterTypeFilter === "CLASSROOM") return r.room_type !== "Lab" && r.room_type !== "LAB" && !r.room_type?.includes("AUD") && !r.room_type?.includes("SEM");
+                  return true;
+                })
+                .map((r) => {
+                  const isLab = r.room_type === "Lab" || r.room_type === "LAB";
+                  const isAud = r.room_type?.includes("AUD");
+                  const isSem = r.room_type?.includes("SEM");
+
+                  return (
+                    <div
+                      key={r.id}
+                      className="group relative p-3 rounded-2xl border border-border/70 bg-card/60 hover:bg-card hover:border-[#8B5CF6]/50 hover:shadow-md transition-all flex flex-col justify-between space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <span className="font-mono font-bold text-sm text-foreground truncate block">
+                          {r.name}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteRoom(r.id)}
+                          className="size-5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+                          title="Delete room"
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-1 text-[11px]">
+                        <Badge
+                          variant="outline"
+                          className={`text-[9px] px-1.5 py-0 font-bold ${
+                            isLab
+                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
+                              : isAud
+                              ? "bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30"
+                              : isSem
+                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/30"
+                              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30"
+                          }`}
+                        >
+                          {isLab ? "Lab" : isAud ? "Auditorium" : isSem ? "Seminar" : "Classroom"}
+                        </Badge>
+                        <span className="font-mono text-muted-foreground font-semibold">
+                          {r.capacity} seats
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </GlassPanel>
 
         {/* Edit Section Modal */}
         <Dialog open={editSecOpen} onOpenChange={setEditSecOpen}>

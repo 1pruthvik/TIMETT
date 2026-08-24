@@ -36,9 +36,14 @@ def get_gemini_api_key() -> str:
     return key.strip().strip("'").strip('"')
 
 
-def get_or_create_institution(db: Session) -> Institution:
-    """Get the primary institution or create a default one if none exists."""
-    inst = db.query(Institution).first()
+def get_or_create_institution(db: Session, institution_id: Optional[int] = None) -> Institution:
+    """Get the user's active institution or fallback gracefully."""
+    if institution_id:
+        inst = db.query(Institution).filter(Institution.id == institution_id).first()
+        if inst:
+            return inst
+
+    inst = db.query(Institution).order_by(Institution.id.desc()).first()
     if not inst:
         inst = Institution(name="College of Engineering & Technology")
         db.add(inst)
@@ -47,11 +52,14 @@ def get_or_create_institution(db: Session) -> Institution:
     return inst
 
 
-def get_or_create_department(db: Session, dept_name: str) -> Department:
-    """Find department by name or create it."""
-    inst = get_or_create_institution(db)
+def get_or_create_department(db: Session, dept_name: str, institution_id: Optional[int] = None) -> Department:
+    """Find department by name in active institution or create it."""
+    inst = get_or_create_institution(db, institution_id)
     name = dept_name.strip() if dept_name else "Computer Science & Engineering"
-    dept = db.query(Department).filter(Department.name.ilike(f"%{name}%")).first()
+    dept = db.query(Department).filter(
+        Department.institution_id == inst.id,
+        Department.name.ilike(f"%{name}%")
+    ).first()
     if not dept:
         dept = Department(name=name, institution_id=inst.id)
         db.add(dept)
@@ -60,19 +68,22 @@ def get_or_create_department(db: Session, dept_name: str) -> Department:
     return dept
 
 
-def get_live_institution_context(db: Session) -> str:
-    """Fetch summarized active context from the database to ground Gemini."""
+def get_live_institution_context(db: Session, institution_id: Optional[int] = None) -> str:
+    """Fetch summarized active context from the database for the current tenant to ground Gemini."""
     try:
-        faculty_list = [f"{f.name} ({f.designation or 'Faculty'})" for f in db.query(Faculty).limit(40).all()]
-        departments = [d.name for d in db.query(Department).all()]
-        subjects = [f"{s.name} ({s.code})" for s in db.query(Subject).limit(40).all()]
-        sections = [f"{sec.name} (Cap: {sec.student_count})" for sec in db.query(Section).limit(25).all()]
-        rooms = [f"{r.name} (Type: {r.room_type or 'CLASSROOM'}, Cap: {r.capacity})" for r in db.query(Room).limit(40).all()]
+        inst = get_or_create_institution(db, institution_id)
+        rooms = [f"{r.name} (Type: {r.room_type or 'CLASSROOM'}, Cap: {r.capacity})" for r in db.query(Room).filter(Room.institution_id == inst.id).limit(50).all()]
+        departments = [d.name for d in db.query(Department).filter(Department.institution_id == inst.id).all()]
+        dept_ids = [d.id for d in db.query(Department).filter(Department.institution_id == inst.id).all()]
+        faculty_list = [f"{f.name} ({f.designation or 'Faculty'})" for f in db.query(Faculty).filter(Faculty.department_id.in_(dept_ids)).limit(40).all()] if dept_ids else []
+        subjects = [f"{s.name} ({s.code})" for s in db.query(Subject).filter(Subject.department_id.in_(dept_ids)).limit(40).all()] if dept_ids else []
+        sections = [f"{sec.name} (Cap: {sec.student_count})" for sec in db.query(Section).filter(Section.department_id.in_(dept_ids)).limit(25).all()] if dept_ids else []
         constraints = [f"{c.type} ({c.hardness})" for c in db.query(Constraint).filter(Constraint.active == True).limit(15).all()]
 
         context = (
-            f"Active Departments: {', '.join(departments) if departments else 'None'}\n"
+            f"Active Institution: {inst.name} (ID: {inst.id})\n"
             f"Rooms & Labs Inventory: {', '.join(rooms) if rooms else 'None'}\n"
+            f"Active Departments: {', '.join(departments) if departments else 'None'}\n"
             f"Faculty Members: {', '.join(faculty_list) if faculty_list else 'None'}\n"
             f"Subjects/Courses: {', '.join(subjects) if subjects else 'None'}\n"
             f"Student Sections: {', '.join(sections) if sections else 'None'}\n"
@@ -86,7 +97,8 @@ def get_live_institution_context(db: Session) -> str:
 async def generate_kaci_response(
     query: str,
     history: List[Dict[str, Any]],
-    db: Session
+    db: Session,
+    institution_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Call Google Gemini with full multi-turn conversation memory and live database upsert tools."""
     api_key = get_gemini_api_key()
@@ -109,7 +121,7 @@ async def generate_kaci_response(
             update_if_exists: If True, updates existing room with new capacity/type; if False, alerts about conflict
         """
         try:
-            inst = get_or_create_institution(db)
+            inst = get_or_create_institution(db, institution_id)
             cleaned_type = room_type.upper().strip()
             if "LAB" in cleaned_type:
                 cleaned_type = "LAB"
@@ -123,7 +135,10 @@ async def generate_kaci_response(
             cleaned_name = name.strip()
             cap = max(int(capacity), 1)
 
-            existing = db.query(Room).filter(Room.name.ilike(cleaned_name)).first()
+            existing = db.query(Room).filter(
+                Room.institution_id == inst.id,
+                Room.name.ilike(cleaned_name)
+            ).first()
             if existing:
                 if update_if_exists:
                     old_cap = existing.capacity
@@ -132,7 +147,7 @@ async def generate_kaci_response(
                     existing.room_type = cleaned_type
                     db.commit()
                     db.refresh(existing)
-                    return f"UPDATED: Room '{existing.name}' was already present. Updated from (Type: {old_type}, Cap: {old_cap}) to (Type: {cleaned_type}, Cap: {cap})."
+                    return f"UPDATED: Room '{existing.name}' in institution {inst.name} updated from (Type: {old_type}, Cap: {old_cap}) to (Type: {cleaned_type}, Cap: {cap})."
                 else:
                     return f"EXISTING: Room '{existing.name}' already exists in database with Type: {existing.room_type}, Capacity: {existing.capacity}."
 
@@ -145,7 +160,7 @@ async def generate_kaci_response(
             db.add(new_room)
             db.commit()
             db.refresh(new_room)
-            return f"CREATED: Added new room '{new_room.name}' (Type: {new_room.room_type}, Capacity: {new_room.capacity}) to database."
+            return f"CREATED: Added new room '{new_room.name}' (Type: {new_room.room_type}, Capacity: {new_room.capacity}) to {inst.name}."
         except Exception as e:
             db.rollback()
             return f"ERROR adding/updating room '{name}': {str(e)}"
@@ -160,9 +175,12 @@ async def generate_kaci_response(
             update_if_exists: If True, updates existing faculty
         """
         try:
-            dept = get_or_create_department(db, department_name)
+            dept = get_or_create_department(db, department_name, institution_id)
             cleaned_name = name.strip()
-            existing = db.query(Faculty).filter(Faculty.name.ilike(cleaned_name)).first()
+            existing = db.query(Faculty).filter(
+                Faculty.department_id == dept.id,
+                Faculty.name.ilike(cleaned_name)
+            ).first()
             if existing:
                 if update_if_exists:
                     existing.designation = designation.strip()
@@ -196,11 +214,12 @@ async def generate_kaci_response(
             update_if_exists: If True, updates existing subject
         """
         try:
-            dept = get_or_create_department(db, department_name)
+            dept = get_or_create_department(db, department_name, institution_id)
             cleaned_code = code.strip().upper()
             cleaned_name = name.strip()
 
             existing = db.query(Subject).filter(
+                Subject.department_id == dept.id,
                 (Subject.code == cleaned_code) | (Subject.name.ilike(cleaned_name))
             ).first()
 
@@ -238,11 +257,14 @@ async def generate_kaci_response(
             update_if_exists: If True, updates existing section capacity
         """
         try:
-            dept = get_or_create_department(db, department_name)
+            dept = get_or_create_department(db, department_name, institution_id)
             cleaned_name = name.strip()
             count = max(int(student_count), 1)
 
-            existing = db.query(Section).filter(Section.name.ilike(cleaned_name)).first()
+            existing = db.query(Section).filter(
+                Section.department_id == dept.id,
+                Section.name.ilike(cleaned_name)
+            ).first()
             if existing:
                 if update_if_exists:
                     existing.student_count = count
@@ -306,11 +328,12 @@ async def generate_kaci_response(
             return f"ERROR registering constraint '{type}': {str(e)}"
 
     def get_current_rooms_inventory() -> str:
-        """Fetch the current list of all rooms and labs registered in the database."""
+        """Fetch the current list of all rooms and labs registered in the database for the active workspace."""
         try:
-            all_rooms = db.query(Room).all()
+            inst = get_or_create_institution(db, institution_id)
+            all_rooms = db.query(Room).filter(Room.institution_id == inst.id).all()
             if not all_rooms:
-                return "No rooms or labs are currently registered in the database."
+                return f"No rooms or labs are currently registered in workspace '{inst.name}'."
             return "\n".join([f"- {r.name}: Type={r.room_type}, Capacity={r.capacity}" for r in all_rooms])
         except Exception as e:
             return f"Error retrieving rooms: {str(e)}"

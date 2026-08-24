@@ -130,12 +130,17 @@ export function FloatingAiChat() {
     setIsThinking(true);
 
     try {
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const institutionId = user?.institution_id;
+
       const res = await fetch(`${API_BASE}/kaci/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: query,
           history: nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
+          institution_id: institutionId,
         }),
       });
 

@@ -20,6 +20,7 @@ def get_db():
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[Dict[str, Any]]] = []
+    institution_id: Optional[int] = None
 
 
 class ChatResponse(BaseModel):
@@ -38,7 +39,8 @@ async def kaci_chat(request: ChatRequest, db: Session = Depends(get_db)):
     result = await generate_kaci_response(
         query=request.message.strip(),
         history=request.history or [],
-        db=db
+        db=db,
+        institution_id=request.institution_id
     )
 
     return ChatResponse(

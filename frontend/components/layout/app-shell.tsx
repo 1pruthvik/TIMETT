@@ -22,7 +22,6 @@ import {
   Search,
   Settings,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
   User,
   Users,
@@ -192,90 +191,113 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-[#010103] text-foreground transition-colors duration-300">
-      {/* Ambient Glow */}
+    <div className="relative flex flex-col min-h-screen bg-black text-foreground transition-colors duration-300">
+      {/* Deep Space Ambient Chromatic Glow */}
       <TechBackground />
 
-      {/* ── Top Header Bar ── */}
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-[#05050C]/90 backdrop-blur-2xl">
-        <div className="flex h-[56px] items-center gap-3 px-5 lg:px-8">
+      {/* ── Frosted Glass Top Navigation Bar ── */}
+      <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-black/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+        <div className="flex h-[58px] items-center gap-3.5 px-5 lg:px-8">
           {/* Logo */}
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 shrink-0 group"
+            className="flex items-center gap-3 shrink-0 group py-1"
           >
-            <span className="grid size-8 place-items-center rounded-xl border border-[#8B5CF6]/50 bg-[#8B5CF6]/15 text-[#8B5CF6] dark:text-[#A78BFA] group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-              <span className="font-heading text-sm font-black italic">T</span>
+            <span className="grid size-8.5 place-items-center rounded-xl bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-[#3B0764] border border-[#A78BFA]/40 text-white shadow-[0_0_20px_rgba(139,92,246,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] group-hover:scale-105 transition-all">
+              <span className="font-heading text-sm font-black italic tracking-tight drop-shadow-md">T</span>
             </span>
-            <span className="font-heading text-base font-extrabold tracking-tight text-foreground">
+            <span className="font-heading text-base font-black tracking-tight text-white">
               TIMETT
             </span>
           </Link>
 
-          <span className="text-muted-foreground/30 select-none">·</span>
+          <div className="h-4 w-px bg-white/[0.1] hidden lg:block mx-1" />
 
-          {/* ── Department Selector Dropdown ── */}
-          <div className="relative hidden md:block" ref={deptRef}>
-            <button
-              onClick={() => setDeptOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-full border border-border/80 bg-card/60 px-3.5 py-1.5 text-xs font-semibold hover:border-primary/50 transition-colors cursor-pointer"
-            >
-              <span className="size-1.5 rounded-full bg-[#8B5CF6] shadow-[0_0_6px_#8B5CF6]" />
-              {selectedDept.name}
-              <ChevronDown className="size-3 text-muted-foreground" />
-            </button>
+          {/* ── Horizontal Navigation Tabs (Beside Logo) ── */}
+          <nav
+            className="hidden lg:flex items-center gap-1 overflow-x-auto"
+            aria-label="Primary navigation"
+          >
+            {navigation.map(([label, href, Icon]) => {
+              const active =
+                pathname === href ||
+                (label === "Dashboard" && pathname === "/dashboard") ||
+                (label === "Resources" && isResourcePage);
 
-            {deptOpen && (
-              <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-border bg-[#0C0C14] p-1.5 shadow-2xl z-50 tt-animate-pop">
-                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Select Department
-                </div>
-                {DEPARTMENTS.map((dept) => (
-                  <button
-                    key={dept.id}
-                    onClick={() => handleSelectDept(dept)}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.06] transition-colors cursor-pointer"
+              if (label === "Resources") {
+                return (
+                  <div
+                    key={label}
+                    className="relative"
+                    ref={resRef}
+                    onMouseEnter={() => setResDropdownOpen(true)}
+                    onMouseLeave={() => setResDropdownOpen(false)}
                   >
-                    <span>{dept.name}</span>
-                    {selectedDept.id === dept.id && (
-                      <Check className="size-3.5 text-[#8B5CF6]" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                    <button
+                      onClick={() => {
+                        setResDropdownOpen((v) => !v);
+                        if (!isResourcePage) router.push("/academic-terms");
+                      }}
+                      className={cn(
+                        "relative flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase transition-all whitespace-nowrap cursor-pointer rounded-xl",
+                        active
+                          ? "text-white bg-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/[0.1]"
+                          : "text-white/60 hover:text-white hover:bg-white/[0.04]"
+                      )}
+                    >
+                      Resources
+                      <ChevronDown className={cn("size-3 text-white/50 transition-transform duration-200", resDropdownOpen ? "rotate-180" : "")} />
+                      {active && (
+                        <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#7C3AED] via-[#8B5CF6] to-[#C084FC] shadow-[0_0_12px_#8B5CF6]" />
+                      )}
+                    </button>
 
-          {/* ── Academic Term Selector Dropdown ── */}
-          <div className="relative hidden xl:block" ref={termRef}>
-            <button
-              onClick={() => setTermOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-full border border-border/80 bg-card/60 px-3.5 py-1.5 text-xs font-semibold hover:border-primary/50 transition-colors cursor-pointer"
-            >
-              {selectedTerm.label}
-              <ChevronDown className="size-3 text-muted-foreground" />
-            </button>
-
-            {termOpen && (
-              <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-border bg-[#0C0C14] p-1.5 shadow-2xl z-50 tt-animate-pop">
-                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Academic Term
-                </div>
-                {TERMS.map((term) => (
-                  <button
-                    key={term.id}
-                    onClick={() => handleSelectTerm(term)}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.06] transition-colors cursor-pointer"
-                  >
-                    <span>{term.label}</span>
-                    {selectedTerm.id === term.id && (
-                      <Check className="size-3.5 text-[#8B5CF6]" />
+                    {resDropdownOpen && (
+                      <div className="absolute left-0 top-full mt-1 w-60 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-1.5 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
+                        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Resource Modules
+                        </div>
+                        {RESOURCE_SUB_NAV.map((sub) => (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={() => setResDropdownOpen(false)}
+                            className={cn(
+                              "flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+                              pathname === sub.href
+                                ? "bg-[#8B5CF6]/20 text-[#C084FC] font-bold border border-[#8B5CF6]/30"
+                                : "hover:bg-white/[0.08] text-white/90 hover:text-white"
+                            )}
+                          >
+                            <sub.icon className="size-3.5" />
+                            {sub.label}
+                          </Link>
+                        ))}
+                      </div>
                     )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={label}
+                  href={href}
+                  className={cn(
+                    "relative flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase transition-all whitespace-nowrap rounded-xl",
+                    active
+                      ? "text-white bg-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/[0.1]"
+                      : "text-white/60 hover:text-white hover:bg-white/[0.04]"
+                  )}
+                >
+                  {label}
+                  {active && (
+                    <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#7C3AED] via-[#8B5CF6] to-[#C084FC] shadow-[0_0_12px_#8B5CF6]" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
           {/* Spacer */}
           <div className="flex-1" />
@@ -284,11 +306,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-9 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-9 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/[0.15] text-white/70 hover:text-white transition-all cursor-pointer shadow-xs"
             onClick={openCommand}
             aria-label="Search"
           >
-            <Search className="size-[18px]" />
+            <Search className="size-[17px]" />
           </Button>
 
           {/* ── Notifications Popover ── */}
@@ -296,20 +318,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              className="relative size-9 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+              className="relative size-9 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/[0.15] text-white/70 hover:text-white transition-all cursor-pointer shadow-xs"
               onClick={() => setNotifOpen((v) => !v)}
               aria-label="Notifications"
             >
-              <Bell className="size-[18px]" />
+              <Bell className="size-[17px]" />
               {unreadCount > 0 && (
-                <span className="absolute right-2 top-2 size-2 rounded-full bg-[#8B5CF6] animate-pulse" />
+                <span className="absolute right-2 top-2 size-2 rounded-full bg-[#8B5CF6] shadow-[0_0_8px_#8B5CF6] animate-pulse" />
               )}
             </Button>
 
             {notifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-border bg-[#0C0C14] p-3 shadow-2xl z-50 tt-animate-pop">
-                <div className="flex items-center justify-between pb-2 border-b border-border mb-2 px-1">
-                  <span className="text-xs font-bold text-foreground">
+              <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-3 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
+                <div className="flex items-center justify-between pb-2 border-b border-white/[0.08] mb-2 px-1">
+                  <span className="text-xs font-bold text-white">
                     Notifications ({unreadCount})
                   </span>
                   {unreadCount > 0 && (
@@ -329,11 +351,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       className={`p-2.5 rounded-xl border transition-colors ${
                         n.unread
                           ? "border-[#8B5CF6]/40 bg-[#8B5CF6]/10"
-                          : "border-border/50 bg-card/40"
+                          : "border-white/[0.06] bg-white/[0.02]"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-bold text-foreground">
+                        <p className="text-xs font-bold text-white">
                           {n.title}
                         </p>
                         <span className="text-[10px] text-muted-foreground">
@@ -357,31 +379,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen((v) => !v)}
-              className="rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/50"
+              className="rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/60 p-0.5"
             >
-              <Avatar className="size-8 border border-[#8B5CF6]/50 transition-transform hover:scale-105">
-                <AvatarFallback className="bg-gradient-to-br from-[#4C1D95] to-[#8B5CF6] text-[11px] font-bold text-white shadow-[0_0_10px_rgba(139,92,246,0.5)]">
+              <Avatar className="size-8.5 border border-white/[0.15] shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-transform hover:scale-105">
+                <AvatarFallback className="bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-[#3B0764] text-[11px] font-black text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
                   {initials}
                 </AvatarFallback>
               </Avatar>
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-border bg-[#0C0C14] p-2 shadow-2xl z-50 tt-animate-pop">
-                <div className="flex items-center gap-3 p-2.5 border-b border-border mb-1">
-                  <Avatar className="size-10 border border-[#8B5CF6]/40">
-                    <AvatarFallback className="bg-gradient-to-br from-[#4C1D95] to-[#8B5CF6] text-sm font-bold text-white">
+              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-2 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
+                <div className="flex items-center gap-3 p-2.5 border-b border-white/[0.08] mb-1">
+                  <Avatar className="size-10 border border-[#8B5CF6]/50 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
+                    <AvatarFallback className="bg-gradient-to-br from-[#7C3AED] to-[#3B0764] text-sm font-bold text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="overflow-hidden">
-                    <p className="text-xs font-bold text-foreground truncate">
+                    <p className="text-xs font-bold text-white truncate">
                       {userName}
                     </p>
                     <p className="text-[11px] text-muted-foreground truncate">
                       {userEmail}
                     </p>
-                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#8B5CF6]">
+                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#A78BFA]">
                       {selectedDept.name}
                     </span>
                   </div>
@@ -391,7 +413,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     href="/account"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
                   >
                     <User className="size-4 text-muted-foreground" />
                     Account Settings
@@ -400,7 +422,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     href="/settings"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
                   >
                     <Settings className="size-4 text-muted-foreground" />
                     System Preferences
@@ -409,14 +431,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     href="/departments"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.06] transition-colors"
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
                   >
                     <ShieldCheck className="size-4 text-muted-foreground" />
                     Departments & Roles
                   </Link>
                 </div>
 
-                <div className="border-t border-border mt-1 pt-1">
+                <div className="border-t border-white/[0.08] mt-1 pt-1">
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
@@ -432,103 +454,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen((v) => !v)}
-            className="lg:hidden ml-1 text-muted-foreground hover:text-foreground cursor-pointer"
+            className="lg:hidden ml-1 text-muted-foreground hover:text-white cursor-pointer"
           >
             {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
 
-        {/* ── Horizontal Tab Navigation ── */}
-        <nav
-          className="hidden lg:flex items-center gap-0 px-5 lg:px-8 -mb-px overflow-x-auto"
-          aria-label="Primary navigation"
-        >
-          {navigation.map(([label, href, Icon]) => {
-            const active =
-              pathname === href ||
-              (label === "Dashboard" && pathname === "/dashboard") ||
-              (label === "Resources" && isResourcePage);
-
-            if (label === "Resources") {
-              return (
-                <div
-                  key={label}
-                  className="relative"
-                  ref={resRef}
-                  onMouseEnter={() => setResDropdownOpen(true)}
-                  onMouseLeave={() => setResDropdownOpen(false)}
-                >
-                  <button
-                    onClick={() => {
-                      setResDropdownOpen((v) => !v);
-                      if (!isResourcePage) router.push("/academic-terms");
-                    }}
-                    className={cn(
-                      "relative flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer",
-                      active
-                        ? "text-foreground font-semibold"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    Resources
-                    <ChevronDown className={cn("size-3 text-muted-foreground transition-transform duration-200", resDropdownOpen ? "rotate-180" : "")} />
-                    {active && (
-                      <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-[#8B5CF6] shadow-[0_0_8px_#8B5CF6]" />
-                    )}
-                  </button>
-
-                  {resDropdownOpen && (
-                    <div className="absolute left-0 top-full mt-1 w-56 rounded-2xl border border-border bg-[#0C0C14] p-1.5 shadow-2xl z-50 tt-animate-pop">
-                      <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Resource Modules
-                      </div>
-                      {RESOURCE_SUB_NAV.map((sub) => (
-                        <Link
-                          key={sub.href}
-                          href={sub.href}
-                          onClick={() => setResDropdownOpen(false)}
-                          className={cn(
-                            "flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors",
-                            pathname === sub.href
-                              ? "bg-[#8B5CF6]/15 text-[#8B5CF6] font-bold"
-                              : "hover:bg-white/[0.06] text-foreground"
-                          )}
-                        >
-                          <sub.icon className="size-3.5" />
-                          {sub.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            return (
-              <Link
-                key={label}
-                href={href}
-                className={cn(
-                  "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap",
-                  active
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {label}
-                {active && (
-                  <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-[#8B5CF6] shadow-[0_0_8px_#8B5CF6]" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
         {/* ── Sub-Navigation Bar for Resource Pages ── */}
         {isResourcePage && (
-          <div className="border-t border-border/40 bg-[#05050C]/60 backdrop-blur-md px-5 lg:px-8 py-2 overflow-x-auto">
-            <div className="flex items-center gap-1.5 max-w-7xl mx-auto">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-2 select-none">
+          <div className="border-t border-white/[0.06] bg-black/40 backdrop-blur-xl px-5 lg:px-8 py-2.5 overflow-x-auto shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
+            <div className="flex items-center gap-2 max-w-7xl mx-auto">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mr-1.5 select-none">
                 MANAGE:
               </span>
               {RESOURCE_SUB_NAV.map((sub) => {
@@ -538,10 +474,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={sub.href}
                     href={sub.href}
                     className={cn(
-                      "flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all whitespace-nowrap",
+                      "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs transition-all whitespace-nowrap",
                       isSubActive
-                        ? "bg-[#8B5CF6] text-white shadow-[0_0_15px_rgba(139,92,246,0.45)] font-bold scale-[1.02]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-white/[0.06]"
+                        ? "bg-gradient-to-r from-[#6D28D9] via-[#8B5CF6] to-[#A855F7] text-white shadow-[0_0_22px_rgba(139,92,246,0.6)] border border-white/30 font-bold scale-[1.03]"
+                        : "bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.18] text-white/70 hover:text-white font-medium shadow-xs"
                     )}
                   >
                     <sub.icon className="size-3.5" />
@@ -556,20 +492,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Nav Dropdown */}
       {mobileOpen && (
-        <nav className="fixed inset-x-3 top-[60px] z-50 rounded-2xl border border-border bg-[#0C0C14] p-2 shadow-2xl lg:hidden">
+        <nav className="fixed inset-x-3 top-[60px] z-50 rounded-2xl border border-white/[0.12] bg-[#0A0A12]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] lg:hidden">
           {navigation.map(([label, href, Icon]) => (
             <Link
               key={label}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm hover:bg-white/[0.06] transition-colors"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/[0.08] transition-colors text-white"
             >
               <Icon className="size-4" />
               {label}
             </Link>
           ))}
-          <div className="border-t border-border pt-2 mt-2 space-y-1">
-            <p className="px-4 text-[10px] font-bold uppercase text-muted-foreground">
+          <div className="border-t border-white/[0.08] pt-2 mt-2 space-y-1">
+            <p className="px-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Resource Modules
             </p>
             {RESOURCE_SUB_NAV.map((sub) => (
@@ -577,7 +513,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={sub.href}
                 href={sub.href}
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-xs hover:bg-white/[0.06] transition-colors"
+                className="flex items-center gap-3 rounded-xl px-4 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
               >
                 <sub.icon className="size-3.5 text-[#8B5CF6]" />
                 {sub.label}

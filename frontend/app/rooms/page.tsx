@@ -518,7 +518,6 @@ export default function RoomsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Rooms & Laboratories Allocation"
-          description="View department structures, manage semester-segregated theory sections, and directly enter room numbers."
           icon={DoorOpen}
         >
           <Button
@@ -528,7 +527,7 @@ export default function RoomsPage() {
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             title="Refresh allocation"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Dialog open={createSpaceOpen} onOpenChange={setCreateSpaceOpen}>
@@ -539,7 +538,7 @@ export default function RoomsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Physical Space Setup</span>
                 </div>
@@ -643,7 +642,6 @@ export default function RoomsPage() {
           <EmptyState
             icon={Building2}
             title="No departments found"
-            description="Create academic departments first to configure room numbers for sections & labs."
           />
         ) : (
           <div className="space-y-6">
@@ -657,7 +655,7 @@ export default function RoomsPage() {
                   {/* Department Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#6D28D9]/20 border border-[#8B5CF6]/30 text-[#8B5CF6]">
+                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-[#0052FF]/20 border border-[#0070F3]/30 text-[#0070F3]">
                         <Building2 className="size-5" />
                       </div>
                       <div>
@@ -669,7 +667,7 @@ export default function RoomsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 font-semibold gap-1.5 px-3 py-1">
+                      <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1.5 px-3 py-1">
                         <GraduationCap className="size-3.5" />
                         {deptSections.length} Sections
                       </Badge>
@@ -686,7 +684,7 @@ export default function RoomsPage() {
                     <div className="p-5 space-y-4">
                       <div className="flex items-center justify-between pb-2 border-b border-border/60">
                         <div className="flex items-center gap-2">
-                          <GraduationCap className="size-4 text-[#8B5CF6]" />
+                          <GraduationCap className="size-4 text-[#0070F3]" />
                           <h4 className="text-sm font-bold text-foreground">
                             Theory Sections by Semester ({deptSections.length})
                           </h4>
@@ -710,12 +708,12 @@ export default function RoomsPage() {
                               {/* Semester Group Header Badge */}
                               <div className="flex items-center justify-between pb-1.5 border-b border-border/40">
                                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                                  <GraduationCap className="size-3.5 text-[#8B5CF6]" />
+                                  <GraduationCap className="size-3.5 text-[#0070F3]" />
                                   {group.semTitle}
                                 </span>
                                 <Badge
                                   variant="outline"
-                                  className="text-[10px] font-semibold bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] border-[#8B5CF6]/20"
+                                  className="text-[10px] font-semibold bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/20"
                                 >
                                   {group.sections.length} {group.sections.length === 1 ? "Section" : "Sections"}
                                 </Badge>
@@ -751,7 +749,7 @@ export default function RoomsPage() {
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => openEditSectionModal(sec)}
-                                        className="size-8 rounded-lg text-muted-foreground hover:text-[#8B5CF6] hover:bg-[#8B5CF6]/10 shrink-0 cursor-pointer"
+                                        className="size-8 rounded-lg text-muted-foreground hover:text-[#0070F3] hover:bg-[#0070F3]/10 shrink-0 cursor-pointer"
                                         title="Edit section & room number"
                                       >
                                         <Pencil className="size-3.5" />
@@ -856,7 +854,7 @@ export default function RoomsPage() {
         <Dialog open={editSecOpen} onOpenChange={setEditSecOpen}>
           <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Student Section</span>
               </div>

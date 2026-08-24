@@ -564,7 +564,6 @@ export default function DepartmentsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Departments & Structure"
-          description="Create academic departments, define total department laboratories, and configure student section counts for your active academic terms."
           icon={Building2}
         >
           <Button
@@ -574,12 +573,12 @@ export default function DepartmentsPage() {
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             title="Refresh departments"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Link href="/academic-terms">
             <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
-              <CalendarRange className="size-4 text-[#8B5CF6]" />
+              <CalendarRange className="size-4 text-[#0070F3]" />
               Academic Terms ({academicSemesters.length} Semesters)
             </Button>
           </Link>
@@ -592,7 +591,7 @@ export default function DepartmentsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Academic Department Setup</span>
                 </div>
@@ -641,7 +640,7 @@ export default function DepartmentsPage() {
                 <div className="space-y-2 pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      <GraduationCap className="size-4 text-[#8B5CF6]" />
+                      <GraduationCap className="size-4 text-[#0070F3]" />
                       Active Academic Semesters ({createConfigs.length})
                     </label>
                     <Link
@@ -709,7 +708,7 @@ export default function DepartmentsPage() {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Department & Structure</span>
               </div>
@@ -756,7 +755,7 @@ export default function DepartmentsPage() {
               <div className="space-y-2 pt-2 border-t border-border">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <GraduationCap className="size-4 text-[#8B5CF6]" />
+                    <GraduationCap className="size-4 text-[#0070F3]" />
                     Academic Terms Semesters ({editConfigs.length})
                   </label>
                   <Link
@@ -848,7 +847,7 @@ export default function DepartmentsPage() {
               {/* Current Active Sections in this Department */}
               <div className="space-y-2 pt-2 border-t border-border">
                 <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <GraduationCap className="size-4 text-[#8B5CF6]" />
+                  <GraduationCap className="size-4 text-[#0070F3]" />
                   Active Student Sections ({activeDeptSections.length})
                 </label>
 
@@ -857,7 +856,7 @@ export default function DepartmentsPage() {
                     {activeDeptSections.map((sec) => (
                       <div
                         key={sec.id}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-300 text-xs font-semibold"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/30 text-[#0070F3] dark:text-[#38BDF8] text-xs font-semibold"
                       >
                         <span>{sec.name}</span>
                         <button
@@ -961,7 +960,7 @@ export default function DepartmentsPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 font-semibold gap-1">
+                            <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1">
                               <GraduationCap className="size-3" />
                               {deptSections.length} Sections
                             </Badge>

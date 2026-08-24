@@ -379,7 +379,6 @@ export default function SubjectsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Curriculum Subjects & Semesters"
-          description="Configure course subjects by department and semester, assign subject types, and manage weekly curriculum load."
           icon={BookOpen}
         >
           <Button
@@ -389,7 +388,7 @@ export default function SubjectsPage() {
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             title="Refresh subjects"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Dialog open={open} onOpenChange={setOpen}>
@@ -400,7 +399,7 @@ export default function SubjectsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Curriculum Entry</span>
                 </div>
@@ -560,7 +559,6 @@ export default function SubjectsPage() {
           <EmptyState
             icon={Building2}
             title="No departments found"
-            description="Create academic departments first to configure subjects for each semester."
           />
         ) : (
           <div className="space-y-8">
@@ -577,7 +575,7 @@ export default function SubjectsPage() {
                   {/* Department Card Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#6D28D9]/20 border border-[#8B5CF6]/30 text-[#8B5CF6]">
+                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-[#0052FF]/20 border border-[#0070F3]/30 text-[#0070F3]">
                         <Building2 className="size-5" />
                       </div>
                       <div>
@@ -589,7 +587,7 @@ export default function SubjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 font-semibold gap-1.5 px-3 py-1">
+                      <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1.5 px-3 py-1">
                         <BookOpen className="size-3.5" />
                         {deptSubjects.length} {deptSubjects.length === 1 ? "Subject" : "Subjects"}
                       </Badge>
@@ -614,7 +612,7 @@ export default function SubjectsPage() {
                               {group.isUnassigned ? (
                                 <Info className="size-4 text-amber-500" />
                               ) : (
-                                <GraduationCap className="size-4 text-[#8B5CF6]" />
+                                <GraduationCap className="size-4 text-[#0070F3]" />
                               )}
                               <span className="text-xs font-bold text-foreground">
                                 {group.semTitle}
@@ -624,7 +622,7 @@ export default function SubjectsPage() {
                                 className={`text-[10px] font-semibold ${
                                   group.isUnassigned
                                     ? "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
-                                    : "bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] border-[#8B5CF6]/20"
+                                    : "bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/20"
                                 } px-2 py-0.5`}
                               >
                                 {group.subjects.length} {group.subjects.length === 1 ? "Subject" : "Subjects"}
@@ -660,7 +658,7 @@ export default function SubjectsPage() {
                                   >
                                     <div className="space-y-1.5">
                                       <div className="flex items-center justify-between">
-                                        <span className="rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 px-2 py-0.5 font-mono text-[11px] font-bold text-[#8B5CF6] dark:text-[#A78BFA]">
+                                        <span className="rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/20 px-2 py-0.5 font-mono text-[11px] font-bold text-[#0070F3] dark:text-[#38BDF8]">
                                           {sub.code}
                                         </span>
                                         <Badge
@@ -722,7 +720,7 @@ export default function SubjectsPage() {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Course</span>
               </div>

@@ -210,12 +210,12 @@ export function FloatingAiChat() {
         <div className="fixed bottom-6 right-6 z-50 print:hidden animate-fade-in">
           <button
             onClick={() => setIsOpen(true)}
-            className="group flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] text-white shadow-2xl hover:shadow-[#8B5CF6]/50 hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer border border-white/25"
+            className="group flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#0052FF] via-[#0070F3] to-[#38BDF8] text-white shadow-2xl hover:shadow-[#0070F3]/50 hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer border border-white/25"
             title="Open Kaci (AI Scheduling Assistant)"
           >
             <div className="relative flex items-center justify-center">
               <KaciLogo size={28} colorVariant="white" glow />
-              <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-[#7C3AED]" />
+              <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-[#0070F3]" />
             </div>
           </button>
         </div>
@@ -271,7 +271,7 @@ export function FloatingAiChat() {
                   <div
                     className={`max-w-[82%] rounded-2xl p-3 space-y-2 shadow-xs ${
                       isUser
-                        ? "bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-tr-xs"
+                        ? "bg-gradient-to-r from-[#0052FF] via-[#0070F3] to-[#38BDF8] text-white rounded-tr-xs"
                         : "bg-muted/50 border border-border text-foreground rounded-tl-xs"
                     }`}
                   >
@@ -289,7 +289,7 @@ export function FloatingAiChat() {
                             key={idx}
                             className="p-2 rounded-xl bg-card border border-border/80 text-[11px] space-y-0.5 text-foreground"
                           >
-                            <span className="font-bold text-[#8B5CF6] block">{change.subject}</span>
+                            <span className="font-bold text-[#38BDF8] block">{change.subject}</span>
                             <span className="text-muted-foreground block">
                               From: <span className="line-through">{change.from}</span>
                             </span>
@@ -328,7 +328,7 @@ export function FloatingAiChat() {
               <button
                 key={idx}
                 onClick={() => handleSendMessage(sug)}
-                className="whitespace-nowrap text-[10px] font-semibold px-2.5 py-1 rounded-full border border-border bg-card/80 hover:bg-card hover:border-[#8B5CF6]/50 text-foreground transition-all cursor-pointer shrink-0"
+                className="whitespace-nowrap text-[10px] font-semibold px-2.5 py-1 rounded-full border border-border bg-card/80 hover:bg-card hover:border-[#0070F3]/50 text-foreground transition-all cursor-pointer shrink-0"
               >
                 {sug}
               </button>
@@ -351,7 +351,7 @@ export function FloatingAiChat() {
                     }
                   }
                 }}
-                className="flex-1 min-h-[52px] max-h-36 resize-none rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#8B5CF6] leading-relaxed overflow-y-auto scrollbar-thin"
+                className="flex-1 min-h-[52px] max-h-36 resize-none rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-[#0070F3] leading-relaxed overflow-y-auto scrollbar-thin"
               />
               <Button
                 type="button"

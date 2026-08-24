@@ -218,7 +218,7 @@ export default function KaciPage() {
                 <div
                   className={`max-w-[85%] rounded-3xl p-4 space-y-2.5 shadow-sm ${
                     isUser
-                      ? "bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white rounded-tr-xs"
+                      ? "bg-gradient-to-r from-[#0070F3] to-[#0066FF] text-white rounded-tr-xs"
                       : "bg-card/70 backdrop-blur-md border border-border/80 text-foreground rounded-tl-xs"
                   }`}
                 >
@@ -236,7 +236,7 @@ export default function KaciPage() {
                           key={idx}
                           className="p-3 rounded-2xl bg-muted/40 border border-border text-xs space-y-1 text-foreground"
                         >
-                          <span className="font-bold text-[#8B5CF6] block">{change.subject}</span>
+                          <span className="font-bold text-[#0070F3] block">{change.subject}</span>
                           <div className="text-[11px] text-muted-foreground">
                             <span>From: </span>
                             <span className="line-through">{change.from}</span>
@@ -279,7 +279,7 @@ export default function KaciPage() {
               <button
                 key={idx}
                 onClick={() => handleSendMessage(sug)}
-                className="whitespace-nowrap text-xs font-semibold px-3.5 py-1.5 rounded-full border border-border/80 bg-card/60 hover:bg-card hover:border-[#8B5CF6]/50 text-foreground transition-all cursor-pointer shrink-0 backdrop-blur-md"
+                className="whitespace-nowrap text-xs font-semibold px-3.5 py-1.5 rounded-full border border-border/80 bg-card/60 hover:bg-card hover:border-[#0070F3]/50 text-foreground transition-all cursor-pointer shrink-0 backdrop-blur-md"
               >
                 {sug}
               </button>
@@ -287,7 +287,7 @@ export default function KaciPage() {
           </div>
 
           {/* Input Form Box with 10-line capacity & generous padding */}
-          <div className="relative rounded-2xl border border-border/80 bg-card/90 backdrop-blur-xl p-3.5 shadow-xl focus-within:border-[#8B5CF6] focus-within:ring-2 focus-within:ring-[#8B5CF6]/20 transition-all">
+          <div className="relative rounded-2xl border border-border/80 bg-card/90 backdrop-blur-xl p-3.5 shadow-xl focus-within:border-[#0070F3] focus-within:ring-2 focus-within:ring-[#0070F3]/20 transition-all">
             <textarea
               rows={4}
               placeholder="Ask Kaci to modify constraints, check clashes, or optimize schedules...&#10;Press Shift + Enter for a new line, Enter to send"

@@ -27,7 +27,7 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xs font-bold text-[#8B5CF6] dark:text-[#A78BFA] mt-2 mb-1 first:mt-0">
+            <h3 className="text-xs font-bold text-[#0070F3] dark:text-[#38BDF8] mt-2 mb-1 first:mt-0">
               {children}
             </h3>
           ),
@@ -70,7 +70,7 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
             <hr className="border-border/60 my-2.5" />
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#8B5CF6] pl-3 py-1 my-2 bg-muted/20 rounded-r-lg italic text-muted-foreground">
+            <blockquote className="border-l-2 border-[#0070F3] pl-3 py-1 my-2 bg-muted/20 rounded-r-lg italic text-muted-foreground">
               {children}
             </blockquote>
           ),
@@ -113,7 +113,7 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
             if (isInline) {
               return (
                 <code
-                  className="px-1.5 py-0.5 mx-0.5 rounded-md bg-muted text-[11px] font-mono text-[#8B5CF6] dark:text-[#C4B5FD] border border-border/60"
+                  className="px-1.5 py-0.5 mx-0.5 rounded-md bg-muted text-[11px] font-mono text-[#0070F3] dark:text-[#7DD3FC] border border-border/60"
                   {...props}
                 >
                   {children}

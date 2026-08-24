@@ -225,7 +225,6 @@ export default function SectionsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Student Sections & Lab Cohorts"
-          description="View department-provisioned lecture sections and laboratory cohorts, with designated room allocations."
           icon={GraduationCap}
         >
           <Button
@@ -235,19 +234,19 @@ export default function SectionsPage() {
             className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             title="Refresh sections"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Link href="/departments">
             <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
-              <Building2 className="size-4 text-[#8B5CF6]" />
+              <Building2 className="size-4 text-[#0070F3]" />
               Manage via Department
             </Button>
           </Link>
 
           <Link href="/rooms">
             <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
-              <DoorOpen className="size-4 text-[#8B5CF6]" />
+              <DoorOpen className="size-4 text-[#0070F3]" />
               Facility Mapping
             </Button>
           </Link>
@@ -260,7 +259,7 @@ export default function SectionsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Cohort Identifier</span>
                 </div>
@@ -337,7 +336,7 @@ export default function SectionsPage() {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Cohort</span>
               </div>
@@ -462,7 +461,7 @@ export default function SectionsPage() {
                                 <FlaskConical className="size-3" /> Practical Lab
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 rounded-lg bg-purple-500/10 border border-purple-500/30 px-2 py-0.5 text-xs font-bold text-purple-600 dark:text-purple-300">
+                              <span className="inline-flex items-center gap-1 rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/30 px-2 py-0.5 text-xs font-bold text-[#0070F3] dark:text-[#38BDF8]">
                                 <GraduationCap className="size-3" /> Theory Section
                               </span>
                             )}

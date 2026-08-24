@@ -42,9 +42,12 @@ export function TechBackground() {
     };
   }, []);
 
-  const isDark = theme === "dark";
+  // In dark theme, return null for completely pure, solid, non-gradient pitch-black background
+  if (theme === "dark") {
+    return null;
+  }
 
-  // Parallax layer offsets
+  // Parallax layer offsets for light mode
   const layer1X = mousePos.x * 20;
   const layer1Y = mousePos.y * 20 - scrollY * 0.12;
 
@@ -59,37 +62,23 @@ export function TechBackground() {
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* 1. Deep Imperial Violet & Purple Nebula (Top-Left) */}
+      {/* Light mode subtle ambient nebulae */}
       <div
-        className={`absolute -top-[22%] -left-[12%] h-[95vh] w-[95vh] rounded-full blur-[140px] transition-all duration-1000 ${
-          isDark
-            ? "bg-gradient-to-br from-[#581C87]/45 via-[#7C3AED]/25 to-transparent"
-            : "bg-gradient-to-br from-[#7C3AED]/40 via-[#8B5CF6]/25 to-transparent"
-        }`}
+        className="absolute -top-[22%] -left-[12%] h-[95vh] w-[95vh] rounded-full blur-[140px] bg-gradient-to-br from-[#0070F3]/25 via-[#38BDF8]/15 to-transparent transition-all duration-1000"
         style={{
           transform: `translate3d(${layer2X}px, ${layer2Y}px, 0)`,
         }}
       />
 
-      {/* 2. Deep Royal Amethyst / Indigo Nebula (Top-Right) */}
       <div
-        className={`absolute -top-[18%] -right-[12%] h-[90vh] w-[90vh] rounded-full blur-[140px] transition-all duration-1000 ${
-          isDark
-            ? "bg-gradient-to-bl from-[#7E22CE]/35 via-[#6366F1]/20 to-transparent"
-            : "bg-gradient-to-bl from-[#6D28D9]/35 via-[#4F46E5]/20 to-transparent"
-        }`}
+        className="absolute -top-[18%] -right-[12%] h-[90vh] w-[90vh] rounded-full blur-[140px] bg-gradient-to-bl from-[#0052FF]/20 via-[#38BDF8]/10 to-transparent transition-all duration-1000"
         style={{
           transform: `translate3d(${layer3X}px, ${layer3Y}px, 0)`,
         }}
       />
 
-      {/* 3. Bottom Deep Indigo Void Nebula */}
       <div
-        className={`absolute -bottom-[28%] left-[20%] h-[85vh] w-[85vh] rounded-full blur-[150px] transition-all duration-1000 ${
-          isDark
-            ? "bg-gradient-to-t from-[#3730A3]/25 via-[#6B21A8]/15 to-transparent"
-            : "bg-gradient-to-t from-[#4338CA]/30 via-[#581C87]/18 to-transparent"
-        }`}
+        className="absolute -bottom-[28%] left-[20%] h-[85vh] w-[85vh] rounded-full blur-[150px] bg-gradient-to-t from-[#1D4ED8]/15 via-[#0284C7]/10 to-transparent transition-all duration-1000"
         style={{
           transform: `translate3d(${layer1X * -0.6}px, ${layer1Y * -0.6}px, 0)`,
         }}

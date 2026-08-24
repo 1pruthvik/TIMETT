@@ -7,7 +7,9 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
+  Building2,
   CalendarDays,
+  CalendarRange,
   Clock,
   DoorOpen,
   Layers,
@@ -18,7 +20,6 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { api, friendlyApiError, institutionId } from "@/lib/api";
-import { OrbitalDiagram } from "@/components/dashboard/orbital-diagram";
 
 /* ── Types ── */
 type Counts = {
@@ -217,14 +218,9 @@ export default function DashboardPage() {
     <AppShell>
       <div className="mx-auto max-w-[1200px] space-y-8 tt-animate-fade">
         {/* ── Hero Section ── */}
-        <section className="grid min-h-[300px] items-center gap-6 lg:grid-cols-[1fr_1fr]">
+        <section className="grid min-h-[260px] items-center gap-6 lg:grid-cols-[1fr_1fr]">
           {/* Left: Greeting */}
-          <div className="space-y-5 py-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="h-px w-5 bg-muted-foreground/30" />
-              <span className="tt-eyebrow">Scheduling workspace</span>
-            </div>
-
+          <div className="space-y-4 py-2">
             <div>
               <h1 className="font-heading text-4xl font-bold leading-[1.15] text-foreground sm:text-5xl">
                 {getGreeting()},
@@ -233,10 +229,6 @@ export default function DashboardPage() {
                 <span className="tt-gradient-text">{userName}.</span>
               </h1>
             </div>
-
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              {readinessMessage}
-            </p>
 
             <div className="flex flex-wrap gap-3 pt-2">
               <Button
@@ -268,9 +260,47 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right: Orbital Diagram */}
-          <div className="hidden lg:block">
-            <OrbitalDiagram />
+          {/* Right: Rectangular Frosted Glass Resource Modules Block */}
+          <div className="w-full">
+            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-5 sm:p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.08)]">
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-[#0070F3] shadow-[0_0_8px_#0070F3] animate-pulse" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                    Resource Modules
+                  </h3>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {[
+                  { label: "Academic Terms", href: "/academic-terms", icon: CalendarRange },
+                  { label: "Departments", href: "/departments", icon: Building2 },
+                  { label: "Rooms & Labs", href: "/rooms", icon: DoorOpen },
+                  { label: "Subjects", href: "/subjects", icon: BookOpen },
+                  { label: "Faculty", href: "/faculty", icon: Users },
+                  { label: "Time Slots", href: "/time-slots", icon: Clock },
+                ].map((r) => (
+                  <Link
+                    key={r.href}
+                    href={r.href}
+                    className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.06] hover:border-[#0070F3]/50 p-3.5 transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,112,243,0.25)]"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="grid size-8 place-items-center rounded-xl bg-[#0070F3]/10 text-[#38BDF8] border border-[#0070F3]/25 group-hover:bg-[#0070F3]/20 group-hover:scale-110 transition-all">
+                        <r.icon className="size-4" />
+                      </span>
+                      <ArrowRight className="size-3 text-white/30 group-hover:text-[#38BDF8] group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white group-hover:text-[#38BDF8] transition-colors leading-tight">
+                        {r.label}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -283,41 +313,6 @@ export default function DashboardPage() {
             </Button>
           </div>
         )}
-
-        {/* ── Scheduling Readiness ── */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Scheduling readiness
-            </span>
-            <span className="font-mono text-sm font-semibold text-primary">
-              {ready}%
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="h-1 overflow-hidden rounded-full bg-border/60 dark:bg-white/[0.06]">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700"
-              style={{ width: `${ready}%` }}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="size-1 rounded-full bg-primary/60" />
-              {ready === 100
-                ? "Everything required for generation is in place."
-                : `${checks.filter((c) => c.ok).length} of ${checks.length} requirements met.`}
-            </span>
-            <Link
-              href="/faculty"
-              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-card transition-colors"
-            >
-              Review Issues <ArrowRight className="size-3" />
-            </Link>
-          </div>
-        </section>
 
         {/* ── 6 Resource Stat Cards ── */}
         <section className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">

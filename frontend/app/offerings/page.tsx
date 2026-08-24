@@ -240,7 +240,6 @@ export default function OfferingsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Subject Offerings"
-          description="Map courses to teaching faculty, target student sections, and weekly periods."
           icon={Layers}
         >
           <Button
@@ -262,7 +261,7 @@ export default function OfferingsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Faculty-Course Mapping</span>
                 </div>
@@ -386,7 +385,7 @@ export default function OfferingsPage() {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Mapping</span>
               </div>
@@ -557,7 +556,7 @@ export default function OfferingsPage() {
                             #{index + 1}
                           </TableCell>
                           <TableCell>
-                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#8B5CF6]/12 border border-[#8B5CF6]/30 px-2.5 py-1 text-xs font-bold text-[#8B5CF6] dark:text-[#C084FC]">
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#0070F3]/12 border border-[#0070F3]/30 px-2.5 py-1 text-xs font-bold text-[#0070F3] dark:text-[#60A5FA]">
                               <span>{sub?.code || `Sub #${off.subject_id}`}</span>
                               <span className="text-muted-foreground font-normal">· {sub?.name}</span>
                             </span>
@@ -566,7 +565,7 @@ export default function OfferingsPage() {
                             {fac?.name || `Faculty #${off.faculty_id}`}
                           </TableCell>
                           <TableCell>
-                            <span className="inline-flex items-center rounded-lg bg-purple-500/10 border border-purple-500/30 px-2.5 py-0.5 text-xs font-bold text-purple-700 dark:text-purple-300">
+                            <span className="inline-flex items-center rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/30 px-2.5 py-0.5 text-xs font-bold text-[#0070F3] dark:text-[#38BDF8]">
                               {sec?.name || `Section #${off.section_id}`}
                             </span>
                           </TableCell>

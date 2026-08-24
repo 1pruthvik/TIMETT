@@ -864,7 +864,6 @@ export default function TimetablePage() {
         <div id="web-workspace-container" className="space-y-6 w-full max-w-[1720px] mx-auto tt-animate-fade pb-12 px-2 sm:px-4 print:hidden">
           <PageHeader
             title="Interactive Timetable Workspace"
-            description="Explore conflict-free schedules with vertical days and horizontal time intervals, validate drag-and-drop moves, and export schedules."
             icon={CalendarDays}
           >
             {/* Undo / Redo Controls */}
@@ -891,6 +890,46 @@ export default function TimetablePage() {
               </Button>
             </div>
 
+            {/* Export Actions */}
+            <div className="flex items-center gap-1.5 border border-border rounded-xl p-1 bg-card/60">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePrint}
+                className="h-8 rounded-lg gap-1.5 text-xs font-semibold cursor-pointer px-2.5 hover:bg-muted"
+                title="Print Timetable"
+              >
+                <Printer className="size-3.5" /> Print
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportPDF}
+                className="h-8 rounded-lg gap-1.5 text-xs font-semibold cursor-pointer px-2.5 hover:bg-muted"
+                title="Export as PDF"
+              >
+                <FileDown className="size-3.5" /> PDF
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportWord}
+                className="h-8 rounded-lg gap-1.5 text-xs font-semibold cursor-pointer px-2.5 hover:bg-muted"
+                title="Export as Word (.doc)"
+              >
+                <FileText className="size-3.5" /> Word
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportExcel}
+                className="h-8 rounded-lg gap-1.5 text-xs font-semibold cursor-pointer px-2.5 hover:bg-muted"
+                title="Export as Excel (.csv)"
+              >
+                <FileSpreadsheet className="size-3.5" /> Excel
+              </Button>
+            </div>
+
             <Button
               variant="outline"
               size="icon"
@@ -898,7 +937,7 @@ export default function TimetablePage() {
               className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
               title="Refresh Timetable"
             >
-              <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#8B5CF6]" : ""}`} />
+              <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
             </Button>
 
             {/* Lifecycle State Actions */}
@@ -928,69 +967,6 @@ export default function TimetablePage() {
               {generating ? "Solving..." : "Generate Timetable"}
             </Button>
           </PageHeader>
-        </div>
-
-        {/* Verification Status & Export Suite Bar */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 rounded-2xl border border-border bg-card/60 p-4 print:hidden">
-          {/* Verification Badges */}
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-emerald-500" /> Schedule Architecture:
-            </span>
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <Check className="size-3.5" /> {activeDays.length} Operating Days
-            </span>
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <Check className="size-3.5" /> {timelineCols.filter((c) => c.type !== "break").length} Daily Periods
-            </span>
-            <span className="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400 font-semibold">
-              <Check className="size-3.5" /> {timelineCols.filter((c) => c.type === "break").length} Recess Breaks
-            </span>
-            <Badge variant="outline" className="font-mono text-[10px] bg-primary/10 text-primary border-primary/30">
-              {lifecycle} ({versionTag})
-            </Badge>
-          </div>
-
-          {/* Export Actions */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Print Timetable"
-            >
-              <Printer className="size-3.5" /> Print
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPDF}
-              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Export as PDF"
-            >
-              <FileDown className="size-3.5" /> PDF
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportWord}
-              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Export as Word (.doc)"
-            >
-              <FileText className="size-3.5" /> Word
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportExcel}
-              className="rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Export as Excel (.csv)"
-            >
-              <FileSpreadsheet className="size-3.5" /> Excel
-            </Button>
-          </div>
-        </div>
 
         {/* View Switcher & Filter Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
@@ -1129,7 +1105,7 @@ export default function TimetablePage() {
                     <tr key={day} className="border-b border-border hover:bg-muted/10 transition-colors">
                       {/* Vertical Day Header Column (Sticky Left) */}
                       <td className="p-4 text-center border-r border-border bg-card/80 sticky left-0 z-10 font-bold text-xs text-foreground shadow-xs">
-                        <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold text-xs shadow-xs">
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-sky-300 font-bold text-xs shadow-xs">
                           {day}
                         </span>
                       </td>
@@ -1187,11 +1163,11 @@ export default function TimetablePage() {
                                     className={`group cursor-grab active:cursor-grabbing p-2.5 rounded-xl border transition-all hover:scale-[1.02] shadow-xs ${
                                       item.isLab
                                         ? "bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-200"
-                                        : "bg-[#8B5CF6]/10 border-[#8B5CF6]/30 text-foreground"
+                                        : "bg-[#0070F3]/10 border-[#0070F3]/30 text-foreground"
                                     }`}
                                   >
                                     <div className="flex items-center justify-between gap-1 mb-1">
-                                      <span className="font-mono text-xs font-bold text-[#8B5CF6] dark:text-[#A78BFA]">
+                                      <span className="font-mono text-xs font-bold text-[#0070F3] dark:text-[#38BDF8]">
                                         {item.code}
                                       </span>
                                       <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-card/80 border border-border">
@@ -1283,10 +1259,10 @@ export default function TimetablePage() {
                           <div
                             key={cIdx}
                             onClick={() => setActiveSlot(item)}
-                            className="p-3 rounded-xl border border-[#8B5CF6]/30 bg-[#8B5CF6]/10"
+                            className="p-3 rounded-xl border border-[#0070F3]/30 bg-[#0070F3]/10"
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-mono font-bold text-xs text-[#8B5CF6]">
+                              <span className="font-mono font-bold text-xs text-[#38BDF8]">
                                 {item.code}
                               </span>
                               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-card border border-border">
@@ -1428,7 +1404,7 @@ export default function TimetablePage() {
         <Dialog open={!!assignModalState} onOpenChange={() => setAssignModalState(null)}>
           <DialogContent className="sm:max-w-[440px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Plus className="size-4" />
                 <span className="tt-eyebrow">Manual Schedule Assignment</span>
               </div>
@@ -1491,7 +1467,8 @@ export default function TimetablePage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-    </>
-  </AppShell>
+        </div>
+      </>
+    </AppShell>
   );
 }

@@ -146,12 +146,12 @@ export function CommandPalette() {
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Specular Purple Glass Gradient Ridge */}
-        <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-[#3B0764] via-[#7C3AED] to-[#A855F7] dark:from-[#6D28D9] dark:via-[#8B5CF6] dark:to-[#C084FC]" />
+        {/* Top Specular Blue Glass Gradient Ridge */}
+        <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-[#0052FF] via-[#0070F3] to-[#38BDF8] shadow-[0_0_12px_#0070F3]" />
 
         {/* Search Input Box */}
         <div className="flex items-center gap-3 border-b border-black/[0.06] dark:border-white/[0.08] px-4 py-3.5 bg-black/[0.01] dark:bg-white/[0.01]">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#4C1D95]/10 dark:bg-[#8B5CF6]/15 text-[#4C1D95] dark:text-[#A78BFA] border border-[#4C1D95]/20 dark:border-[#8B5CF6]/30">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#0066FF]/10 dark:bg-[#0070F3]/15 text-[#0066FF] dark:text-[#38BDF8] border border-[#0066FF]/20 dark:border-[#0070F3]/30">
             <Search className="size-4" />
           </div>
           <input
@@ -186,7 +186,7 @@ export function CommandPalette() {
           ) : (
             Object.entries(groups).map(([group, items]) => (
               <div key={group} className="space-y-1">
-                <p className="px-3 pt-1 text-[10px] font-extrabold uppercase tracking-widest text-[#4C1D95] dark:text-[#A78BFA]">
+                <p className="px-3 pt-1 text-[10px] font-extrabold uppercase tracking-widest text-[#0066FF] dark:text-[#38BDF8]">
                   {group}
                 </p>
                 {items.map((item) => {
@@ -201,7 +201,7 @@ export function CommandPalette() {
                       className={cn(
                         "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-all duration-200 cursor-pointer",
                         isSelected
-                          ? "bg-[#4C1D95]/12 dark:bg-[#8B5CF6]/18 border border-[#4C1D95]/30 dark:border-[#8B5CF6]/40 shadow-sm"
+                          ? "bg-[#0066FF]/12 dark:bg-[#0070F3]/20 border border-[#0066FF]/30 dark:border-[#0070F3]/40 shadow-sm"
                           : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04] border border-transparent text-muted-foreground hover:text-foreground"
                       )}
                     >
@@ -210,7 +210,7 @@ export function CommandPalette() {
                           className={cn(
                             "flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
                             isSelected
-                              ? "bg-[#4C1D95] dark:bg-[#8B5CF6] text-white border-[#4C1D95] dark:border-[#8B5CF6] shadow-[0_0_12px_rgba(76,29,149,0.5)] dark:shadow-[0_0_12px_rgba(139,92,246,0.6)]"
+                              ? "bg-[#0066FF] dark:bg-[#0070F3] text-white border-[#0066FF] dark:border-[#0070F3] shadow-[0_0_12px_rgba(0,102,255,0.5)] dark:shadow-[0_0_12px_rgba(0,112,243,0.6)]"
                               : "bg-muted/40 text-muted-foreground border-border"
                           )}
                         >
@@ -220,7 +220,7 @@ export function CommandPalette() {
                           <p
                             className={cn(
                               "text-xs font-bold leading-none truncate",
-                              isSelected ? "text-[#4C1D95] dark:text-[#F8F8FA]" : "text-foreground"
+                              isSelected ? "text-[#0066FF] dark:text-[#F8F8FA]" : "text-foreground"
                             )}
                           >
                             {item.label}
@@ -234,7 +234,7 @@ export function CommandPalette() {
                       </div>
 
                       {isSelected && (
-                        <ArrowRight className="size-3.5 shrink-0 text-[#4C1D95] dark:text-[#A78BFA] animate-pulse" />
+                        <ArrowRight className="size-3.5 shrink-0 text-[#0040C0] dark:text-[#38BDF8] animate-pulse" />
                       )}
                     </button>
                   );
@@ -256,7 +256,7 @@ export function CommandPalette() {
               Open
             </span>
           </div>
-          <span className="text-[10px] font-semibold text-[#4C1D95] dark:text-[#A78BFA]">
+          <span className="text-[10px] font-semibold text-[#0040C0] dark:text-[#38BDF8]">
             TIMETT Fast Finder
           </span>
         </div>

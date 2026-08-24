@@ -263,7 +263,6 @@ export default function AcademicTermsPage() {
       <div className="space-y-8 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Academic Terms & Semesters"
-          description="Manage academic calendar sessions, annual years, and semester partitions."
           icon={CalendarRange}
         >
           <Button
@@ -285,7 +284,7 @@ export default function AcademicTermsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[400px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Academic Session</span>
                 </div>
@@ -322,7 +321,7 @@ export default function AcademicTermsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Term Partition</span>
                 </div>
@@ -370,7 +369,7 @@ export default function AcademicTermsPage() {
         <Dialog open={editYearOpen} onOpenChange={setEditYearOpen}>
           <DialogContent className="sm:max-w-[400px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Year</span>
               </div>
@@ -403,7 +402,7 @@ export default function AcademicTermsPage() {
         <Dialog open={editSemOpen} onOpenChange={setEditSemOpen}>
           <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Term</span>
               </div>
@@ -452,7 +451,7 @@ export default function AcademicTermsPage() {
           <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
               <h3 className="text-base font-bold text-foreground">Academic Years</h3>
-              <span className="rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20">
+              <span className="rounded-full bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] px-2.5 py-0.5 text-xs font-bold border border-[#0070F3]/20">
                 {academicYears.length} Years
               </span>
             </div>
@@ -461,7 +460,7 @@ export default function AcademicTermsPage() {
               {loading ? (
                 <LoadingState text="Loading academic years..." />
               ) : academicYears.length === 0 ? (
-                <EmptyState icon={Calendar} title="No academic years" description="Create a year like 2026-2027 above." />
+                <EmptyState icon={Calendar} title="No academic years" />
               ) : (
                 <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                   <Table>
@@ -514,7 +513,7 @@ export default function AcademicTermsPage() {
           <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
               <h3 className="text-base font-bold text-foreground">Semesters</h3>
-              <span className="rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20">
+              <span className="rounded-full bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] px-2.5 py-0.5 text-xs font-bold border border-[#0070F3]/20">
                 {semesters.length} Semesters
               </span>
             </div>
@@ -523,7 +522,7 @@ export default function AcademicTermsPage() {
               {loading ? (
                 <LoadingState text="Loading semesters..." />
               ) : semesters.length === 0 ? (
-                <EmptyState icon={CalendarRange} title="No semesters found" description="Add semesters like Semester 1 or Odd Sem above." />
+                <EmptyState icon={CalendarRange} title="No semesters found" />
               ) : (
                 <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
                   <Table>

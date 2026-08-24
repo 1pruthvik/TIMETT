@@ -238,7 +238,7 @@ function Clock12Picker({
                 onClick={() => onChange({ ...value, period: "PM" })}
                 className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   value.period === "PM"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md"
+                    ? "bg-gradient-to-r from-[#0052FF] to-[#0070F3] text-white shadow-md"
                     : "border border-border hover:bg-muted text-muted-foreground"
                 }`}
               >
@@ -280,7 +280,7 @@ function DurationHMSPicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-border bg-muted/40 hover:bg-muted/70 text-sm font-semibold text-foreground transition-colors cursor-pointer shadow-xs">
         <div className="flex items-center gap-2">
-          <Timer className="size-4 text-purple-500" />
+          <Timer className="size-4 text-[#0070F3]" />
           <span className="font-mono text-sm font-bold">{formatDuration(value)}</span>
         </div>
         <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
@@ -293,7 +293,7 @@ function DurationHMSPicker({
           <span className="text-xs font-bold uppercase tracking-wider text-foreground">
             {title}
           </span>
-          <Badge variant="outline" className="text-xs font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10">
+          <Badge variant="outline" className="text-xs font-mono text-[#0070F3] dark:text-[#38BDF8] bg-[#0070F3]/10">
             {value.hours}h {value.minutes}m {value.seconds}s
           </Badge>
         </div>
@@ -335,7 +335,7 @@ function DurationHMSPicker({
                   onClick={() => onChange({ ...value, hours: h })}
                   className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.hours === h
-                      ? "bg-purple-600 text-white shadow-xs"
+                      ? "bg-[#0070F3] text-white shadow-xs"
                       : "hover:bg-muted text-foreground"
                   }`}
                 >
@@ -358,7 +358,7 @@ function DurationHMSPicker({
                   onClick={() => onChange({ ...value, minutes: m })}
                   className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.minutes === m
-                      ? "bg-purple-600 text-white shadow-xs"
+                      ? "bg-[#0070F3] text-white shadow-xs"
                       : "hover:bg-muted text-foreground"
                   }`}
                 >
@@ -381,7 +381,7 @@ function DurationHMSPicker({
                   onClick={() => onChange({ ...value, seconds: s })}
                   className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer ${
                     value.seconds === s
-                      ? "bg-purple-600 text-white shadow-xs"
+                      ? "bg-[#0070F3] text-white shadow-xs"
                       : "hover:bg-muted text-foreground"
                   }`}
                 >
@@ -396,7 +396,7 @@ function DurationHMSPicker({
           <Button
             size="sm"
             onClick={() => setOpen(false)}
-            className="h-7 text-xs rounded-lg px-3 font-semibold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer"
+            className="h-7 text-xs rounded-lg px-3 font-semibold bg-[#0070F3] text-white hover:bg-[#0052FF] cursor-pointer"
           >
             Apply Duration
           </Button>
@@ -697,7 +697,6 @@ export default function TimeSlotsPage() {
       <div className="space-y-8 max-w-7xl mx-auto tt-animate-fade pb-12">
         <PageHeader
           title="Time Slots Architecture & Schedule Setup"
-          description="Configure weekly operating days, 12-hour institutional timings, session durations (H:M:S), and daily breaks with live timeline generation."
           icon={Clock}
         >
           <Button
@@ -740,7 +739,7 @@ export default function TimeSlotsPage() {
             <GlassPanel className="p-6 rounded-3xl border-border space-y-4 shadow-sm">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-[#8B5CF6] font-bold text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/10 border border-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     1
                   </div>
                   <div>
@@ -797,7 +796,7 @@ export default function TimeSlotsPage() {
                         onClick={() => toggleDay(day.id)}
                         className={`py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer border ${
                           isSelected
-                            ? "bg-gradient-to-b from-[#8B5CF6]/20 to-[#6D28D9]/20 border-[#8B5CF6] text-foreground shadow-xs"
+                            ? "bg-gradient-to-b from-[#0070F3]/20 to-[#0052FF]/20 border-[#0070F3] text-foreground shadow-xs"
                             : "bg-muted/30 border-border text-muted-foreground hover:bg-muted/60"
                         }`}
                       >
@@ -814,7 +813,7 @@ export default function TimeSlotsPage() {
             <GlassPanel className="p-6 rounded-3xl border-border space-y-4 shadow-sm">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-[#8B5CF6] font-bold text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/10 border border-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     2
                   </div>
                   <div>
@@ -861,7 +860,7 @@ export default function TimeSlotsPage() {
             <GlassPanel className="p-6 rounded-3xl border-border space-y-4 shadow-sm">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-[#8B5CF6] font-bold text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/10 border border-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     3
                   </div>
                   <div>
@@ -889,7 +888,7 @@ export default function TimeSlotsPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                    <FlaskConical className="size-3.5 text-purple-500" /> Lab Session Duration *
+                    <FlaskConical className="size-3.5 text-[#0070F3]" /> Lab Session Duration *
                   </label>
                   <DurationHMSPicker
                     value={labDuration}
@@ -904,7 +903,7 @@ export default function TimeSlotsPage() {
             <GlassPanel className="p-6 rounded-3xl border-border space-y-4 shadow-sm">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-[#8B5CF6] font-bold text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/10 border border-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     4
                   </div>
                   <div>

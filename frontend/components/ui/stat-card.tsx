@@ -42,7 +42,7 @@ export function StatCard({
           {label && (
             <div className="flex items-center gap-1.5 pt-1">
               <span className="inline-flex items-center gap-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-foreground px-2 py-0.5 text-[10px] font-semibold border border-border">
-                <span className="size-1.5 rounded-full bg-[#4C1D95] dark:bg-[#8B5CF6] animate-pulse" />
+                <span className="size-1.5 rounded-full bg-[#0066FF] dark:bg-[#38BDF8] shadow-[0_0_6px_#38BDF8] animate-pulse" />
                 {label}
               </span>
             </div>

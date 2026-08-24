@@ -277,7 +277,6 @@ export default function SettingsPage() {
       <div className="max-w-6xl mx-auto space-y-8 tt-animate-fade">
         <PageHeader
           title="System Settings & Constraint Engine"
-          description="Configure display themes, institutional operating hours, and live solver constraint satisfaction rules."
           icon={Settings}
         >
           <Button
@@ -309,7 +308,7 @@ export default function SettingsPage() {
               onClick={() => setTheme("dark")}
               className={`flex items-center gap-4 rounded-2xl border p-4 text-left transition-all cursor-pointer ${
                 theme === "dark"
-                  ? "border-violet-500 bg-violet-500/10 shadow-[0_0_25px_-5px_rgba(139,92,246,0.3)] ring-2 ring-violet-500/40"
+                  ? "border-violet-500 bg-violet-500/10 shadow-[0_0_25px_-5px_rgba(0, 112, 243, 0.3)] ring-2 ring-violet-500/40"
                   : "border-border bg-card/60 hover:bg-card"
               }`}
             >
@@ -388,7 +387,7 @@ export default function SettingsPage() {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="flex size-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8]">
                   <Cpu className="size-4" />
                 </div>
                 <div>
@@ -414,12 +413,12 @@ export default function SettingsPage() {
         </GlassPanel>
 
         {/* 3. OPTIMIZATION CONSTRAINT ENGINE (Integrated here!) */}
-        <GlassPanel glow="purple" className="p-6 space-y-6">
+        <GlassPanel glow="blue" className="p-6 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold text-foreground">Optimization Constraint Engine</h3>
-                <span className="rounded-full bg-[#8B5CF6]/10 text-[#8B5CF6] dark:text-[#A78BFA] px-2 py-0.5 text-xs font-bold border border-[#8B5CF6]/20">
+                <span className="rounded-full bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] px-2 py-0.5 text-xs font-bold border border-[#0070F3]/20">
                   OR-Tools CP-SAT
                 </span>
               </div>
@@ -449,7 +448,7 @@ export default function SettingsPage() {
 
                 <DialogContent className="sm:max-w-[460px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
                   <DialogHeader>
-                    <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                    <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                       <Sparkles className="size-4" />
                       <span className="tt-eyebrow">Solver Rule Formulation</span>
                     </div>
@@ -541,7 +540,7 @@ export default function SettingsPage() {
           <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-0.5">
               <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Zap className="size-4 text-[#8B5CF6]" />
+                <Zap className="size-4 text-[#0070F3]" />
                 Live Result Reflection
               </p>
               <p className="text-[11px] text-muted-foreground">
@@ -632,7 +631,7 @@ export default function SettingsPage() {
                     className={`rounded-2xl border p-4 space-y-2.5 transition-all ${
                       c.active
                         ? c.hardness === "HARD"
-                          ? "border-[#8B5CF6]/35 bg-[#8B5CF6]/5"
+                          ? "border-[#0070F3]/35 bg-[#0070F3]/5"
                           : "border-sky-500/30 bg-sky-500/5"
                         : "border-border bg-muted/20 opacity-60"
                     }`}
@@ -649,7 +648,7 @@ export default function SettingsPage() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
                             c.hardness === "HARD"
-                              ? "bg-[#8B5CF6]/15 text-[#8B5CF6] dark:text-[#C084FC] border border-[#8B5CF6]/30"
+                              ? "bg-[#0070F3]/15 text-[#0070F3] dark:text-[#60A5FA] border border-[#0070F3]/30"
                               : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30"
                           }`}
                         >

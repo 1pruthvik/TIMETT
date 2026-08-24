@@ -105,17 +105,17 @@ function NavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
         className={cn(
           "relative group/nav transition-all duration-200 rounded-xl px-3 py-2 text-xs font-semibold",
           isActive
-            ? "bg-[#4C1D95]/12 dark:bg-[#8B5CF6]/12 text-[#4C1D95] dark:text-[#A78BFA] shadow-xs"
+            ? "bg-[#0040C0]/12 dark:bg-[#0070F3]/12 text-[#0040C0] dark:text-[#38BDF8] shadow-xs"
             : "text-muted-foreground hover:text-foreground hover:bg-card/70"
         )}
       >
         {/* Active glowing indicator */}
         {isActive && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-gradient-to-b from-[#3B0764] to-[#581C87] dark:from-[#7C3AED] dark:to-[#A855F7] shadow-[0_0_12px_rgba(76,29,149,0.8)] dark:shadow-[0_0_12px_rgba(139,92,246,0.8)]" />
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-gradient-to-b from-[#0A1B4F] to-[#581C87] dark:from-[#0066FF] dark:to-[#38BDF8] shadow-[0_0_12px_rgba(0, 82, 255, 0.8)] dark:shadow-[0_0_12px_rgba(0, 112, 243, 0.8)]" />
         )}
         <item.icon className={cn(
           "size-4 shrink-0 transition-transform duration-200 group-hover/nav:scale-115",
-          isActive ? "text-[#4C1D95] dark:text-[#A78BFA]" : "text-muted-foreground group-hover/nav:text-foreground"
+          isActive ? "text-[#0040C0] dark:text-[#38BDF8]" : "text-muted-foreground group-hover/nav:text-foreground"
         )} />
         <span className="truncate">{item.title}</span>
       </SidebarMenuButton>
@@ -132,15 +132,15 @@ export function AppSidebar() {
         {/* Brand Header */}
         <div className="px-4 py-5">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="relative flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#3B0764] via-[#4C1D95] to-[#6D28D9] dark:from-[#6D28D9] dark:via-[#8B5CF6] dark:to-[#C084FC] text-white shadow-[0_0_20px_-3px_rgba(76,29,149,0.5)] dark:shadow-[0_0_20px_-3px_rgba(139,92,246,0.5)] transition-transform duration-300 group-hover:scale-105">
+            <div className="relative flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#0A1B4F] via-[#0040C0] to-[#0052FF] dark:from-[#0052FF] dark:via-[#0070F3] dark:to-[#60A5FA] text-white shadow-[0_0_20px_-3px_rgba(0, 82, 255, 0.5)] dark:shadow-[0_0_20px_-3px_rgba(0,112,243,0.5)] transition-transform duration-300 group-hover:scale-105">
               <CalendarDays className="size-5" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <p className="text-base font-extrabold tracking-tight bg-gradient-to-r from-[#3B0764] via-[#4C1D95] to-[#6D28D9] dark:from-[#8B5CF6] dark:via-[#A855F7] dark:to-[#C084FC] bg-clip-text text-transparent">
+                <p className="text-base font-extrabold tracking-tight bg-gradient-to-r from-[#0A1B4F] via-[#0040C0] to-[#0052FF] dark:from-[#0070F3] dark:via-[#38BDF8] dark:to-[#60A5FA] bg-clip-text text-transparent">
                   TIMETT
                 </p>
-                <span className="rounded-full bg-[#4C1D95]/15 dark:bg-[#8B5CF6]/15 px-1.5 py-0.2 text-[9px] font-bold text-[#4C1D95] dark:text-[#A78BFA]">
+                <span className="rounded-full bg-[#0040C0]/15 dark:bg-[#0070F3]/15 px-1.5 py-0.2 text-[9px] font-bold text-[#0040C0] dark:text-[#38BDF8]">
                   OS
                 </span>
               </div>

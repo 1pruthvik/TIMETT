@@ -42,7 +42,6 @@ export default function VersionsPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Timetable Version Control"
-          description="Track, compare, snapshot, and restore published schedule versions."
           icon={Layers3}
         >
           <Link href="/timetable">

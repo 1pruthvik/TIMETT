@@ -54,7 +54,6 @@ export default function AccountPage() {
       <div className="max-w-4xl mx-auto space-y-8 tt-animate-fade">
         <PageHeader
           title="User Account & Security Profile"
-          description="Manage your institutional profile details, permissions, and active login sessions."
           icon={User}
         />
 
@@ -62,7 +61,7 @@ export default function AccountPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
             <div className="flex items-center gap-4">
               <Avatar className="size-16 border-2 border-primary/40 shadow-md">
-                <AvatarFallback className="text-xl font-extrabold bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-500 text-white">
+                <AvatarFallback className="text-xl font-extrabold bg-gradient-to-tr from-[#0052FF] via-[#0070F3] to-[#38BDF8] text-white">
                   {user?.name ? getInitials(user.name) : "U"}
                 </AvatarFallback>
               </Avatar>
@@ -109,7 +108,7 @@ export default function AccountPage() {
             </div>
 
             <div className="flex items-start gap-3 rounded-2xl border border-border bg-card/60 p-4">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8]">
                 <Shield className="size-5" />
               </div>
               <div>

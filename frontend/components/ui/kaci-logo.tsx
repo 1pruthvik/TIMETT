@@ -43,8 +43,8 @@ export function KaciLogo({
       <defs>
         {/* Modern Vibrant Purple -> Violet -> Cyan Gradient */}
         <linearGradient id="kaci-brand-gradient" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#C084FC" />
-          <stop offset="45%" stopColor="#8B5CF6" />
+          <stop offset="0%" stopColor="#60A5FA" />
+          <stop offset="45%" stopColor="#0070F3" />
           <stop offset="100%" stopColor="#38BDF8" />
         </linearGradient>
       </defs>

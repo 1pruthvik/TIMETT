@@ -34,6 +34,7 @@ import { CommandPalette } from "@/components/ui/command-palette";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { FloatingAiChat } from "@/components/layout/floating-ai-chat";
 import { TechBackground } from "@/components/ui/tech-background";
+import { TimettLogo } from "@/components/ui/timett-logo";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -62,21 +63,6 @@ const RESOURCE_SUB_NAV = [
   { label: "Time Slots", href: "/time-slots", icon: Clock },
 ];
 
-const DEPARTMENTS = [
-  { id: "cse", name: "CSE Department", code: "CSE" },
-  { id: "aiml", name: "AI & ML Department", code: "AIML" },
-  { id: "ece", name: "ECE Department", code: "ECE" },
-  { id: "ise", name: "ISE Department", code: "ISE" },
-  { id: "eee", name: "EEE Department", code: "EEE" },
-];
-
-const TERMS = [
-  { id: "2026-27-sem1", label: "2026-27 · Semester I" },
-  { id: "2026-27-sem2", label: "2026-27 · Semester II" },
-  { id: "2025-26-sem1", label: "2025-26 · Semester I" },
-  { id: "2025-26-sem2", label: "2025-26 · Semester II" },
-];
-
 const INITIAL_NOTIFICATIONS = [
   {
     id: 1,
@@ -102,21 +88,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState("Admin User");
   const [userEmail, setUserEmail] = useState("admin@timett.io");
 
-  // Dropdown States
-  const [deptOpen, setDeptOpen] = useState(false);
-  const [selectedDept, setSelectedDept] = useState(DEPARTMENTS[0]);
-
-  const [termOpen, setTermOpen] = useState(false);
-  const [selectedTerm, setSelectedTerm] = useState(TERMS[0]);
-
   const [resDropdownOpen, setResDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Click Outside Refs
-  const deptRef = useRef<HTMLDivElement>(null);
-  const termRef = useRef<HTMLDivElement>(null);
   const resRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -143,12 +120,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } catch {}
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (deptRef.current && !deptRef.current.contains(event.target as Node)) {
-        setDeptOpen(false);
-      }
-      if (termRef.current && !termRef.current.contains(event.target as Node)) {
-        setTermOpen(false);
-      }
       if (resRef.current && !resRef.current.contains(event.target as Node)) {
         setResDropdownOpen(false);
       }
@@ -170,16 +141,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const handleSelectDept = (dept: typeof DEPARTMENTS[0]) => {
-    setSelectedDept(dept);
-    setDeptOpen(false);
-  };
-
-  const handleSelectTerm = (term: typeof TERMS[0]) => {
-    setSelectedTerm(term);
-    setTermOpen(false);
-  };
-
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
   };
@@ -198,20 +159,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Frosted Glass Top Navigation Bar ── */}
       <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-black/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]">
         <div className="flex h-[58px] items-center gap-3.5 px-5 lg:px-8">
-          {/* Logo */}
+          {/* Logo (Geometric 3D Cyan-Blue Ribbon T) */}
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 shrink-0 group py-1"
+            className="flex items-center gap-2.5 shrink-0 group py-1"
           >
-            <span className="grid size-8.5 place-items-center rounded-xl bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-[#3B0764] border border-[#A78BFA]/40 text-white shadow-[0_0_20px_rgba(139,92,246,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] group-hover:scale-105 transition-all">
-              <span className="font-heading text-sm font-black italic tracking-tight drop-shadow-md">T</span>
-            </span>
+            <TimettLogo className="size-8 drop-shadow-[0_0_12px_rgba(0,112,243,0.7)] group-hover:scale-105 transition-transform" />
             <span className="font-heading text-base font-black tracking-tight text-white">
               TIMETT
             </span>
           </Link>
 
-          <div className="h-4 w-px bg-white/[0.1] hidden lg:block mx-1" />
+          <div className="h-4 w-px bg-white/[0.1] hidden lg:block mx-1.5" />
 
           {/* ── Horizontal Navigation Tabs (Beside Logo) ── */}
           <nav
@@ -248,7 +207,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       Resources
                       <ChevronDown className={cn("size-3 text-white/50 transition-transform duration-200", resDropdownOpen ? "rotate-180" : "")} />
                       {active && (
-                        <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#7C3AED] via-[#8B5CF6] to-[#C084FC] shadow-[0_0_12px_#8B5CF6]" />
+                        <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#0052FF] via-[#0070F3] to-[#38BDF8] shadow-[0_0_12px_#0070F3]" />
                       )}
                     </button>
 
@@ -265,7 +224,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             className={cn(
                               "flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
                               pathname === sub.href
-                                ? "bg-[#8B5CF6]/20 text-[#C084FC] font-bold border border-[#8B5CF6]/30"
+                                ? "bg-[#0070F3]/20 text-[#38BDF8] font-bold border border-[#0070F3]/30"
                                 : "hover:bg-white/[0.08] text-white/90 hover:text-white"
                             )}
                           >
@@ -292,7 +251,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 >
                   {label}
                   {active && (
-                    <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#7C3AED] via-[#8B5CF6] to-[#C084FC] shadow-[0_0_12px_#8B5CF6]" />
+                    <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#0052FF] via-[#0070F3] to-[#38BDF8] shadow-[0_0_12px_#0070F3]" />
                   )}
                 </Link>
               );
@@ -324,7 +283,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Bell className="size-[17px]" />
               {unreadCount > 0 && (
-                <span className="absolute right-2 top-2 size-2 rounded-full bg-[#8B5CF6] shadow-[0_0_8px_#8B5CF6] animate-pulse" />
+                <span className="absolute right-2 top-2 size-2 rounded-full bg-[#0070F3] shadow-[0_0_8px_#0070F3] animate-pulse" />
               )}
             </Button>
 
@@ -337,7 +296,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      className="text-[11px] font-semibold text-[#8B5CF6] hover:underline cursor-pointer"
+                      className="text-[11px] font-semibold text-[#38BDF8] hover:underline cursor-pointer"
                     >
                       Mark all as read
                     </button>
@@ -350,7 +309,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       key={n.id}
                       className={`p-2.5 rounded-xl border transition-colors ${
                         n.unread
-                          ? "border-[#8B5CF6]/40 bg-[#8B5CF6]/10"
+                          ? "border-[#0070F3]/40 bg-[#0070F3]/10"
                           : "border-white/[0.06] bg-white/[0.02]"
                       }`}
                     >
@@ -379,10 +338,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen((v) => !v)}
-              className="rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/60 p-0.5"
+              className="rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0070F3]/60 p-0.5"
             >
-              <Avatar className="size-8.5 border border-white/[0.15] shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-transform hover:scale-105">
-                <AvatarFallback className="bg-gradient-to-br from-[#7C3AED] via-[#6D28D9] to-[#3B0764] text-[11px] font-black text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
+              <Avatar className="size-8.5 border border-white/[0.15] shadow-[0_0_15px_rgba(0,112,243,0.3)] transition-transform hover:scale-105">
+                <AvatarFallback className="bg-gradient-to-br from-[#0052FF] via-[#0070F3] to-[#0A1B4F] text-[11px] font-black text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -391,8 +350,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {profileOpen && (
               <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-2 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
                 <div className="flex items-center gap-3 p-2.5 border-b border-white/[0.08] mb-1">
-                  <Avatar className="size-10 border border-[#8B5CF6]/50 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
-                    <AvatarFallback className="bg-gradient-to-br from-[#7C3AED] to-[#3B0764] text-sm font-bold text-white">
+                  <Avatar className="size-10 border border-[#0070F3]/50 shadow-[0_0_15px_rgba(0,112,243,0.4)]">
+                    <AvatarFallback className="bg-gradient-to-br from-[#0052FF] to-[#0A1B4F] text-sm font-bold text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -403,8 +362,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <p className="text-[11px] text-muted-foreground truncate">
                       {userEmail}
                     </p>
-                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#A78BFA]">
-                      {selectedDept.name}
+                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#38BDF8]">
+                      CSE Department
                     </span>
                   </div>
                 </div>
@@ -476,7 +435,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     className={cn(
                       "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs transition-all whitespace-nowrap",
                       isSubActive
-                        ? "bg-gradient-to-r from-[#6D28D9] via-[#8B5CF6] to-[#A855F7] text-white shadow-[0_0_22px_rgba(139,92,246,0.6)] border border-white/30 font-bold scale-[1.03]"
+                        ? "bg-gradient-to-r from-[#0052FF] via-[#0066FF] to-[#00A3FF] text-white shadow-[0_0_20px_rgba(0,102,255,0.6)] border border-white/30 font-bold scale-[1.03]"
                         : "bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.18] text-white/70 hover:text-white font-medium shadow-xs"
                     )}
                   >
@@ -515,7 +474,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center gap-3 rounded-xl px-4 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
               >
-                <sub.icon className="size-3.5 text-[#8B5CF6]" />
+                <sub.icon className="size-3.5 text-[#0070F3]" />
                 {sub.label}
               </Link>
             ))}

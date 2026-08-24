@@ -620,7 +620,6 @@ export default function FacultyPage() {
       <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
         <PageHeader
           title="Faculty & Workload Assignments"
-          description="Manage institutional faculty categorized by Home Department and assign courses with automatic curriculum hours calculation."
           icon={Users}
         >
           <Button
@@ -642,7 +641,7 @@ export default function FacultyPage() {
 
             <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
               <DialogHeader>
-                <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
                   <span className="tt-eyebrow">Instructor Profile</span>
                 </div>
@@ -889,7 +888,6 @@ export default function FacultyPage() {
           <EmptyState
             icon={Building2}
             title="No departments found"
-            description="Create academic departments first to organize faculty members."
           />
         ) : (
           <div className="space-y-8">
@@ -901,7 +899,7 @@ export default function FacultyPage() {
                   {/* Department Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#6D28D9]/20 border border-[#8B5CF6]/30 text-[#8B5CF6]">
+                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-[#0052FF]/20 border border-[#0070F3]/30 text-[#0070F3]">
                         <Building2 className="size-5" />
                       </div>
                       <div>
@@ -912,7 +910,7 @@ export default function FacultyPage() {
                       </div>
                     </div>
 
-                    <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 font-semibold gap-1.5 px-3 py-1">
+                    <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1.5 px-3 py-1">
                       <Users className="size-3.5" />
                       {deptFaculty.length} {deptFaculty.length === 1 ? "Instructor" : "Instructors"}
                     </Badge>
@@ -978,7 +976,7 @@ export default function FacultyPage() {
                                           variant="outline"
                                           className="text-[11px] font-medium bg-muted/60 text-foreground border-border px-2.5 py-1 flex items-center gap-1.5"
                                         >
-                                          <span className="font-bold text-[#8B5CF6]">
+                                          <span className="font-bold text-[#0070F3]">
                                             {targetDept?.name || "Dept"}
                                           </span>
                                           <span className="text-muted-foreground">•</span>
@@ -1042,7 +1040,7 @@ export default function FacultyPage() {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
             <DialogHeader>
-              <div className="flex items-center gap-2 text-[#8B5CF6] mb-1">
+              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
                 <span className="tt-eyebrow">Modify Instructor</span>
               </div>

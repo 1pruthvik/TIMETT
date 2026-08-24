@@ -66,6 +66,7 @@ interface Section {
   name: string;
   department_id: number;
   student_count?: number;
+  room_number?: string;
 }
 
 interface AcademicSemester {
@@ -231,17 +232,24 @@ export default function RoomsPage() {
         setDepartments(await deptRes.json());
       }
       if (secRes && secRes.ok) {
-        setSections(await secRes.json());
+        const secsData: Section[] = await secRes.json();
+        setSections(secsData);
+
+        // Load saved text room numbers with DB priority
+        const savedSecMap = localStorage.getItem(`timett_section_room_names_${userInstId}`);
+        const parsedMap = savedSecMap ? JSON.parse(savedSecMap) : {};
+        const combinedMap: Record<number, string> = { ...parsedMap };
+        secsData.forEach((s) => {
+          if (s.room_number) {
+            combinedMap[s.id] = s.room_number;
+          }
+        });
+        setSectionRoomText(combinedMap);
       }
       if (semRes && semRes.ok) {
         setAcademicSemesters(await semRes.json());
       }
 
-      // Load saved text room numbers
-      const savedSecMap = localStorage.getItem(`timett_section_room_names_${userInstId}`);
-      if (savedSecMap) {
-        setSectionRoomText(JSON.parse(savedSecMap));
-      }
       const savedLabMap = localStorage.getItem(`timett_lab_room_names_${userInstId}`);
       if (savedLabMap) {
         setLabRoomText(JSON.parse(savedLabMap));
@@ -305,6 +313,20 @@ export default function RoomsPage() {
       JSON.stringify(updated)
     );
 
+    const sec = sections.find((s) => s.id === secId);
+    if (sec) {
+      await fetch(`${API_BASE}/sections/${secId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: sec.name,
+          department_id: sec.department_id,
+          student_count: sec.student_count || 60,
+          room_number: trimmed || null,
+        }),
+      }).catch(() => null);
+    }
+
     if (trimmed) {
       await ensureAndSaveRoom(trimmed, "Classroom");
     }
@@ -338,7 +360,7 @@ export default function RoomsPage() {
     setEditingSection(sec);
     setEditSecName(sec.name);
     setEditSecCount((sec.student_count || 60).toString());
-    setEditSecRoomNumber(sectionRoomText[sec.id] || "");
+    setEditSecRoomNumber(sectionRoomText[sec.id] || sec.room_number || "");
     setEditSecError("");
     setEditSecOpen(true);
   };
@@ -351,6 +373,7 @@ export default function RoomsPage() {
     setEditSecError("");
 
     try {
+      const trimmedRoom = editSecRoomNumber.trim();
       const res = await fetch(`${API_BASE}/sections/${editingSection.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -358,6 +381,7 @@ export default function RoomsPage() {
           name: editSecName.trim(),
           department_id: editingSection.department_id,
           student_count: parseInt(editSecCount) || 60,
+          room_number: trimmedRoom || null,
         }),
       });
 
@@ -367,7 +391,6 @@ export default function RoomsPage() {
       }
 
       // Save room number text
-      const trimmedRoom = editSecRoomNumber.trim();
       const updated = { ...sectionRoomText, [editingSection.id]: trimmedRoom };
       setSectionRoomText(updated);
       localStorage.setItem(

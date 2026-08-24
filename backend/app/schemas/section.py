@@ -5,6 +5,7 @@ class SectionCreate(BaseModel):
     department_id: int
     name: str
     student_count: int = 0
+    room_number: str | None = None
 
 
 class SectionResponse(SectionCreate):

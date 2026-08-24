@@ -247,19 +247,33 @@ async def generate_kaci_response(
             db.rollback()
             return f"ERROR adding/updating subject '{name}': {str(e)}"
 
-    def add_or_update_section(name: str, student_count: int = 60, department_name: str = "Computer Science", update_if_exists: bool = True) -> str:
-        """Add or update a student cohort section in the database.
+    def add_or_update_department(name: str) -> str:
+        """Add or update an academic department in the active workspace.
         
         Args:
-            name: Section name (e.g. 'CSE-A', 'ME-2nd-Year')
+            name: Department name (e.g. 'Computer Science & Engineering', 'Mechanical Engineering')
+        """
+        try:
+            dept = get_or_create_department(db, name, institution_id)
+            return f"PROCESSED: Department '{dept.name}' is active in the workspace."
+        except Exception as e:
+            return f"Error with department '{name}': {str(e)}"
+
+    def add_or_update_section(name: str, student_count: int = 60, department_name: str = "Computer Science", room_number: Optional[str] = None, update_if_exists: bool = True) -> str:
+        """Add or update a student cohort section and its allocated classroom in the database.
+        
+        Args:
+            name: Section name (e.g. 'CSE 1A', 'ME 2nd Year', 'AIML 1B')
             student_count: Number of students in section
             department_name: Academic department
-            update_if_exists: If True, updates existing section capacity
+            room_number: Allocated room number (e.g. 'L101', 'L102')
+            update_if_exists: If True, updates existing section capacity and room
         """
         try:
             dept = get_or_create_department(db, department_name, institution_id)
             cleaned_name = name.strip()
             count = max(int(student_count), 1)
+            cleaned_room = room_number.strip().upper() if room_number else None
 
             existing = db.query(Section).filter(
                 Section.department_id == dept.id,
@@ -269,24 +283,53 @@ async def generate_kaci_response(
                 if update_if_exists:
                     existing.student_count = count
                     existing.department_id = dept.id
+                    if cleaned_room:
+                        existing.room_number = cleaned_room
                     db.commit()
                     db.refresh(existing)
-                    return f"UPDATED: Section '{existing.name}' capacity updated to {count} students."
+                    return f"UPDATED: Section '{existing.name}' in '{dept.name}' (Strength: {count}, Room: {existing.room_number or 'Unassigned'})."
                 else:
-                    return f"EXISTING: Section '{existing.name}' already exists (Capacity: {existing.student_count})."
+                    return f"EXISTING: Section '{existing.name}' already exists (Capacity: {existing.student_count}, Room: {existing.room_number})."
 
             new_sec = Section(
                 name=cleaned_name,
                 student_count=count,
                 department_id=dept.id,
+                room_number=cleaned_room,
             )
             db.add(new_sec)
             db.commit()
             db.refresh(new_sec)
-            return f"CREATED: Added section '{new_sec.name}' with capacity {count}."
+            return f"CREATED: Added section '{new_sec.name}' in '{dept.name}' (Strength: {count}, Room: {new_sec.room_number or 'Unassigned'})."
         except Exception as e:
             db.rollback()
             return f"ERROR adding section '{name}': {str(e)}"
+
+    def assign_room_to_section(section_name: str, room_number: str) -> str:
+        """Assign or update the physical classroom allocated to a theory section.
+        
+        Args:
+            section_name: Name of section (e.g. 'CSE 1A', 'AIML 1B', 'ECE 1A')
+            room_number: Room number code (e.g. 'L101', 'L102', 'L103')
+        """
+        try:
+            inst = get_or_create_institution(db, institution_id)
+            depts = db.query(Department).filter(Department.institution_id == inst.id).all()
+            dept_ids = [d.id for d in depts]
+            sec = db.query(Section).filter(
+                Section.department_id.in_(dept_ids),
+                Section.name.ilike(section_name.strip())
+            ).first()
+            if not sec:
+                return f"Section '{section_name}' not found in workspace '{inst.name}'."
+
+            sec.room_number = room_number.strip().upper()
+            db.commit()
+            db.refresh(sec)
+            return f"ALLOCATED: Assigned room '{sec.room_number}' to section '{sec.name}'."
+        except Exception as e:
+            db.rollback()
+            return f"ERROR assigning room to section: {str(e)}"
 
     def add_or_update_constraint(type: str, hardness: str = "SOFT", weight: float = 70.0, explanation: str = "") -> str:
         """Register or update a CP-SAT solver constraint rule.
@@ -400,9 +443,11 @@ async def generate_kaci_response(
         add_or_update_room,
         update_or_rename_room,
         cleanup_obsolete_rooms,
+        add_or_update_department,
+        add_or_update_section,
+        assign_room_to_section,
         add_or_update_faculty,
         add_or_update_subject,
-        add_or_update_section,
         add_or_update_constraint,
         get_current_rooms_inventory,
     ]

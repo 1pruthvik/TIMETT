@@ -79,6 +79,8 @@ def update_section(
 
     item.department_id = data.department_id
     item.name = data.name
+    item.student_count = data.student_count
+    item.room_number = data.room_number
 
     db.commit()
     db.refresh(item)

@@ -24,3 +24,8 @@ class Section(Base):
         nullable=False,
         default=0,
     )
+
+    room_number: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )

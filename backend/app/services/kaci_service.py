@@ -63,11 +63,11 @@ def get_or_create_department(db: Session, dept_name: str) -> Department:
 def get_live_institution_context(db: Session) -> str:
     """Fetch summarized active context from the database to ground Gemini."""
     try:
-        faculty_list = [f"{f.name} ({f.designation or 'Faculty'})" for f in db.query(Faculty).limit(30).all()]
+        faculty_list = [f"{f.name} ({f.designation or 'Faculty'})" for f in db.query(Faculty).limit(40).all()]
         departments = [d.name for d in db.query(Department).all()]
-        subjects = [f"{s.name} ({s.code})" for s in db.query(Subject).limit(35).all()]
-        sections = [f"{sec.name} (Cap: {sec.student_count})" for sec in db.query(Section).limit(20).all()]
-        rooms = [f"{r.name} (Type: {r.room_type or 'CLASSROOM'}, Cap: {r.capacity})" for r in db.query(Room).limit(30).all()]
+        subjects = [f"{s.name} ({s.code})" for s in db.query(Subject).limit(40).all()]
+        sections = [f"{sec.name} (Cap: {sec.student_count})" for sec in db.query(Section).limit(25).all()]
+        rooms = [f"{r.name} (Type: {r.room_type or 'CLASSROOM'}, Cap: {r.capacity})" for r in db.query(Room).limit(40).all()]
         constraints = [f"{c.type} ({c.hardness})" for c in db.query(Constraint).filter(Constraint.active == True).limit(15).all()]
 
         context = (
@@ -76,7 +76,7 @@ def get_live_institution_context(db: Session) -> str:
             f"Faculty Members: {', '.join(faculty_list) if faculty_list else 'None'}\n"
             f"Subjects/Courses: {', '.join(subjects) if subjects else 'None'}\n"
             f"Student Sections: {', '.join(sections) if sections else 'None'}\n"
-            f"Active CP-SAT Constraints: {', '.join(constraints) if constraints else 'Standard CP-SAT single-occupancy invariants'}\n"
+            f"Active CP-SAT Constraints: {', '.join(constraints) if constraints else 'Standard single-occupancy invariants'}\n"
         )
         return context
     except Exception as e:
@@ -88,24 +88,25 @@ async def generate_kaci_response(
     history: List[Dict[str, Any]],
     db: Session
 ) -> Dict[str, Any]:
-    """Call Google Gemini with live database tool execution capabilities."""
+    """Call Google Gemini with full multi-turn conversation memory and live database upsert tools."""
     api_key = get_gemini_api_key()
 
-    # 1. If Gemini API Key is not configured yet
     if not api_key:
         return {
-            "text": f"I have received your request: \"{query}\".\n\nTo unlock live **Google Gemini** automated database actions and schedule optimization, add your API key in `backend/.env`:\n```env\nGEMINI_API_KEY=AIzaSy...\n```",
+            "text": f"I received your request: \"{query}\".\n\nTo unlock live **Google Gemini** automated database actions and schedule optimization, add your API key in `backend/.env`:\n```env\nGEMINI_API_KEY=AIzaSy...\n```",
             "model": "Kaci Local Engine",
         }
 
-    # 2. Define action functions for Gemini Tool Calling
-    def add_room_or_lab(name: str, capacity: int, room_type: str = "CLASSROOM") -> str:
-        """Add a new classroom, lecture hall, or lab to the database inventory.
+    # --- Live Database Action Tools ---
+
+    def add_or_update_room(name: str, capacity: int, room_type: str = "CLASSROOM", update_if_exists: bool = True) -> str:
+        """Add a new room/lab or update an existing room in the database.
         
         Args:
-            name: The room or lab name/number (e.g. 'Room 101', 'CS Lab 2', 'Mechanical Workshop')
-            capacity: Seating capacity (e.g. 60)
+            name: Room or Lab name (e.g. 'Room 101', 'CS Lab 2', 'Embedded Systems Lab')
+            capacity: Seating/workstation capacity (e.g. 60)
             room_type: Either 'CLASSROOM', 'LAB', 'AUDITORIUM', or 'SEMINAR_HALL'
+            update_if_exists: If True, updates existing room with new capacity/type; if False, alerts about conflict
         """
         try:
             inst = get_or_create_institution(db)
@@ -119,135 +120,262 @@ async def generate_kaci_response(
             else:
                 cleaned_type = "CLASSROOM"
 
+            cleaned_name = name.strip()
+            cap = max(int(capacity), 1)
+
+            existing = db.query(Room).filter(Room.name.ilike(cleaned_name)).first()
+            if existing:
+                if update_if_exists:
+                    old_cap = existing.capacity
+                    old_type = existing.room_type
+                    existing.capacity = cap
+                    existing.room_type = cleaned_type
+                    db.commit()
+                    db.refresh(existing)
+                    return f"UPDATED: Room '{existing.name}' was already present. Updated from (Type: {old_type}, Cap: {old_cap}) to (Type: {cleaned_type}, Cap: {cap})."
+                else:
+                    return f"EXISTING: Room '{existing.name}' already exists in database with Type: {existing.room_type}, Capacity: {existing.capacity}."
+
             new_room = Room(
-                name=name.strip(),
-                capacity=max(int(capacity), 1),
+                name=cleaned_name,
+                capacity=cap,
                 room_type=cleaned_type,
                 institution_id=inst.id,
             )
             db.add(new_room)
             db.commit()
             db.refresh(new_room)
-            return f"Successfully added {new_room.name} (Type: {new_room.room_type}, Capacity: {new_room.capacity}) to the database."
+            return f"CREATED: Added new room '{new_room.name}' (Type: {new_room.room_type}, Capacity: {new_room.capacity}) to database."
         except Exception as e:
             db.rollback()
-            return f"Error adding room: {str(e)}"
+            return f"ERROR adding/updating room '{name}': {str(e)}"
 
-    def add_faculty_member(name: str, designation: str = "Assistant Professor", department_name: str = "Computer Science") -> str:
-        """Add a new professor or faculty instructor to the institution database.
+    def add_or_update_faculty(name: str, designation: str = "Assistant Professor", department_name: str = "Computer Science", update_if_exists: bool = True) -> str:
+        """Add a new faculty member or update their department/designation.
         
         Args:
-            name: Full name of faculty (e.g. 'Dr. Robert Smith')
-            designation: Title (e.g. 'Professor', 'Assistant Professor', 'Lecturer')
-            department_name: Name of the academic department
+            name: Full name of faculty member (e.g. 'Dr. Alan Turing')
+            designation: Academic rank (e.g. 'Professor', 'Assistant Professor', 'Associate Professor')
+            department_name: Academic department
+            update_if_exists: If True, updates existing faculty
         """
         try:
             dept = get_or_create_department(db, department_name)
-            new_faculty = Faculty(
-                name=name.strip(),
+            cleaned_name = name.strip()
+            existing = db.query(Faculty).filter(Faculty.name.ilike(cleaned_name)).first()
+            if existing:
+                if update_if_exists:
+                    existing.designation = designation.strip()
+                    existing.department_id = dept.id
+                    db.commit()
+                    db.refresh(existing)
+                    return f"UPDATED: Faculty '{existing.name}' updated to {existing.designation} in department '{dept.name}'."
+                else:
+                    return f"EXISTING: Faculty '{existing.name}' already exists ({existing.designation})."
+
+            new_f = Faculty(
+                name=cleaned_name,
                 designation=designation.strip(),
                 department_id=dept.id,
             )
-            db.add(new_faculty)
+            db.add(new_f)
             db.commit()
-            db.refresh(new_faculty)
-            return f"Successfully added faculty member {new_faculty.name} ({new_faculty.designation}) to department '{dept.name}'."
+            db.refresh(new_f)
+            return f"CREATED: Added faculty member '{new_f.name}' ({new_f.designation}) to department '{dept.name}'."
         except Exception as e:
             db.rollback()
-            return f"Error adding faculty: {str(e)}"
+            return f"ERROR adding/updating faculty '{name}': {str(e)}"
 
-    def add_subject_course(name: str, code: str, department_name: str = "Computer Science") -> str:
-        """Add a new course or subject to the curriculum.
+    def add_or_update_subject(name: str, code: str, department_name: str = "Computer Science", update_if_exists: bool = True) -> str:
+        """Add a new subject course or update its details.
         
         Args:
-            name: Course name (e.g. 'Operating Systems')
-            code: Course code (e.g. 'CS205')
-            department_name: Department offering the subject
+            name: Subject/Course name (e.g. 'Machine Learning')
+            code: Course code (e.g. 'CS401')
+            department_name: Department offering the course
+            update_if_exists: If True, updates existing subject
         """
         try:
             dept = get_or_create_department(db, department_name)
-            new_subj = Subject(
-                name=name.strip(),
-                code=code.strip().upper(),
+            cleaned_code = code.strip().upper()
+            cleaned_name = name.strip()
+
+            existing = db.query(Subject).filter(
+                (Subject.code == cleaned_code) | (Subject.name.ilike(cleaned_name))
+            ).first()
+
+            if existing:
+                if update_if_exists:
+                    existing.name = cleaned_name
+                    existing.code = cleaned_code
+                    existing.department_id = dept.id
+                    db.commit()
+                    db.refresh(existing)
+                    return f"UPDATED: Course '{existing.name}' ({existing.code}) in department '{dept.name}'."
+                else:
+                    return f"EXISTING: Course '{existing.name}' ({existing.code}) already exists."
+
+            new_s = Subject(
+                name=cleaned_name,
+                code=cleaned_code,
                 department_id=dept.id,
             )
-            db.add(new_subj)
+            db.add(new_s)
             db.commit()
-            db.refresh(new_subj)
-            return f"Successfully added course {new_subj.name} ({new_subj.code}) to '{dept.name}'."
+            db.refresh(new_s)
+            return f"CREATED: Added course '{new_s.name}' ({new_s.code}) to department '{dept.name}'."
         except Exception as e:
             db.rollback()
-            return f"Error adding subject: {str(e)}"
+            return f"ERROR adding/updating subject '{name}': {str(e)}"
 
-    def add_scheduling_constraint(type: str, hardness: str = "SOFT", weight: float = 70.0, explanation: str = "") -> str:
-        """Register a new CP-SAT integer programming solver constraint rule.
+    def add_or_update_section(name: str, student_count: int = 60, department_name: str = "Computer Science", update_if_exists: bool = True) -> str:
+        """Add or update a student cohort section in the database.
+        
+        Args:
+            name: Section name (e.g. 'CSE-A', 'ME-2nd-Year')
+            student_count: Number of students in section
+            department_name: Academic department
+            update_if_exists: If True, updates existing section capacity
+        """
+        try:
+            dept = get_or_create_department(db, department_name)
+            cleaned_name = name.strip()
+            count = max(int(student_count), 1)
+
+            existing = db.query(Section).filter(Section.name.ilike(cleaned_name)).first()
+            if existing:
+                if update_if_exists:
+                    existing.student_count = count
+                    existing.department_id = dept.id
+                    db.commit()
+                    db.refresh(existing)
+                    return f"UPDATED: Section '{existing.name}' capacity updated to {count} students."
+                else:
+                    return f"EXISTING: Section '{existing.name}' already exists (Capacity: {existing.student_count})."
+
+            new_sec = Section(
+                name=cleaned_name,
+                student_count=count,
+                department_id=dept.id,
+            )
+            db.add(new_sec)
+            db.commit()
+            db.refresh(new_sec)
+            return f"CREATED: Added section '{new_sec.name}' with capacity {count}."
+        except Exception as e:
+            db.rollback()
+            return f"ERROR adding section '{name}': {str(e)}"
+
+    def add_or_update_constraint(type: str, hardness: str = "SOFT", weight: float = 70.0, explanation: str = "") -> str:
+        """Register or update a CP-SAT solver constraint rule.
         
         Args:
             type: Constraint rule identifier (e.g. 'FACULTY_MAX_CONSECUTIVE_HOURS', 'LAB_MORNING_PREFERENCE')
-            hardness: Either 'HARD' (mandatory) or 'SOFT' (preference)
+            hardness: 'HARD' (mandatory) or 'SOFT' (preference)
             weight: Priority penalty weight from 1.0 to 100.0 (if SOFT)
-            explanation: Description of what this constraint enforces
+            explanation: Description of the constraint
         """
         try:
+            cleaned_type = type.strip().upper()
+            existing = db.query(Constraint).filter(Constraint.type == cleaned_type).first()
+            if existing:
+                existing.hardness = hardness.strip().upper()
+                existing.weight = float(weight)
+                if explanation:
+                    existing.explanation = explanation.strip()
+                existing.active = True
+                db.commit()
+                db.refresh(existing)
+                return f"UPDATED: Constraint '{existing.type}' updated to {existing.hardness} (Weight: {existing.weight})."
+
             new_c = Constraint(
                 scope="GLOBAL",
-                type=type.strip().upper(),
+                type=cleaned_type,
                 hardness=hardness.strip().upper(),
                 weight=float(weight),
-                explanation=explanation.strip() or f"Enforce {type}",
+                explanation=explanation.strip() or f"Enforce {cleaned_type}",
                 source="KACI_AI",
                 active=True,
             )
             db.add(new_c)
             db.commit()
             db.refresh(new_c)
-            return f"Successfully registered constraint '{new_c.type}' ({new_c.hardness}, Weight: {new_c.weight}) in the CP-SAT engine."
+            return f"CREATED: Registered constraint '{new_c.type}' ({new_c.hardness}, Weight: {new_c.weight})."
         except Exception as e:
             db.rollback()
-            return f"Error adding constraint: {str(e)}"
+            return f"ERROR registering constraint '{type}': {str(e)}"
+
+    def get_current_rooms_inventory() -> str:
+        """Fetch the current list of all rooms and labs registered in the database."""
+        try:
+            all_rooms = db.query(Room).all()
+            if not all_rooms:
+                return "No rooms or labs are currently registered in the database."
+            return "\n".join([f"- {r.name}: Type={r.room_type}, Capacity={r.capacity}" for r in all_rooms])
+        except Exception as e:
+            return f"Error retrieving rooms: {str(e)}"
 
     tools = [
-        add_room_or_lab,
-        add_faculty_member,
-        add_subject_course,
-        add_scheduling_constraint,
+        add_or_update_room,
+        add_or_update_faculty,
+        add_or_update_subject,
+        add_or_update_section,
+        add_or_update_constraint,
+        get_current_rooms_inventory,
     ]
 
     context = get_live_institution_context(db)
 
     system_instruction = (
         "You are Kaci, the premier institutional AI Assistant for TIMETT Studio. "
-        "You have direct capabilities to perform actions in the institution database (adding rooms, labs, faculty, "
-        "courses, and CP-SAT constraint rules) using your provided tools.\n\n"
-        "Rules:\n"
-        "1. When the user asks to add, create, or import rooms, labs, faculty, courses, or constraints, ALWAYS invoke the corresponding tools to save them directly to the database.\n"
-        "2. Do NOT just output hypothetical python code when asked to add items — invoke the tool and confirm the database insertion.\n"
-        "3. Format all responses using clean, beautiful GitHub-flavored Markdown (bolding, headers, bullet points, code blocks).\n"
-        "4. Be helpful, concise, and professional.\n\n"
+        "You have direct capabilities to perform actions in the institution database (adding/updating rooms, labs, faculty, "
+        "courses, sections, and CP-SAT constraint rules) using your provided tools.\n\n"
+        "Crucial Behavioral Rules:\n"
+        "1. ALWAYS inspect the entire conversation history to extract items (rooms, labs, faculty, courses, sections) mentioned in previous turns.\n"
+        "2. When the user says 'add these', 'add to rooms and labs', 'update if already exists', 'save these', extract EVERY item mentioned in the prior messages or current prompt and invoke the appropriate tool (`add_or_update_room`, `add_or_update_faculty`, etc.) for each one.\n"
+        "3. Do NOT ask the user to re-type or re-paste items if they were already discussed or listed earlier in the conversation history.\n"
+        "4. If an item already exists and user wants to update it, pass `update_if_exists=True` to the tool.\n"
+        "5. After executing the tools, always present a clean, clear Markdown summary table of what was CREATED, what was UPDATED, and what was UNCHANGED.\n"
+        "6. If the user asks for scheduling advice or constraint analysis, explain it concisely and offer to formulate it.\n\n"
         f"Live Database State:\n{context}"
     )
 
     try:
         client = genai.Client(api_key=api_key)
 
+        # Build proper multi-turn history content objects for Gemini
+        history_contents = []
+        for msg in history[-14:]:  # last 14 messages for rich context
+            role = "user" if msg.get("sender") == "user" else "model"
+            text = msg.get("text", "").strip()
+            if text:
+                history_contents.append(types.Content(
+                    role=role,
+                    parts=[types.Part.from_text(text=text)]
+                ))
+
+        # Ensure history starts with user and alternates properly
+        sanitized_history = []
+        for i, c in enumerate(history_contents):
+            if i == 0 and c.role != "user":
+                continue
+            if sanitized_history and sanitized_history[-1].role == c.role:
+                # Merge consecutive parts of same role
+                sanitized_history[-1].parts.extend(c.parts)
+            else:
+                sanitized_history.append(c)
+
         for model_name in CANDIDATE_MODELS:
             try:
                 chat = client.chats.create(
                     model=model_name,
+                    history=sanitized_history,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
                         tools=tools,
-                        temperature=0.2,
+                        temperature=0.1,
                     ),
                 )
-
-                # Send previous history turns if any
-                for msg in history[-4:]:
-                    sender = "User" if msg.get("sender") == "user" else "Kaci"
-                    text = msg.get("text", "")
-                    if text:
-                        # Feed context into chat
-                        pass
 
                 resp = chat.send_message(query)
                 if resp and resp.text:
@@ -256,6 +384,7 @@ async def generate_kaci_response(
                         "model": f"Gemini ({model_name})",
                     }
             except Exception as model_err:
+                print(f"[Kaci] Model {model_name} error: {model_err}")
                 continue
 
     except Exception as e:
@@ -265,6 +394,6 @@ async def generate_kaci_response(
         }
 
     return {
-        "text": "Unable to complete request from Gemini at this moment.",
+        "text": "Unable to complete the request from Gemini at this moment.",
         "model": "Gemini",
     }

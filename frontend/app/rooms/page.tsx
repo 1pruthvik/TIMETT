@@ -83,12 +83,13 @@ function getDeptAcronym(name: string): string {
   return words.map((w) => w[0]).join("").toUpperCase().slice(0, 4);
 }
 
-function getDeptLabs(dept: Department, allRooms: Room[]): Room[] {
+function getDeptLabs(dept: Department, allRooms: Room[], allDepts: Department[]): Room[] {
+  const isLab = (r: Room) => (r.room_type || "").toUpperCase() === "LAB" || (r.room_type || "").toUpperCase() === "LABORATORY";
   const acronym = getDeptAcronym(dept.name).toLowerCase();
   const fullName = dept.name.toLowerCase();
 
-  return allRooms.filter((r) => {
-    if (r.room_type !== "Lab") return false;
+  const explicitDeptLabs = allRooms.filter((r) => {
+    if (!isLab(r)) return false;
     const roomName = r.name.toLowerCase();
     return (
       roomName.includes(fullName) ||
@@ -98,6 +99,18 @@ function getDeptLabs(dept: Department, allRooms: Room[]): Room[] {
       roomName.includes(`${acronym} `)
     );
   });
+
+  if (explicitDeptLabs.length > 0) return explicitDeptLabs;
+
+  // If labs follow standard floor codes (e.g. L106, L107, L206), distribute campus labs across departments
+  const allGeneralLabs = allRooms.filter(isLab);
+  if (allGeneralLabs.length === 0) return [];
+
+  const deptIndex = allDepts.findIndex((d) => d.id === dept.id);
+  const safeIndex = deptIndex >= 0 ? deptIndex : 0;
+  const countPerDept = Math.max(2, Math.ceil(allGeneralLabs.length / (allDepts.length || 1)));
+  const start = safeIndex * countPerDept;
+  return allGeneralLabs.slice(start, start + countPerDept);
 }
 
 function isSectionForSemester(secName: string, semName: string): boolean {
@@ -602,11 +615,16 @@ export default function RoomsPage() {
               </div>
             )}
             <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
-              {rooms.filter((r) => r.room_type !== "Lab").length} Classrooms
+              {rooms.filter((r) => (r.room_type || "").toUpperCase() !== "LAB" && !r.room_type?.toUpperCase().includes("AUD") && !r.room_type?.toUpperCase().includes("SEM")).length} Classrooms
             </Badge>
             <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
-              {rooms.filter((r) => r.room_type === "Lab").length} Labs
+              {rooms.filter((r) => (r.room_type || "").toUpperCase() === "LAB").length} Labs
             </Badge>
+            {rooms.some((r) => r.room_type?.toUpperCase().includes("AUD") || r.room_type?.toUpperCase().includes("SEM")) && (
+              <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+                {rooms.filter((r) => r.room_type?.toUpperCase().includes("AUD") || r.room_type?.toUpperCase().includes("SEM")).length} Halls
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -623,7 +641,7 @@ export default function RoomsPage() {
           <div className="space-y-6">
             {filteredDepartments.map((dept) => {
               const deptSections = sections.filter((s) => s.department_id === dept.id);
-              const deptLabs = getDeptLabs(dept, rooms);
+              const deptLabs = getDeptLabs(dept, rooms, departments);
               const semesterGroups = groupSectionsBySemester(deptSections, academicSemesters);
 
               return (

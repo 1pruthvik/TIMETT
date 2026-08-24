@@ -327,11 +327,69 @@ async def generate_kaci_response(
             db.rollback()
             return f"ERROR registering constraint '{type}': {str(e)}"
 
+    def update_or_rename_room(old_name: str, new_name: str, new_capacity: Optional[int] = None, new_room_type: Optional[str] = None) -> str:
+        """Update or rename an existing room in place rather than creating a duplicate new room.
+        
+        Args:
+            old_name: Current name of the room to modify (e.g. 'Room 101' or 'CSE Lab 1')
+            new_name: New standard name (e.g. 'L101' or 'L106')
+            new_capacity: Updated capacity (e.g. 60)
+            new_room_type: Updated space type ('CLASSROOM', 'LAB', 'AUDITORIUM', 'SEMINAR_HALL')
+        """
+        try:
+            inst = get_or_create_institution(db, institution_id)
+            room = db.query(Room).filter(Room.institution_id == inst.id, Room.name.ilike(old_name.strip())).first()
+            if not room:
+                return f"Room '{old_name}' not found in workspace '{inst.name}'."
+            
+            old_title = room.name
+            room.name = new_name.strip()
+            if new_capacity is not None:
+                room.capacity = max(int(new_capacity), 1)
+            if new_room_type:
+                cleaned_type = new_room_type.upper().strip()
+                if "LAB" in cleaned_type:
+                    cleaned_type = "LAB"
+                elif "AUD" in cleaned_type:
+                    cleaned_type = "AUDITORIUM"
+                elif "SEM" in cleaned_type:
+                    cleaned_type = "SEMINAR_HALL"
+                else:
+                    cleaned_type = "CLASSROOM"
+                room.room_type = cleaned_type
+            
+            db.commit()
+            db.refresh(room)
+            return f"UPDATED IN-PLACE: Room '{old_title}' renamed to '{room.name}' (Type: {room.room_type}, Capacity: {room.capacity})."
+        except Exception as e:
+            db.rollback()
+            return f"Error updating room '{old_name}': {str(e)}"
+
+    def cleanup_obsolete_rooms(room_names_to_delete: List[str]) -> str:
+        """Remove obsolete, duplicate, or old test room names from the active workspace.
+        
+        Args:
+            room_names_to_delete: List of room names to delete from database
+        """
+        try:
+            inst = get_or_create_institution(db, institution_id)
+            deleted = []
+            for name in room_names_to_delete:
+                r = db.query(Room).filter(Room.institution_id == inst.id, Room.name.ilike(name.strip())).first()
+                if r:
+                    db.delete(r)
+                    deleted.append(r.name)
+            db.commit()
+            return f"CLEANED: Removed {len(deleted)} obsolete rooms: {', '.join(deleted)}"
+        except Exception as e:
+            db.rollback()
+            return f"Error cleaning rooms: {str(e)}"
+
     def get_current_rooms_inventory() -> str:
         """Fetch the current list of all rooms and labs registered in the database for the active workspace."""
         try:
             inst = get_or_create_institution(db, institution_id)
-            all_rooms = db.query(Room).filter(Room.institution_id == inst.id).all()
+            all_rooms = db.query(Room).filter(Room.institution_id == inst.id).order_by(Room.name).all()
             if not all_rooms:
                 return f"No rooms or labs are currently registered in workspace '{inst.name}'."
             return "\n".join([f"- {r.name}: Type={r.room_type}, Capacity={r.capacity}" for r in all_rooms])
@@ -340,6 +398,8 @@ async def generate_kaci_response(
 
     tools = [
         add_or_update_room,
+        update_or_rename_room,
+        cleanup_obsolete_rooms,
         add_or_update_faculty,
         add_or_update_subject,
         add_or_update_section,

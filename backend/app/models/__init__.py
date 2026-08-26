@@ -1,11 +1,16 @@
 from app.models.institution import Institution
 from app.models.department import Department
+from app.models.stream import Stream
+from app.models.branch import Branch
 from app.models.academic_year import AcademicYear
 from app.models.semester import Semester
 from app.models.faculty import Faculty
 from app.models.subject import Subject
 from app.models.section import Section
+from app.models.batch import Batch
 from app.models.room import Room
+from app.models.lab import Lab
+from app.models.lab_subject_mapping import LabSubjectMapping
 from app.models.time_slot import TimeSlot
 from app.models.faculty_availability import FacultyAvailability
 from app.models.subject_offering import SubjectOffering
@@ -14,4 +19,31 @@ from app.models.timetable_entry import TimetableEntry
 from app.models.constraint import Constraint
 from app.models.timetable_version import TimetableVersion
 from app.models.generation_run import GenerationRun
+from app.models.document import Document
 from app.models.user import User
+
+__all__ = [
+    "Institution",
+    "Department",
+    "Stream",
+    "Branch",
+    "AcademicYear",
+    "Semester",
+    "Faculty",
+    "Subject",
+    "Section",
+    "Batch",
+    "Room",
+    "Lab",
+    "LabSubjectMapping",
+    "TimeSlot",
+    "FacultyAvailability",
+    "SubjectOffering",
+    "Timetable",
+    "TimetableEntry",
+    "Constraint",
+    "TimetableVersion",
+    "GenerationRun",
+    "Document",
+    "User",
+]

@@ -18,6 +18,7 @@ import {
   Sparkles,
   User,
   Users,
+  FileText,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme/theme-provider";
@@ -27,6 +28,7 @@ import { TimettLogo } from "@/components/ui/timett-logo";
 import { cn } from "@/lib/utils";
 
 const RESOURCE_SUB_NAV = [
+  { label: "Document Ingestion", href: "/documents", icon: FileText },
   { label: "Academic Terms", href: "/academic-terms", icon: CalendarRange },
   { label: "Departments", href: "/departments", icon: Building2 },
   { label: "Rooms & Labs", href: "/rooms", icon: DoorOpen },
@@ -51,6 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isResourcePage = [
+    "/documents",
     "/academic-terms",
     "/departments",
     "/rooms",

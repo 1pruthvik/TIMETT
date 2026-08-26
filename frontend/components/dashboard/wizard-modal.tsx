@@ -300,7 +300,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                       }`}
                     >
                       {selectedYear === "1"
-                        ? "1st Sem (Physics / Chem Cycle)"
+                        ? "1st Sem"
                         : selectedYear === "2"
                         ? "3rd Sem"
                         : selectedYear === "3"
@@ -314,13 +314,14 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                       }`}
                     >
                       {selectedYear === "1"
-                        ? "2nd Sem (Physics / Chem Cycle)"
+                        ? "2nd Sem"
                         : selectedYear === "2"
                         ? "4th Sem"
                         : selectedYear === "3"
                         ? "6th Sem"
                         : "8th Sem"}
                     </button>
+
                   </div>
                 </div>
               </div>

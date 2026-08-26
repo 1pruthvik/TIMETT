@@ -12,7 +12,9 @@ import {
   Users,
   BookOpen,
   Layers3,
+  Layers,
   Sparkles,
+
   Building2,
   Clock,
   CalendarRange,
@@ -84,6 +86,11 @@ const managementItems: NavItemDef[] = [
     icon: Clock,
   },
   {
+    title: "Streams & Cycles",
+    url: "/streams",
+    icon: Layers,
+  },
+  {
     title: "Kaci",
     url: "/constraints",
     icon: KaciLogo,
@@ -94,6 +101,7 @@ const managementItems: NavItemDef[] = [
     icon: Layers3,
   },
 ];
+
 
 function NavItem({ item, pathname }: { item: NavItemDef; pathname: string }) {
   const isActive = pathname === item.url;

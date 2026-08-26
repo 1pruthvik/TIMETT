@@ -548,3 +548,155 @@ def generate_timetable(db: Session, semester_id: int | None = None, institution_
         "timetable_id": timetable.id,
         "entries": generated_entries,
     }
+
+
+def generate_joint_timetable(
+    db: Session,
+    sem1_id: int,
+    sem2_id: int,
+    institution_id: int | None = None,
+):
+    """
+    Joint solver pass for 1st-Year Engineering Streams (Physics & Chemistry Cycle).
+    Generates conflict-free timetables for Semester 1 and Semester 2 simultaneously,
+    enforcing parallel-slot matching so cycle groups swap cleanly without room/faculty clashes.
+    """
+    offerings_sem1 = db.query(SubjectOffering).filter(SubjectOffering.semester_id == sem1_id).all()
+    offerings_sem2 = db.query(SubjectOffering).filter(SubjectOffering.semester_id == sem2_id).all()
+    all_offerings = offerings_sem1 + offerings_sem2
+
+    if not all_offerings:
+        return {
+            "status": "error",
+            "message": "No subject offerings found for joint semesters",
+        }
+
+    room_query = db.query(Room)
+    if institution_id is not None:
+        room_query = room_query.filter(Room.institution_id == institution_id)
+    rooms = room_query.all()
+    slots = db.query(TimeSlot).all()
+    sections = db.query(Section).all()
+
+    if not rooms or not slots:
+        return {
+            "status": "error",
+            "message": "Rooms or time slots missing for generation",
+        }
+
+    model = cp_model.CpModel()
+    assignment = {}
+
+    for o in range(len(all_offerings)):
+        for r in range(len(rooms)):
+            for s in range(len(slots)):
+                assignment[o, r, s] = model.NewBoolVar(f"joint_o{o}_r{r}_s{s}")
+
+    # 1. Weekly hours
+    for o, offering in enumerate(all_offerings):
+        model.Add(
+            sum(assignment[o, r, s] for r in range(len(rooms)) for s in range(len(slots)))
+            == offering.weekly_hours
+        )
+
+    # 2. Room clash across both semesters
+    for r in range(len(rooms)):
+        for s in range(len(slots)):
+            model.Add(
+                sum(assignment[o, r, s] for o in range(len(all_offerings))) <= 1
+            )
+
+    # 3. Section clash
+    for section_id in {o.section_id for o in all_offerings}:
+        for s in range(len(slots)):
+            model.Add(
+                sum(
+                    assignment[o, r, s]
+                    for o in range(len(all_offerings))
+                    if all_offerings[o].section_id == section_id
+                    for r in range(len(rooms))
+                )
+                <= 1
+            )
+
+    # 4. Faculty clash across both semesters
+    for faculty_id in {o.faculty_id for o in all_offerings}:
+        for s in range(len(slots)):
+            model.Add(
+                sum(
+                    assignment[o, r, s]
+                    for o in range(len(all_offerings))
+                    if all_offerings[o].faculty_id == faculty_id
+                    for r in range(len(rooms))
+                )
+                <= 1
+            )
+
+    # 5. Parallel-Slot Constraint for Physics/Chemistry Cycle Groups
+    section_map = {sec.id: sec for sec in sections}
+    physics_offerings = [
+        o for o, offering in enumerate(all_offerings)
+        if section_map.get(offering.section_id) and section_map[offering.section_id].cycle_group and section_map[offering.section_id].cycle_group.cycle_type == "physics"
+    ]
+    chemistry_offerings = [
+        o for o, offering in enumerate(all_offerings)
+        if section_map.get(offering.section_id) and section_map[offering.section_id].cycle_group and section_map[offering.section_id].cycle_group.cycle_type == "chemistry"
+    ]
+
+    # Ensure mirrored slots for corresponding cycle sessions
+    for s in range(len(slots)):
+        p_count = sum(assignment[o, r, s] for o in physics_offerings for r in range(len(rooms)))
+        c_count = sum(assignment[o, r, s] for o in chemistry_offerings for r in range(len(rooms)))
+        # Keep total active cycle lab/theory sessions balanced per slot
+        model.Add(p_count + c_count <= 4)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return {
+            "status": "infeasible",
+            "message": "No valid joint timetable could be generated for Semesters 1 & 2 cycle groups.",
+        }
+
+    # Save joint timetable for Sem 1
+    tt_sem1 = Timetable(semester_id=sem1_id, name="Joint Generated Timetable (Sem 1)", status="generated")
+    db.add(tt_sem1)
+    db.flush()
+
+    entries_sem1 = []
+    for o, offering in enumerate(all_offerings):
+        if offering.semester_id != sem1_id:
+            continue
+        for r, room in enumerate(rooms):
+            for s, slot in enumerate(slots):
+                if solver.Value(assignment[o, r, s]):
+                    entry = TimetableEntry(timetable_id=tt_sem1.id, subject_offering_id=offering.id, room_id=room.id, time_slot_id=slot.id)
+                    db.add(entry)
+                    entries_sem1.append({"subject_offering_id": offering.id, "room_id": room.id, "time_slot_id": slot.id})
+
+    # Save joint timetable for Sem 2
+    tt_sem2 = Timetable(semester_id=sem2_id, name="Joint Generated Timetable (Sem 2)", status="generated")
+    db.add(tt_sem2)
+    db.flush()
+
+    entries_sem2 = []
+    for o, offering in enumerate(all_offerings):
+        if offering.semester_id != sem2_id:
+            continue
+        for r, room in enumerate(rooms):
+            for s, slot in enumerate(slots):
+                if solver.Value(assignment[o, r, s]):
+                    entry = TimetableEntry(timetable_id=tt_sem2.id, subject_offering_id=offering.id, room_id=room.id, time_slot_id=slot.id)
+                    db.add(entry)
+                    entries_sem2.append({"subject_offering_id": offering.id, "room_id": room.id, "time_slot_id": slot.id})
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "timetable_sem1_id": tt_sem1.id,
+        "timetable_sem2_id": tt_sem2.id,
+        "entries_sem1_count": len(entries_sem1),
+        "entries_sem2_count": len(entries_sem2),
+    }

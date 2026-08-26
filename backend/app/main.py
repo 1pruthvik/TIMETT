@@ -21,6 +21,8 @@ from app.api.routes.timetable_versions import router as timetable_version_router
 from app.api.routes.generation_runs import router as generation_run_router
 from app.api.routes.generator import router as generator_router
 from app.api.routes.kaci import router as kaci_router
+from app.api.routes.streams import router as stream_router
+from app.api.routes.cycle_groups import router as cycle_group_router
 
 
 app = FastAPI(
@@ -62,5 +64,8 @@ app.include_router(timetable_version_router)
 app.include_router(generation_run_router)
 app.include_router(generator_router)
 app.include_router(kaci_router)
+app.include_router(stream_router)
+app.include_router(cycle_group_router)
+
 
 

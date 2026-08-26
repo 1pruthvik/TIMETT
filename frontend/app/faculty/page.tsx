@@ -898,22 +898,15 @@ export default function FacultyPage() {
                 <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
                   {/* Department Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-[#0052FF]/20 border border-[#0070F3]/30 text-[#0070F3]">
-                        <Building2 className="size-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Faculty Instructors & Total Weekly Workloads
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="size-5 text-muted-foreground stroke-[1.75]" />
+                      <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
                     </div>
 
-                    <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1.5 px-3 py-1">
+                    <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                       <Users className="size-3.5" />
-                      {deptFaculty.length} {deptFaculty.length === 1 ? "Instructor" : "Instructors"}
-                    </Badge>
+                      <span>{deptFaculty.length} {deptFaculty.length === 1 ? "Instructor" : "Instructors"}</span>
+                    </div>
                   </div>
 
                   {/* Faculty Roster in this Department */}
@@ -945,9 +938,9 @@ export default function FacultyPage() {
                                 </div>
 
                                 <div className="text-right">
-                                  <Badge className="bg-primary/15 text-primary border border-primary/30 font-mono font-bold text-xs px-2.5 py-1">
+                                  <span className="font-mono font-bold text-xs text-foreground block">
                                     {totalHours > 0 ? `${totalHours} hrs/week` : "0 hrs/week"}
-                                  </Badge>
+                                  </span>
                                   <span className="text-[10px] text-muted-foreground block mt-0.5">
                                     Total Teaching Load
                                   </span>

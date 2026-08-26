@@ -451,7 +451,7 @@ export default function AcademicTermsPage() {
           <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
               <h3 className="text-base font-bold text-foreground">Academic Years</h3>
-              <span className="rounded-full bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] px-2.5 py-0.5 text-xs font-bold border border-[#0070F3]/20">
+              <span className="text-xs font-medium text-muted-foreground">
                 {academicYears.length} Years
               </span>
             </div>
@@ -513,7 +513,7 @@ export default function AcademicTermsPage() {
           <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
               <h3 className="text-base font-bold text-foreground">Semesters</h3>
-              <span className="rounded-full bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] px-2.5 py-0.5 text-xs font-bold border border-[#0070F3]/20">
+              <span className="text-xs font-medium text-muted-foreground">
                 {semesters.length} Semesters
               </span>
             </div>

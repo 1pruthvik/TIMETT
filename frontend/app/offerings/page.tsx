@@ -514,12 +514,7 @@ export default function OfferingsPage() {
 
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <div>
-              <h3 className="text-base font-bold text-foreground">Active Subject Offerings</h3>
-              <p className="text-xs text-muted-foreground">
-                {offerings.length} {offerings.length === 1 ? "course mapping" : "course mappings"} configured
-              </p>
-            </div>
+            <h3 className="text-base font-bold text-foreground">Active Subject Offerings</h3>
           </div>
 
           <div className="p-4 sm:p-6">

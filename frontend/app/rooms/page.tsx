@@ -654,27 +654,20 @@ export default function RoomsPage() {
                 <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
                   {/* Department Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-[#0052FF]/20 border border-[#0070F3]/30 text-[#0070F3]">
-                        <Building2 className="size-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Department Allocation Matrix ({semesterGroups.length} Active Semesters)
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="size-5 text-muted-foreground stroke-[1.75]" />
+                      <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1.5 px-3 py-1">
+                    <div className="flex items-center gap-3">
+                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                         <GraduationCap className="size-3.5" />
-                        {deptSections.length} Sections
-                      </Badge>
-                      <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30 font-semibold gap-1.5 px-3 py-1">
+                        <span>{deptSections.length} Sections</span>
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                         <FlaskConical className="size-3.5" />
-                        {deptLabs.length} Labs
-                      </Badge>
+                        <span>{deptLabs.length} Labs</span>
+                      </div>
                     </div>
                   </div>
 
@@ -711,12 +704,9 @@ export default function RoomsPage() {
                                   <GraduationCap className="size-3.5 text-[#0070F3]" />
                                   {group.semTitle}
                                 </span>
-                                <Badge
-                                  variant="outline"
-                                  className="text-[10px] font-semibold bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/20"
-                                >
+                                <span className="text-[11px] font-medium text-muted-foreground">
                                   {group.sections.length} {group.sections.length === 1 ? "Section" : "Sections"}
-                                </Badge>
+                                </span>
                               </div>
 
                               {/* Section Items under this Semester */}

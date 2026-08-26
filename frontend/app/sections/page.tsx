@@ -406,12 +406,7 @@ export default function SectionsPage() {
 
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <div>
-              <h3 className="text-base font-bold text-foreground">Active Cohort Roster</h3>
-              <p className="text-xs text-muted-foreground">
-                {sections.length} {sections.length === 1 ? "cohort" : "cohorts"} registered across all departments
-              </p>
-            </div>
+            <h3 className="text-base font-bold text-foreground">Active Cohort Roster</h3>
           </div>
 
           <div className="p-4 sm:p-6">
@@ -457,12 +452,12 @@ export default function SectionsPage() {
                           </TableCell>
                           <TableCell>
                             {isLab ? (
-                              <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-300">
-                                <FlaskConical className="size-3" /> Practical Lab
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                <FlaskConical className="size-3.5" /> Practical Lab
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/30 px-2 py-0.5 text-xs font-bold text-[#0070F3] dark:text-[#38BDF8]">
-                                <GraduationCap className="size-3" /> Theory Section
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                <GraduationCap className="size-3.5" /> Theory Section
                               </span>
                             )}
                           </TableCell>
@@ -471,9 +466,9 @@ export default function SectionsPage() {
                           </TableCell>
                           <TableCell>
                             {mappedRoom ? (
-                              <Badge variant="outline" className="font-semibold text-xs border-primary/30 text-primary bg-primary/10">
+                              <span className="font-mono text-xs font-bold text-foreground">
                                 {mappedRoom.name}
-                              </Badge>
+                              </span>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">Dynamic Allocation</span>
                             )}

@@ -386,7 +386,7 @@ export default function SubjectsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
             title="Refresh subjects"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -394,11 +394,11 @@ export default function SubjectsPage() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
                 <Plus className="size-4" /> Add Subject
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[480px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -422,7 +422,7 @@ export default function SubjectsPage() {
                       value={selectedDeptId}
                       onChange={(e) => setSelectedDeptId(Number(e.target.value))}
                       required
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer border-0"
                     >
                       {departments.map((d) => (
                         <option key={d.id} value={d.id}>
@@ -440,7 +440,7 @@ export default function SubjectsPage() {
                       value={selectedSemName}
                       onChange={(e) => setSelectedSemName(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer border-0"
                     >
                       {availableSemesters.map((s) => (
                         <option key={s} value={s}>
@@ -460,7 +460,7 @@ export default function SubjectsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                   />
                 </div>
 
@@ -474,7 +474,7 @@ export default function SubjectsPage() {
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                       required
-                      className="rounded-xl border-border bg-muted/40 font-mono"
+                      className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center uppercase"
                     />
                   </div>
 
@@ -485,7 +485,7 @@ export default function SubjectsPage() {
                     <select
                       value={subjectType}
                       onChange={(e) => setSubjectType(e.target.value as "Theory" | "Lab" | "Elective")}
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer border-0"
                     >
                       {SUBJECT_TYPES.map((t) => (
                         <option key={t.value} value={t.value}>
@@ -505,7 +505,7 @@ export default function SubjectsPage() {
                       placeholder="4"
                       value={weeklyHours}
                       onChange={(e) => setWeeklyHours(e.target.value)}
-                      className="rounded-xl border-border bg-muted/40 font-mono"
+                      className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                     />
                   </div>
                 </div>
@@ -521,7 +521,7 @@ export default function SubjectsPage() {
                   <Button
                     type="submit"
                     disabled={submitting || !name.trim() || !code.trim() || !selectedDeptId}
-                    className="tt-gradient-btn rounded-xl font-bold w-full"
+                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
                   >
                     {submitting ? "Saving..." : "Save Subject"}
                   </Button>
@@ -531,29 +531,29 @@ export default function SubjectsPage() {
           </Dialog>
         </PageHeader>
 
-        {/* Search & Overview Stats */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-80">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        {/* Search & Overview Stats with Generous Padding */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+          <div className="relative w-full sm:w-96">
+            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search subjects or departments..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 rounded-xl bg-card border-border text-xs"
+              className="h-11 pl-10 pr-4 rounded-2xl bg-muted/40 border-0 text-sm"
             />
           </div>
 
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
               {departments.length} Departments
             </Badge>
-            <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
               {subjects.length} Total Subjects
             </Badge>
           </div>
         </div>
 
-        {/* Hierarchical Departments -> Semesters -> Subjects List */}
+        {/* Hierarchical Departments -> Semesters -> Subjects List (Unboxed) */}
         {loading ? (
           <LoadingState text="Loading department curriculum & semester subjects..." />
         ) : departments.length === 0 ? (
@@ -562,7 +562,7 @@ export default function SubjectsPage() {
             title="No departments found"
           />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12 pt-2">
             {filteredDepartments.map((dept) => {
               const deptSubjects = subjects.filter((s) => s.department_id === dept.id);
               const semesterGroups = getSemesterGroupsForDept(
@@ -572,47 +572,43 @@ export default function SubjectsPage() {
               );
 
               return (
-                <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
+                <div key={dept.id} className="space-y-4">
                   {/* Department Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
-                    <div className="flex items-center gap-2.5">
-                      <Building2 className="size-5 text-muted-foreground stroke-[1.75]" />
-                      <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
+                      <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                        <BookOpen className="size-3.5" />
+                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+                        <BookOpen className="size-4 text-[#0070F3]" />
                         <span>{deptSubjects.length} {deptSubjects.length === 1 ? "Subject" : "Subjects"}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Semesters under this Department */}
-                  <div className="p-5 space-y-6 bg-card/30">
+                  <div className="space-y-8 pt-2">
                     {semesterGroups.map((group) => {
                       return (
                         <div
                           key={group.semTitle}
-                          className={`rounded-2xl border ${
-                            group.isUnassigned
-                              ? "border-amber-500/40 bg-amber-500/5"
-                              : "border-border/70 bg-card/50"
-                          } p-4 space-y-3`}
+                          className="space-y-3"
                         >
                           {/* Semester Sub-header with Quick Add Button */}
-                          <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                          <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
                             <div className="flex items-center gap-2">
                               {group.isUnassigned ? (
                                 <Info className="size-4 text-amber-500" />
                               ) : (
                                 <GraduationCap className="size-4 text-[#0070F3]" />
                               )}
-                              <span className="text-xs font-bold text-foreground">
+                              <span className="text-sm font-bold text-foreground">
                                 {group.semTitle}
                               </span>
-                              <span className="text-[11px] font-medium text-muted-foreground">
-                                {group.subjects.length} {group.subjects.length === 1 ? "Subject" : "Subjects"}
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                ({group.subjects.length} {group.subjects.length === 1 ? "Subject" : "Subjects"})
                               </span>
                             </div>
 
@@ -620,7 +616,7 @@ export default function SubjectsPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => openAddForDeptAndSem(dept.id, group.semTitle)}
-                              className="h-7 text-xs rounded-lg gap-1.5 font-bold border-border bg-card hover:bg-muted text-primary cursor-pointer"
+                              className="h-8 text-xs rounded-xl px-3 gap-1.5 font-bold border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
                             >
                               <Plus className="size-3.5" /> Add Subject to {group.semTitle}
                             </Button>
@@ -632,7 +628,7 @@ export default function SubjectsPage() {
                               No subjects registered for {group.semTitle} in this department. Click &ldquo;Add Subject to {group.semTitle}&rdquo; to configure courses.
                             </p>
                           ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {group.subjects.map((sub) => {
                                 const meta = subjectMetaMap[sub.id];
                                 const type = meta?.subjectType || (sub.name.toLowerCase().includes("lab") ? "Lab" : "Theory");
@@ -641,27 +637,27 @@ export default function SubjectsPage() {
                                 return (
                                   <div
                                     key={sub.id}
-                                    className="flex flex-col justify-between p-3.5 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors space-y-3 shadow-xs"
+                                    className="flex flex-col justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.05] transition-colors space-y-3 shadow-none"
                                   >
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-2">
                                       <div className="flex items-center justify-between">
-                                        <span className="rounded-lg bg-muted/60 px-2 py-0.5 font-mono text-[11px] font-bold text-foreground">
+                                        <span className="rounded-lg bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] font-bold text-foreground">
                                           {sub.code}
                                         </span>
-                                        <span className="text-[11px] font-medium text-muted-foreground">
+                                        <span className="text-[11px] font-semibold text-muted-foreground">
                                           {type === "Lab" ? "Practical Lab" : type}
                                         </span>
                                       </div>
                                       <h5 className="font-bold text-sm text-foreground line-clamp-1">
                                         {sub.name}
                                       </h5>
-                                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
-                                        <Clock className="size-3" />
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                                        <Clock className="size-3 text-muted-foreground" />
                                         <span>{hours} periods/week</span>
                                       </div>
                                     </div>
 
-                                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
+                                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-white/[0.04]">
                                       <Button
                                         variant="ghost"
                                         size="icon"
@@ -690,7 +686,7 @@ export default function SubjectsPage() {
                       );
                     })}
                   </div>
-                </GlassPanel>
+                </div>
               );
             })}
           </div>

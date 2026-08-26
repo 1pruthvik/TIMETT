@@ -525,7 +525,7 @@ export default function RoomsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
             title="Refresh allocation"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -533,11 +533,11 @@ export default function RoomsPage() {
 
           <Dialog open={createSpaceOpen} onOpenChange={setCreateSpaceOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
                 <Plus className="size-4" /> Add Room Space
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -558,7 +558,7 @@ export default function RoomsPage() {
                     value={spaceName}
                     onChange={(e) => setSpaceName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                   />
                 </div>
 
@@ -570,7 +570,7 @@ export default function RoomsPage() {
                     <select
                       value={spaceType}
                       onChange={(e) => setSpaceType(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none border-0"
                     >
                       <option value="Classroom">Classroom</option>
                       <option value="Lab">Laboratory</option>
@@ -585,7 +585,7 @@ export default function RoomsPage() {
                       type="number"
                       value={spaceCapacity}
                       onChange={(e) => setSpaceCapacity(e.target.value)}
-                      className="rounded-xl border-border bg-muted/40 font-mono"
+                      className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                     />
                   </div>
                 </div>
@@ -594,7 +594,7 @@ export default function RoomsPage() {
                   <Button
                     type="submit"
                     disabled={submittingSpace || !spaceName.trim()}
-                    className="tt-gradient-btn rounded-xl font-bold w-full"
+                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
                   >
                     {submittingSpace ? "Adding..." : "Add Room"}
                   </Button>
@@ -604,39 +604,39 @@ export default function RoomsPage() {
           </Dialog>
         </PageHeader>
 
-        {/* Search & Status Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-80">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        {/* Search & Status Bar with Generous Padding */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+          <div className="relative w-full sm:w-96">
+            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search departments..."
+              placeholder="Search departments or spaces..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 rounded-xl bg-card border-border text-xs"
+              className="h-11 pl-10 pr-4 rounded-2xl bg-muted/40 border-0 text-sm"
             />
           </div>
 
           <div className="flex items-center gap-3">
             {savedIndicator && (
-              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl animate-fade-in">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-2 rounded-2xl animate-fade-in">
                 <CheckCircle2 className="size-3.5" /> {savedIndicator}
               </div>
             )}
-            <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
               {rooms.filter((r) => (r.room_type || "").toUpperCase() !== "LAB" && !r.room_type?.toUpperCase().includes("AUD") && !r.room_type?.toUpperCase().includes("SEM")).length} Classrooms
             </Badge>
-            <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
               {rooms.filter((r) => (r.room_type || "").toUpperCase() === "LAB").length} Labs
             </Badge>
             {rooms.some((r) => r.room_type?.toUpperCase().includes("AUD") || r.room_type?.toUpperCase().includes("SEM")) && (
-              <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+              <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
                 {rooms.filter((r) => r.room_type?.toUpperCase().includes("AUD") || r.room_type?.toUpperCase().includes("SEM")).length} Halls
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Hierarchical Departments */}
+        {/* Hierarchical Departments (Unboxed & Spread) */}
         {loading ? (
           <LoadingState text="Loading departments and semester-segregated sections..." />
         ) : departments.length === 0 ? (
@@ -645,38 +645,38 @@ export default function RoomsPage() {
             title="No departments found"
           />
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-12 pt-2">
             {filteredDepartments.map((dept) => {
               const deptSections = sections.filter((s) => s.department_id === dept.id);
               const deptLabs = getDeptLabs(dept, rooms, departments);
               const semesterGroups = groupSectionsBySemester(deptSections, academicSemesters);
 
               return (
-                <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
+                <div key={dept.id} className="space-y-4">
                   {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
-                    <div className="flex items-center gap-2.5">
-                      <Building2 className="size-5 text-muted-foreground stroke-[1.75]" />
-                      <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
+                      <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                        <GraduationCap className="size-3.5" />
+                    <div className="flex items-center gap-4">
+                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+                        <GraduationCap className="size-4 text-[#0070F3]" />
                         <span>{deptSections.length} Sections</span>
                       </div>
-                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                        <FlaskConical className="size-3.5" />
+                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+                        <FlaskConical className="size-4 text-amber-500" />
                         <span>{deptLabs.length} Labs</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Department Body: Semester-Segregated Sections & Labs */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border bg-card/30">
-                    {/* 1. SECTIONS SEGREGATED BY SEMESTER (User Requirement) */}
-                    <div className="p-5 space-y-4">
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-2">
+                    {/* 1. SECTIONS SEGREGATED BY SEMESTER */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
                         <div className="flex items-center gap-2">
                           <GraduationCap className="size-4 text-[#0070F3]" />
                           <h4 className="text-sm font-bold text-foreground">
@@ -693,42 +693,42 @@ export default function RoomsPage() {
                           No theory sections provisioned in this department.
                         </p>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           {semesterGroups.map((group) => (
                             <div
                               key={group.semTitle}
-                              className="rounded-2xl border border-border/70 bg-card/50 p-3 space-y-2.5"
+                              className="space-y-2"
                             >
                               {/* Semester Group Header Badge */}
-                              <div className="flex items-center justify-between pb-1.5 border-b border-border/40">
-                                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <div className="flex items-center justify-between pb-1 text-xs font-bold text-muted-foreground">
+                                <span className="flex items-center gap-1.5 text-foreground">
                                   <GraduationCap className="size-3.5 text-[#0070F3]" />
                                   {group.semTitle}
                                 </span>
-                                <span className="text-[11px] font-medium text-muted-foreground">
+                                <span className="text-[11px] font-medium">
                                   {group.sections.length} {group.sections.length === 1 ? "Section" : "Sections"}
                                 </span>
                               </div>
 
                               {/* Section Items under this Semester */}
-                              <div className="space-y-2">
+                              <div className="space-y-1.5">
                                 {group.sections.map((sec) => (
                                   <div
                                     key={sec.id}
-                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors"
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl hover:bg-white/[0.02] transition-colors border-b border-white/[0.03]"
                                   >
                                     <div className="space-y-0.5">
-                                      <span className="font-bold text-xs text-foreground block">
+                                      <span className="font-bold text-sm text-foreground block">
                                         {sec.name}
                                       </span>
-                                      <span className="text-[10px] text-muted-foreground block">
+                                      <span className="text-[11px] text-muted-foreground block">
                                         Strength: {sec.student_count || 60} students
                                       </span>
                                     </div>
 
                                     {/* Non-editable Room Display Box + Edit Pencil Icon */}
                                     <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
-                                      <div className="flex-1 h-8 px-3 rounded-xl bg-muted/40 border border-border/70 flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
+                                      <div className="flex-1 h-9 px-3 rounded-xl bg-white/[0.04] flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
                                         {sec.room_number || sectionRoomText[sec.id] ? (
                                           <span>{sec.room_number || sectionRoomText[sec.id]}</span>
                                         ) : (
@@ -766,8 +766,8 @@ export default function RoomsPage() {
                     </div>
 
                     {/* 2. LABS UNDER THIS DEPARTMENT */}
-                    <div className="p-5 space-y-4">
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
                         <div className="flex items-center gap-2">
                           <FlaskConical className="size-4 text-amber-500" />
                           <h4 className="text-sm font-bold text-foreground">
@@ -784,11 +784,11 @@ export default function RoomsPage() {
                           No laboratories registered for this department.
                         </p>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           {deptLabs.map((lab) => (
                             <div
                               key={lab.id}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border hover:border-amber-500/40 transition-colors"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl hover:bg-white/[0.02] transition-colors border-b border-white/[0.03]"
                             >
                               <div className="space-y-0.5">
                                 <span className="font-bold text-sm text-foreground block">
@@ -801,7 +801,7 @@ export default function RoomsPage() {
 
                               {/* Non-editable Lab Room Display Box + Edit Pencil Icon */}
                               <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
-                                <div className="flex-1 h-8 px-3 rounded-xl bg-muted/40 border border-border/70 flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
+                                <div className="flex-1 h-9 px-3 rounded-xl bg-white/[0.04] flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
                                   {labRoomText[lab.id] ? (
                                     <span>{labRoomText[lab.id]}</span>
                                   ) : (
@@ -835,7 +835,7 @@ export default function RoomsPage() {
                       )}
                     </div>
                   </div>
-                </GlassPanel>
+                </div>
               );
             })}
           </div>

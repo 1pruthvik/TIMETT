@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Pencil, Calendar, CalendarRange, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -571,6 +572,7 @@ export default function AcademicTermsPage() {
             </div>
           </GlassPanel>
         </div>
+        <WizardFooter nextHref="/departments" />
       </div>
     </AppShell>
   );

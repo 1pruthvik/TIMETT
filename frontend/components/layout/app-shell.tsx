@@ -4,55 +4,27 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Bell,
   BookOpen,
-  Box,
   Building2,
   CalendarDays,
   CalendarRange,
-  Check,
   ChevronDown,
   Clock,
   DoorOpen,
-  Home,
-  Layers,
   Layers3,
   LogOut,
-  Menu,
-  Search,
   Settings,
   ShieldCheck,
   Sparkles,
   User,
   Users,
-  X,
-  Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CommandPalette } from "@/components/ui/command-palette";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { FloatingAiChat } from "@/components/layout/floating-ai-chat";
 import { TechBackground } from "@/components/ui/tech-background";
 import { TimettLogo } from "@/components/ui/timett-logo";
 import { cn } from "@/lib/utils";
-
-const navigation = [
-  ["Dashboard", "/dashboard", Home],
-  ["Timetable", "/timetable", CalendarDays],
-  ["Resources", "/academic-terms", Box],
-  ["Kaci", "/constraints", Sparkles],
-  ["Versions", "/versions", Layers3],
-] as const;
-
-const resourcePaths = [
-  "/academic-terms",
-  "/departments",
-  "/rooms",
-  "/subjects",
-  "/faculty",
-  "/time-slots",
-];
 
 const RESOURCE_SUB_NAV = [
   { label: "Academic Terms", href: "/academic-terms", icon: CalendarRange },
@@ -63,43 +35,47 @@ const RESOURCE_SUB_NAV = [
   { label: "Time Slots", href: "/time-slots", icon: Clock },
 ];
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 1,
-    title: "Timetable Solution Ready",
-    desc: "OR-Tools CP-SAT discrete solver ready for compilation.",
-    time: "Just now",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Room Persistence Synchronized",
-    desc: "Section allocated rooms mapped to level-based inventory.",
-    time: "10 mins ago",
-    unread: true,
-  },
-];
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Admin User");
   const [userEmail, setUserEmail] = useState("admin@timett.io");
 
+  const [menuOpen, setMenuOpen] = useState(false);
   const [resDropdownOpen, setResDropdownOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  // Click Outside Refs
-  const resRef = useRef<HTMLDivElement>(null);
-  const notifRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const isResourcePage = resourcePaths.some((p) => pathname.startsWith(p));
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const isResourcePage = [
+    "/academic-terms",
+    "/departments",
+    "/rooms",
+    "/subjects",
+    "/faculty",
+    "/time-slots",
+  ].some((p) => pathname.startsWith(p));
+
+  const handleMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setMenuOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setMenuOpen(false);
+      setResDropdownOpen(false);
+    }, 350);
+  };
 
   useEffect(() => {
     try {
@@ -120,30 +96,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } catch {}
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (resRef.current && !resRef.current.contains(event.target as Node)) {
-        setResDropdownOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-        setNotifOpen(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
   }, []);
-
-  const openCommand = () => {
-    document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true })
-    );
-  };
-
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -151,199 +114,170 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
-  const isDashboard = pathname === "/dashboard" || pathname === "/";
-
   return (
     <div className="relative flex flex-col min-h-screen bg-black text-foreground transition-colors duration-300">
       {/* Deep Space Ambient Chromatic Glow */}
       <TechBackground />
 
-      {/* ── Frosted Glass Top Navigation Bar (Hidden on Dashboard) ── */}
-      {!isDashboard && (
-        <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-black/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]">
-          <div className="flex h-[58px] items-center gap-3.5 px-5 lg:px-8">
-          {/* Logo (Geometric 3D Cyan-Blue Ribbon T) */}
+      {/* ── Fixed Header Overlay (Logo on Left, Controls on Right) ── */}
+      <header className="fixed top-0 inset-x-0 z-50 w-full px-6 py-4 flex items-center justify-between pointer-events-none">
+        {/* Top Left: Logo with Vertical 3D Rotation on hover & Right-Expanding Menu with Blur Shadow */}
+        <div
+          className="pointer-events-auto relative flex items-center"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <Link
             href="/dashboard"
-            className="flex items-center gap-2.5 shrink-0 group py-1"
+            className="flex items-center cursor-pointer p-1"
+            title="TIMETT Dashboard"
           >
-            <TimettLogo className="size-8 drop-shadow-[0_0_12px_rgba(0,112,243,0.7)] group-hover:scale-105 transition-transform" />
-            <span className="font-heading text-base font-black tracking-tight text-white">
-              TIMETT
-            </span>
+            <TimettLogo
+              className={cn(
+                "size-11 drop-shadow-[0_0_16px_rgba(0,112,243,0.8)] transition-transform duration-500 ease-out",
+                menuOpen ? "[transform:rotateY(180deg)]" : ""
+              )}
+            />
           </Link>
 
-          <div className="h-4 w-px bg-white/[0.1] hidden lg:block mx-1.5" />
-
-          {/* ── Horizontal Navigation Tabs (Beside Logo) ── */}
+          {/* Expanding Navigation Menu (Frosted Glass Neutral Tint Blur Background) */}
           <nav
-            className="hidden lg:flex items-center gap-1 overflow-x-auto"
-            aria-label="Primary navigation"
-          >
-            {navigation.map(([label, href, Icon]) => {
-              const active =
-                pathname === href ||
-                (label === "Dashboard" && pathname === "/dashboard") ||
-                (label === "Resources" && isResourcePage);
-
-              if (label === "Resources") {
-                return (
-                  <div
-                    key={label}
-                    className="relative"
-                    ref={resRef}
-                    onMouseEnter={() => setResDropdownOpen(true)}
-                    onMouseLeave={() => setResDropdownOpen(false)}
-                  >
-                    <button
-                      onClick={() => {
-                        setResDropdownOpen((v) => !v);
-                        if (!isResourcePage) router.push("/academic-terms");
-                      }}
-                      className={cn(
-                        "relative flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap cursor-pointer",
-                        active
-                          ? "text-white"
-                          : "text-white/60 hover:text-white"
-                      )}
-                    >
-                      Resources
-                      <ChevronDown className={cn("size-3 text-white/50 transition-transform duration-200", resDropdownOpen ? "rotate-180" : "")} />
-                      {active && (
-                        <span className="absolute inset-x-2 bottom-0 h-[2px] bg-[#0070F3]" />
-                      )}
-                    </button>
-
-                    {resDropdownOpen && (
-                      <div className="absolute left-0 top-full mt-1 w-56 rounded-xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-1.5 shadow-2xl z-50 tt-animate-pop">
-                        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Resource Modules
-                        </div>
-                        {RESOURCE_SUB_NAV.map((sub) => (
-                          <Link
-                            key={sub.href}
-                            href={sub.href}
-                            onClick={() => setResDropdownOpen(false)}
-                            className={cn(
-                              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors",
-                              pathname === sub.href
-                                ? "text-[#38BDF8] font-bold bg-white/[0.06]"
-                                : "hover:bg-white/[0.08] text-white/80 hover:text-white"
-                            )}
-                          >
-                            <sub.icon className="size-3.5" />
-                            {sub.label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <Link
-                  key={label}
-                  href={href}
-                  className={cn(
-                    "relative flex items-center gap-2 px-3.5 py-2 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
-                    active
-                      ? "text-white"
-                      : "text-white/60 hover:text-white"
-                  )}
-                >
-                  {label}
-                  {active && (
-                    <span className="absolute inset-x-2 bottom-0 h-[2px] bg-[#0070F3]" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* Search Trigger */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-9 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/[0.15] text-white/70 hover:text-white transition-all cursor-pointer shadow-xs"
-            onClick={openCommand}
-            aria-label="Search"
-          >
-            <Search className="size-[17px]" />
-          </Button>
-
-          {/* ── Notifications Popover ── */}
-          <div className="relative" ref={notifRef}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative size-9 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/[0.15] text-white/70 hover:text-white transition-all cursor-pointer shadow-xs"
-              onClick={() => setNotifOpen((v) => !v)}
-              aria-label="Notifications"
-            >
-              <Bell className="size-[17px]" />
-              {unreadCount > 0 && (
-                <span className="absolute right-2 top-2 size-2 rounded-full bg-[#0070F3] shadow-[0_0_8px_#0070F3] animate-pulse" />
-              )}
-            </Button>
-
-            {notifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-3 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
-                <div className="flex items-center justify-between pb-2 border-b border-white/[0.08] mb-2 px-1">
-                  <span className="text-xs font-bold text-white">
-                    Notifications ({unreadCount})
-                  </span>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllRead}
-                      className="text-[11px] font-semibold text-[#38BDF8] hover:underline cursor-pointer"
-                    >
-                      Mark all as read
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-2 max-h-72 overflow-y-auto">
-                  {notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className={`p-2.5 rounded-xl border transition-colors ${
-                        n.unread
-                          ? "border-[#0070F3]/40 bg-[#0070F3]/10"
-                          : "border-white/[0.06] bg-white/[0.02]"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-bold text-white">
-                          {n.title}
-                        </p>
-                        <span className="text-[10px] text-muted-foreground">
-                          {n.time}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground mt-1">
-                        {n.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            className={cn(
+              "flex items-center gap-5 ml-4 transition-all duration-300 py-2.5 px-6 rounded-2xl bg-[#141414]/85 dark:bg-[#121212]/90 backdrop-blur-3xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.8)]",
+              menuOpen
+                ? "opacity-100 translate-x-0 pointer-events-auto"
+                : "opacity-0 -translate-x-4 pointer-events-none"
             )}
-          </div>
+            aria-label="Expanded navigation"
+          >
+            {/* Studio Link */}
+            <Link
+              href="/timetable"
+              className={cn(
+                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
+                pathname === "/timetable"
+                  ? "text-[#38BDF8] font-extrabold"
+                  : "text-white/70 hover:text-white"
+              )}
+            >
+              Studio
+            </Link>
 
-          {/* Theme Toggle */}
+            {/* Resources with Hover Dropdown */}
+            <div
+              className="relative py-1"
+              onMouseEnter={() => setResDropdownOpen(true)}
+              onMouseLeave={() => setResDropdownOpen(false)}
+            >
+              <button
+                onClick={() => {
+                  setResDropdownOpen((v) => !v);
+                  if (!isResourcePage) router.push("/academic-terms");
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap cursor-pointer",
+                  isResourcePage
+                    ? "text-[#38BDF8] font-extrabold"
+                    : "text-white/70 hover:text-white"
+                )}
+              >
+                Resources
+                <ChevronDown
+                  className={cn(
+                    "size-3 text-white/50 transition-transform duration-200",
+                    resDropdownOpen ? "rotate-180" : ""
+                  )}
+                />
+              </button>
+
+              {/* Resources Dropdown (With Clear Gap & Invisible Hover Bridge) */}
+              {resDropdownOpen && (
+                <div
+                  className="absolute left-0 top-[calc(100%+16px)] w-52 z-50 tt-animate-pop before:content-[''] before:absolute before:-top-5 before:inset-x-0 before:h-5"
+                  onMouseEnter={() => {
+                    handleMouseEnter();
+                    setResDropdownOpen(true);
+                  }}
+                  onMouseLeave={() => setResDropdownOpen(false)}
+                >
+                  <div className="py-2.5 px-2 space-y-1 rounded-2xl bg-[#141414]/90 dark:bg-[#121212]/95 backdrop-blur-3xl border border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.9)]">
+                    {RESOURCE_SUB_NAV.map((sub) => (
+                      <Link
+                        key={sub.href}
+                        href={sub.href}
+                        onClick={() => {
+                          setResDropdownOpen(false);
+                          setMenuOpen(false);
+                        }}
+                        className={cn(
+                          "flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold transition-all rounded-xl",
+                          pathname === sub.href
+                            ? "text-[#38BDF8] font-bold bg-white/[0.06]"
+                            : "text-white/80 hover:text-white hover:bg-white/[0.04] hover:translate-x-1"
+                        )}
+                      >
+                        <sub.icon className="size-3.5 text-[#0070F3]" />
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Kaci */}
+            <Link
+              href="/constraints"
+              className={cn(
+                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
+                pathname === "/constraints"
+                  ? "text-[#38BDF8] font-extrabold"
+                  : "text-white/70 hover:text-white"
+              )}
+            >
+              Kaci
+            </Link>
+
+            {/* Versions */}
+            <Link
+              href="/versions"
+              className={cn(
+                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
+                pathname === "/versions"
+                  ? "text-[#38BDF8] font-extrabold"
+                  : "text-white/70 hover:text-white"
+              )}
+            >
+              Versions
+            </Link>
+          </nav>
+        </div>
+
+        {/* Top Right: Theme Toggle & User Account Dropdown */}
+        <div className="pointer-events-auto flex items-center gap-3">
           <ThemeToggle />
 
-          {/* ── User Profile Avatar & Dropdown ── */}
-          <div className="relative" ref={profileRef}>
+          {/* User Profile Avatar & Dropdown (Hover Triggered) */}
+          <div
+            className="relative"
+            ref={profileRef}
+            onMouseEnter={() => {
+              if (profileTimeoutRef.current) clearTimeout(profileTimeoutRef.current);
+              setProfileOpen(true);
+            }}
+            onMouseLeave={() => {
+              profileTimeoutRef.current = setTimeout(() => setProfileOpen(false), 300);
+            }}
+          >
             <button
-              onClick={() => setProfileOpen((v) => !v)}
-              className="rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0070F3]/60 p-0.5"
+              onClick={() => {
+                setProfileOpen(false);
+                router.push("/account");
+              }}
+              className="rounded-full cursor-pointer focus:outline-none p-0.5"
+              aria-label="User profile"
             >
-              <Avatar className="size-8.5 border border-white/[0.15] shadow-[0_0_15px_rgba(0,112,243,0.3)] transition-transform hover:scale-105">
+              <Avatar className="size-8.5 border-0 shadow-[0_0_15px_rgba(0,112,243,0.3)] transition-transform hover:scale-105">
                 <AvatarFallback className="bg-gradient-to-br from-[#0052FF] via-[#0070F3] to-[#0A1B4F] text-[11px] font-black text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]">
                   {initials}
                 </AvatarFallback>
@@ -351,10 +285,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-2 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
-                <div className="flex items-center gap-3 p-2.5 border-b border-white/[0.08] mb-1">
-                  <Avatar className="size-10 border border-[#0070F3]/50 shadow-[0_0_15px_rgba(0,112,243,0.4)]">
-                    <AvatarFallback className="bg-gradient-to-br from-[#0052FF] to-[#0A1B4F] text-sm font-bold text-white">
+              <div
+                className="absolute right-0 top-[calc(100%+16px)] w-60 rounded-2xl bg-[#141414]/90 dark:bg-[#121212]/95 backdrop-blur-3xl p-2 border border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop before:content-[''] before:absolute before:-top-5 before:inset-x-0 before:h-5"
+                onMouseEnter={() => {
+                  if (profileTimeoutRef.current) clearTimeout(profileTimeoutRef.current);
+                  setProfileOpen(true);
+                }}
+                onMouseLeave={() => {
+                  profileTimeoutRef.current = setTimeout(() => setProfileOpen(false), 300);
+                }}
+              >
+                {/* Header: Name and Email Together */}
+                <div className="flex items-center gap-3 p-2.5 border-b border-white/[0.08] mb-1.5">
+                  <Avatar className="size-9 shadow-[0_0_15px_rgba(0,112,243,0.4)]">
+                    <AvatarFallback className="bg-gradient-to-br from-[#0052FF] to-[#0A1B4F] text-xs font-bold text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -362,48 +306,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <p className="text-xs font-bold text-white truncate">
                       {userName}
                     </p>
-                    <p className="text-[11px] text-muted-foreground truncate">
+                    <p className="text-[10px] text-muted-foreground truncate">
                       {userEmail}
                     </p>
-                    <span className="inline-block mt-1 text-[10px] font-semibold text-[#38BDF8]">
-                      CSE Department
-                    </span>
                   </div>
                 </div>
 
+                {/* Profile and Settings Combined Link */}
                 <div className="space-y-0.5">
                   <Link
                     href="/account"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold hover:bg-white/[0.08] transition-colors text-white/90"
                   >
-                    <User className="size-4 text-muted-foreground" />
-                    Account Settings
-                  </Link>
-
-                  <Link
-                    href="/settings"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
-                  >
-                    <Settings className="size-4 text-muted-foreground" />
-                    System Preferences
-                  </Link>
-
-                  <Link
-                    href="/departments"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
-                  >
-                    <ShieldCheck className="size-4 text-muted-foreground" />
-                    Departments & Roles
+                    <Settings className="size-4 text-[#0070F3]" />
+                    Profile & Settings
                   </Link>
                 </div>
 
+                {/* Sign Out Action */}
                 <div className="border-t border-white/[0.08] mt-1 pt-1">
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                   >
                     <LogOut className="size-4" />
                     Sign Out
@@ -412,89 +337,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setMobileOpen((v) => !v)}
-            className="lg:hidden ml-1 text-muted-foreground hover:text-white cursor-pointer"
-          >
-            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
         </div>
-
-        {/* ── Sub-Navigation Bar for Resource Pages ── */}
-        {isResourcePage && (
-          <div className="border-t border-white/[0.06] bg-black/40 backdrop-blur-xl px-5 lg:px-8 py-2 overflow-x-auto shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
-            <div className="flex items-center gap-4 max-w-7xl mx-auto">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 select-none">
-                MANAGE:
-              </span>
-              <div className="flex items-center gap-2">
-                {RESOURCE_SUB_NAV.map((sub) => {
-                  const isSubActive = pathname === sub.href;
-                  return (
-                    <Link
-                      key={sub.href}
-                      href={sub.href}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 text-xs transition-colors whitespace-nowrap",
-                        isSubActive
-                          ? "text-[#38BDF8] font-bold"
-                          : "text-white/60 hover:text-white font-medium"
-                      )}
-                    >
-                      <sub.icon className={cn("size-3.5", isSubActive ? "text-[#38BDF8]" : "text-white/50")} />
-                      {sub.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
       </header>
-      )}
 
-      {/* Mobile Nav Dropdown */}
-      {!isDashboard && mobileOpen && (
-        <nav className="fixed inset-x-3 top-[60px] z-50 rounded-2xl border border-white/[0.12] bg-[#0A0A12]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] lg:hidden">
-          {navigation.map(([label, href, Icon]) => (
-            <Link
-              key={label}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/[0.08] transition-colors text-white"
-            >
-              <Icon className="size-4" />
-              {label}
-            </Link>
-          ))}
-          <div className="border-t border-white/[0.08] pt-2 mt-2 space-y-1">
-            <p className="px-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Resource Modules
-            </p>
-            {RESOURCE_SUB_NAV.map((sub) => (
-              <Link
-                key={sub.href}
-                href={sub.href}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-4 py-2 text-xs font-medium hover:bg-white/[0.08] transition-colors text-white/90"
-              >
-                <sub.icon className="size-3.5 text-[#0070F3]" />
-                {sub.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      )}
-
-      {/* Main Page Content */}
-      <main className={cn("relative z-10 flex-1", isDashboard ? "p-0" : "p-4 sm:p-6 lg:p-8")}>
+      {/* Main Page Content (Shrunk with comfortable side gutters to flow naturally between logo and right controls) */}
+      <main className="relative z-10 flex-1 pt-20 pb-12 px-14 sm:px-20 lg:px-24 max-w-[1550px] w-full mx-auto">
         {children}
       </main>
 
-      {/* Command Palette & AI Assistant */}
-      <CommandPalette />
+      {/* Floating AI Assistant */}
       <FloatingAiChat />
     </div>
   );

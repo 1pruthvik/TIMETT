@@ -44,6 +44,7 @@ import {
   Check,
   CalendarRange,
 } from "lucide-react";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -973,6 +974,10 @@ export default function RoomsPage() {
             </form>
           </DialogContent>
         </Dialog>
+        <WizardFooter
+          prevHref="/departments"
+          nextHref="/subjects"
+        />
       </div>
     </AppShell>
   );

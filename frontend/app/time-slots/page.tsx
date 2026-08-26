@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -35,6 +36,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -410,9 +412,38 @@ function DurationHMSPicker({
 // Main Time Slots Page
 // ==========================================
 export default function TimeSlotsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [existingSlots, setExistingSlots] = useState<SavedTimeSlot[]>([]);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerateAndOpenStudio = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch(`${API_BASE}/generator/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          academic_year_id: 1,
+          semester_id: 1,
+          time_limit_seconds: 15,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.timetable_id) {
+          router.push(`/timetable?id=${data.timetable_id}`);
+          return;
+        }
+      }
+      router.push("/timetable");
+    } catch {
+      router.push("/timetable");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   // 1. Number of working days & selected days
   const [numWorkingDays, setNumWorkingDays] = useState<number>(5);
@@ -1073,6 +1104,11 @@ export default function TimeSlotsPage() {
             </GlassPanel>
           </div>
         </div>
+        <WizardFooter
+          prevHref="/faculty"
+          onGenerate={handleGenerateAndOpenStudio}
+          generating={generating}
+        />
       </div>
     </AppShell>
   );

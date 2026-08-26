@@ -77,15 +77,12 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-card hover:text-foreground cursor-pointer backdrop-blur-sm"
+      className="flex size-8.5 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer bg-transparent border-0"
       aria-label="Toggle theme"
     >
       <span className="relative size-4 flex items-center justify-center">
         <Sun className="absolute size-4 rotate-0 scale-100 text-amber-500 transition-transform duration-300 dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute size-4 rotate-90 scale-0 text-blue-400 transition-transform duration-300 dark:rotate-0 dark:scale-100" />
-      </span>
-      <span className="capitalize font-medium text-[11px]">
-        {theme}
       </span>
     </button>
   );

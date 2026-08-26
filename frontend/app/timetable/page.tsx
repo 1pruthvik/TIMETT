@@ -867,7 +867,7 @@ export default function TimetablePage() {
             icon={CalendarDays}
           >
             {/* Undo / Redo Controls */}
-            <div className="flex items-center gap-1 rounded-2xl p-1 bg-white/[0.04] h-11">
+            <div className="flex items-center gap-1 rounded-2xl p-1 bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] h-11">
               <Button
                 variant="ghost"
                 size="icon"
@@ -891,12 +891,12 @@ export default function TimetablePage() {
             </div>
 
             {/* Export Actions */}
-            <div className="flex items-center gap-1.5 rounded-2xl p-1 bg-white/[0.04] h-11">
+            <div className="flex items-center gap-1.5 rounded-2xl p-1 bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] h-11">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handlePrint}
-                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-white/[0.08]"
+                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
                 title="Print Timetable"
               >
                 <Printer className="size-3.5" /> Print
@@ -905,7 +905,7 @@ export default function TimetablePage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleExportPDF}
-                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-white/[0.08]"
+                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
                 title="Export as PDF"
               >
                 <FileDown className="size-3.5" /> PDF
@@ -914,7 +914,7 @@ export default function TimetablePage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleExportWord}
-                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-white/[0.08]"
+                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
                 title="Export as Word (.doc)"
               >
                 <FileText className="size-3.5" /> Word
@@ -923,7 +923,7 @@ export default function TimetablePage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleExportExcel}
-                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-white/[0.08]"
+                className="h-9 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer px-3 hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
                 title="Export as Excel (.csv)"
               >
                 <FileSpreadsheet className="size-3.5" /> Excel
@@ -934,7 +934,7 @@ export default function TimetablePage() {
               variant="outline"
               size="icon"
               onClick={fetchAllData}
-              className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+              className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
               title="Refresh Timetable"
             >
               <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -970,12 +970,12 @@ export default function TimetablePage() {
 
         {/* View Switcher & Filter Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2 print:hidden">
-          <div className="flex items-center gap-1.5 bg-white/[0.04] p-1 rounded-2xl h-11">
+          <div className="flex items-center gap-1.5 bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] p-1 rounded-2xl h-11">
             <button
               onClick={() => setViewMode("section")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 viewMode === "section"
-                  ? "bg-white/[0.12] text-foreground shadow-xs"
+                  ? "bg-black/[0.08] dark:bg-white/[0.12] text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -985,7 +985,7 @@ export default function TimetablePage() {
               onClick={() => setViewMode("faculty")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 viewMode === "faculty"
-                  ? "bg-white/[0.12] text-foreground shadow-xs"
+                  ? "bg-black/[0.08] dark:bg-white/[0.12] text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -995,7 +995,7 @@ export default function TimetablePage() {
               onClick={() => setViewMode("room")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 viewMode === "room"
-                  ? "bg-white/[0.12] text-foreground shadow-xs"
+                  ? "bg-black/[0.08] dark:bg-white/[0.12] text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1005,7 +1005,7 @@ export default function TimetablePage() {
               onClick={() => setViewMode("mobile")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer md:hidden ${
                 viewMode === "mobile"
-                  ? "bg-white/[0.12] text-foreground shadow-xs"
+                  ? "bg-black/[0.08] dark:bg-white/[0.12] text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1021,7 +1021,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="h-11 rounded-2xl border-0 bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                  className="h-11 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Sections (Overview)</option>
                   {sections.map((s) => (
@@ -1037,7 +1037,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedFaculty}
                   onChange={(e) => setSelectedFaculty(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="h-11 rounded-2xl border-0 bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                  className="h-11 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Instructors</option>
                   {faculty.map((f) => (
@@ -1053,7 +1053,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedRoom}
                   onChange={(e) => setSelectedRoom(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="h-11 rounded-2xl border-0 bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                  className="h-11 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Rooms & Labs</option>
                   {rooms.map((r) => (
@@ -1067,14 +1067,14 @@ export default function TimetablePage() {
 
         {/* MAIN DESKTOP GRID: DAYS ARE VERTICAL (ROWS) & TIME IS HORIZONTAL (COLUMNS) */}
         {viewMode !== "mobile" && (
-          <div id="timetable-export-grid" className="overflow-hidden p-0 rounded-3xl bg-white/[0.02] border-0 pt-2">
+          <div id="timetable-export-grid" className="overflow-hidden p-0 rounded-3xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06] pt-2">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 {/* Horizontal Time Columns Header */}
                 <thead>
-                  <tr className="border-b border-white/[0.08] bg-white/[0.03]">
+                  <tr className="border-b border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03]">
                     {/* Vertical Days Header Title */}
-                    <th className="p-4 text-xs font-bold text-foreground w-36 uppercase tracking-wider text-center border-r border-white/[0.06] bg-transparent sticky left-0 z-20 shadow-none">
+                    <th className="p-4 text-xs font-bold text-foreground w-36 uppercase tracking-wider text-center border-r border-black/[0.06] dark:border-white/[0.06] bg-transparent sticky left-0 z-20 shadow-none">
                       Day / Period
                     </th>
 
@@ -1082,7 +1082,7 @@ export default function TimetablePage() {
                     {timelineCols.map((col, cIdx) => (
                       <th
                         key={cIdx}
-                        className={`p-3.5 text-xs font-bold uppercase tracking-wider text-center border-r border-white/[0.06] min-w-[175px] ${
+                        className={`p-3.5 text-xs font-bold uppercase tracking-wider text-center border-r border-black/[0.06] dark:border-white/[0.06] min-w-[175px] ${
                           col.type === "break"
                             ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
                             : "text-foreground bg-transparent"
@@ -1102,9 +1102,9 @@ export default function TimetablePage() {
                 {/* Vertical Day Rows */}
                 <tbody>
                   {activeDays.map((day) => (
-                    <tr key={day} className="border-b border-border hover:bg-muted/10 transition-colors">
+                    <tr key={day} className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors">
                       {/* Vertical Day Header Column (Sticky Left) */}
-                      <td className="p-4 text-center border-r border-border bg-card/80 sticky left-0 z-10 font-bold text-xs text-foreground shadow-xs">
+                      <td className="p-4 text-center border-r border-black/[0.06] dark:border-white/[0.06] bg-background/95 sticky left-0 z-10 font-bold text-xs text-foreground shadow-xs">
                         <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-sky-300 font-bold text-xs shadow-xs">
                           {day}
                         </span>
@@ -1116,7 +1116,7 @@ export default function TimetablePage() {
                           return (
                             <td
                               key={cIdx}
-                              className="p-3 border-r border-border bg-amber-500/5 text-center align-middle"
+                              className="p-3 border-r border-black/[0.06] dark:border-white/[0.06] bg-amber-500/5 text-center align-middle"
                             >
                               <div className="flex flex-col items-center justify-center gap-1 text-amber-700 dark:text-amber-300 py-4">
                                 <Coffee className="size-4 opacity-70" />
@@ -1140,12 +1140,12 @@ export default function TimetablePage() {
                             key={cIdx}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={() => slot && handleDropOnSlot(slot)}
-                            className="p-2.5 border-r border-border last:border-r-0 align-top min-w-[175px] h-32 bg-card/10 hover:bg-primary/5 transition-colors"
+                            className="p-2.5 border-r border-black/[0.06] dark:border-white/[0.06] last:border-r-0 align-top min-w-[175px] h-32 bg-black/[0.01] dark:bg-white/[0.01] hover:bg-primary/5 transition-colors"
                           >
                             {cellEntries.length === 0 ? (
                               <div
                                 onClick={() => slot && handleOpenAssignModal(day, periodStr, slot)}
-                                className="h-full flex flex-col items-center justify-center border border-dashed border-border/40 hover:border-primary/50 hover:bg-primary/5 rounded-xl text-[11px] text-muted-foreground/60 cursor-pointer transition-all p-2 group"
+                                className="h-full flex flex-col items-center justify-center border border-dashed border-black/[0.08] dark:border-white/10 hover:border-primary/50 hover:bg-primary/5 rounded-xl text-[11px] text-muted-foreground/60 cursor-pointer transition-all p-2 group"
                               >
                                 <span>Free Slot</span>
                                 <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 font-bold transition-opacity mt-1">

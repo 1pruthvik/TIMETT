@@ -627,10 +627,10 @@ export default function FacultyPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh faculty roster"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Dialog open={open} onOpenChange={setOpen}>
@@ -898,7 +898,7 @@ export default function FacultyPage() {
               return (
                 <div key={dept.id} className="space-y-4">
                   {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
                     <div className="flex items-center gap-3">
                       <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
                       <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
@@ -928,7 +928,7 @@ export default function FacultyPage() {
                           return (
                             <div
                               key={fac.id}
-                              className="rounded-2xl bg-white/[0.03] hover:bg-white/[0.05] p-5 space-y-4 transition-colors border-0 shadow-none"
+                              className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] p-5 space-y-4 transition-colors border border-black/[0.04] dark:border-white/[0.04] shadow-none"
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div>
@@ -968,7 +968,7 @@ export default function FacultyPage() {
                                         <Badge
                                           key={lIdx}
                                           variant="outline"
-                                          className="text-xs font-medium bg-white/[0.05] text-foreground border-0 px-3 py-1 flex items-center gap-1.5 rounded-xl"
+                                          className="text-xs font-medium bg-black/[0.04] dark:bg-white/[0.05] text-foreground border-0 px-3 py-1 flex items-center gap-1.5 rounded-xl"
                                         >
                                           <span className="font-bold text-[#0070F3]">
                                             {targetDept?.name || "Dept"}
@@ -988,12 +988,12 @@ export default function FacultyPage() {
                               </div>
 
                               {/* Actions Bar */}
-                              <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-white/[0.04]">
+                              <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => openAvailability(fac)}
-                                  className="h-8 text-xs rounded-xl px-3 gap-1.5 border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+                                  className="h-8 text-xs rounded-xl px-3 gap-1.5 border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
                                 >
                                   <CalendarClock className="size-3.5 text-[#0070F3]" /> Availability
                                 </Button>

@@ -729,11 +729,12 @@ export default function TimeSlotsPage() {
         <PageHeader
           title="Time Slots Architecture & Schedule Setup"
           icon={Clock}
-        >          <Button
+        >
+          <Button
             variant="outline"
             size="icon"
             onClick={fetchExisting}
-            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh time structure"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
@@ -766,8 +767,8 @@ export default function TimeSlotsPage() {
           {/* Left Column: Form Setup (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
             {/* Step 1: Institutional Working Days */}
-            <div className="p-6 rounded-3xl bg-white/[0.03] space-y-4 border-0">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="p-6 rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] space-y-4 border border-black/[0.04] dark:border-white/[0.04]">
+              <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     1
@@ -798,7 +799,7 @@ export default function TimeSlotsPage() {
                     size="sm"
                     onClick={() => handleNumDaysChange(5)}
                     className={`h-7 text-xs rounded-xl font-semibold border-0 cursor-pointer ${
-                      numWorkingDays === 5 ? "bg-primary/20 text-primary" : "bg-white/[0.04] text-muted-foreground"
+                      numWorkingDays === 5 ? "bg-primary/20 text-primary" : "bg-black/[0.04] dark:bg-white/[0.04] text-muted-foreground"
                     }`}
                   >
                     5 Days (Mon - Fri)
@@ -809,7 +810,7 @@ export default function TimeSlotsPage() {
                     size="sm"
                     onClick={() => handleNumDaysChange(6)}
                     className={`h-7 text-xs rounded-xl font-semibold border-0 cursor-pointer ${
-                      numWorkingDays === 6 ? "bg-primary/20 text-primary" : "bg-white/[0.04] text-muted-foreground"
+                      numWorkingDays === 6 ? "bg-primary/20 text-primary" : "bg-black/[0.04] dark:bg-white/[0.04] text-muted-foreground"
                     }`}
                   >
                     6 Days (Mon - Sat)
@@ -827,7 +828,7 @@ export default function TimeSlotsPage() {
                         className={`py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer border-0 ${
                           isSelected
                             ? "bg-gradient-to-b from-[#0070F3]/30 to-[#0052FF]/30 text-foreground shadow-xs font-black"
-                            : "bg-white/[0.03] text-muted-foreground hover:bg-white/[0.06]"
+                            : "bg-black/[0.03] dark:bg-white/[0.03] text-muted-foreground hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                         }`}
                       >
                         <span>{day.label}</span>
@@ -840,8 +841,8 @@ export default function TimeSlotsPage() {
             </div>
 
             {/* Step 2: Day Start & End Time (12-Hour Clock Selection) */}
-            <div className="p-6 rounded-3xl bg-white/[0.03] space-y-4 border-0">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="p-6 rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] space-y-4 border border-black/[0.04] dark:border-white/[0.04]">
+              <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     2
@@ -856,7 +857,7 @@ export default function TimeSlotsPage() {
                   </div>
                 </div>
 
-                <Badge variant="outline" className="text-xs font-mono bg-white/[0.05] text-muted-foreground border-0">
+                <Badge variant="outline" className="text-xs font-mono bg-black/[0.04] dark:bg-white/[0.05] text-muted-foreground border-0">
                   Span: {operatingHours}h {operatingMins > 0 ? `${operatingMins}m` : ""}
                 </Badge>
               </div>
@@ -887,8 +888,8 @@ export default function TimeSlotsPage() {
             </div>
 
             {/* Step 3: Day Structure & Academic Session Durations (HMS) */}
-            <div className="p-6 rounded-3xl bg-white/[0.03] space-y-4 border-0">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="p-6 rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] space-y-4 border border-black/[0.04] dark:border-white/[0.04]">
+              <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     3
@@ -930,8 +931,8 @@ export default function TimeSlotsPage() {
             </div>
 
             {/* Step 4: Daily Breaks & Durations (HMS) */}
-            <div className="p-6 rounded-3xl bg-white/[0.03] space-y-4 border-0">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="p-6 rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] space-y-4 border border-black/[0.04] dark:border-white/[0.04]">
+              <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-8 items-center justify-center rounded-xl bg-[#0070F3]/20 text-[#0070F3] font-bold text-xs">
                     4
@@ -951,7 +952,7 @@ export default function TimeSlotsPage() {
                   variant="outline"
                   size="sm"
                   onClick={addBreak}
-                  className="h-8 rounded-xl px-3 gap-1 text-xs font-semibold border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+                  className="h-8 rounded-xl px-3 gap-1 text-xs font-semibold border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
                 >
                   <Plus className="size-3.5" /> Add Break
                 </Button>
@@ -966,7 +967,7 @@ export default function TimeSlotsPage() {
                   breaks.map((b) => (
                     <div
                       key={b.id}
-                      className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 rounded-2xl bg-white/[0.04] p-3.5"
+                      className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] p-3.5 border border-black/[0.04] dark:border-white/[0.04]"
                     >
                       {/* Break Label */}
                       <div className="w-full sm:w-44">
@@ -1023,9 +1024,9 @@ export default function TimeSlotsPage() {
 
           {/* Right Column: Live Schedule Generator Preview */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="p-0 overflow-hidden rounded-3xl bg-white/[0.03] border-0 shadow-none">
+            <div className="p-0 overflow-hidden rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.04] shadow-none">
               {/* Header */}
-              <div className="flex items-center justify-between p-5 border-b border-white/[0.06] bg-white/[0.02]">
+              <div className="flex items-center justify-between p-5 border-b border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.02]">
                 <div className="flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-xl bg-primary/20 text-primary">
                     <Sparkles className="size-4.5" />
@@ -1058,10 +1059,10 @@ export default function TimeSlotsPage() {
                     return (
                       <div
                         key={sIdx}
-                        className={`flex items-center justify-between p-3.5 rounded-2xl transition-all border-0 ${
+                        className={`flex items-center justify-between p-3.5 rounded-2xl transition-all border border-black/[0.03] dark:border-white/[0.03] ${
                           isBreak
                             ? "bg-amber-500/10 text-amber-900 dark:text-amber-200"
-                            : "bg-white/[0.03] hover:bg-white/[0.05] text-foreground"
+                            : "bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] text-foreground"
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -1090,7 +1091,7 @@ export default function TimeSlotsPage() {
                           className={`text-[10px] font-mono font-bold px-2 py-0.5 border-0 ${
                             isBreak
                               ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                              : "bg-white/[0.06] text-muted-foreground"
+                              : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground"
                           }`}
                         >
                           {slot.durationMinutes} mins

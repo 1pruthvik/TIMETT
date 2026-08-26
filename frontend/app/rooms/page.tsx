@@ -525,7 +525,7 @@ export default function RoomsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh allocation"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -654,7 +654,7 @@ export default function RoomsPage() {
               return (
                 <div key={dept.id} className="space-y-4">
                   {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
                     <div className="flex items-center gap-3">
                       <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
                       <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
@@ -676,7 +676,7 @@ export default function RoomsPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-2">
                     {/* 1. SECTIONS SEGREGATED BY SEMESTER */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
+                      <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.04]">
                         <div className="flex items-center gap-2">
                           <GraduationCap className="size-4 text-[#0070F3]" />
                           <h4 className="text-sm font-bold text-foreground">
@@ -715,7 +715,7 @@ export default function RoomsPage() {
                                 {group.sections.map((sec) => (
                                   <div
                                     key={sec.id}
-                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl hover:bg-white/[0.02] transition-colors border-b border-white/[0.03]"
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors border-b border-black/[0.04] dark:border-white/[0.03]"
                                   >
                                     <div className="space-y-0.5">
                                       <span className="font-bold text-sm text-foreground block">
@@ -728,7 +728,7 @@ export default function RoomsPage() {
 
                                     {/* Non-editable Room Display Box + Edit Pencil Icon */}
                                     <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
-                                      <div className="flex-1 h-9 px-3 rounded-xl bg-white/[0.04] flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
+                                      <div className="flex-1 h-9 px-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
                                         {sec.room_number || sectionRoomText[sec.id] ? (
                                           <span>{sec.room_number || sectionRoomText[sec.id]}</span>
                                         ) : (
@@ -767,7 +767,7 @@ export default function RoomsPage() {
 
                     {/* 2. LABS UNDER THIS DEPARTMENT */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
+                      <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.04]">
                         <div className="flex items-center gap-2">
                           <FlaskConical className="size-4 text-amber-500" />
                           <h4 className="text-sm font-bold text-foreground">
@@ -788,7 +788,7 @@ export default function RoomsPage() {
                           {deptLabs.map((lab) => (
                             <div
                               key={lab.id}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl hover:bg-white/[0.02] transition-colors border-b border-white/[0.03]"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors border-b border-black/[0.04] dark:border-white/[0.03]"
                             >
                               <div className="space-y-0.5">
                                 <span className="font-bold text-sm text-foreground block">
@@ -801,7 +801,7 @@ export default function RoomsPage() {
 
                               {/* Non-editable Lab Room Display Box + Edit Pencil Icon */}
                               <div className="w-full sm:w-56 flex items-center justify-end gap-1.5">
-                                <div className="flex-1 h-9 px-3 rounded-xl bg-white/[0.04] flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
+                                <div className="flex-1 h-9 px-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] flex items-center justify-center font-mono text-xs font-bold text-foreground select-none">
                                   {labRoomText[lab.id] ? (
                                     <span>{labRoomText[lab.id]}</span>
                                   ) : (

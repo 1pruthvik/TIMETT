@@ -571,14 +571,14 @@ export default function DepartmentsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh departments"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Link href="/academic-terms">
-            <Button variant="outline" className="h-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-5 text-sm font-bold text-white cursor-pointer gap-2 transition-all hover:scale-105">
+            <Button variant="outline" className="h-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-5 text-sm font-bold text-foreground cursor-pointer gap-2 transition-all hover:scale-105">
               <CalendarRange className="size-4 text-[#0070F3]" />
               Academic Terms ({academicSemesters.length} Semesters)
             </Button>
@@ -912,7 +912,7 @@ export default function DepartmentsPage() {
 
         {/* ── Unboxed, Spread Departments Layout ── */}
         <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
             <h3 className="text-lg font-bold text-foreground">Institutional Departments</h3>
             <span className="text-xs font-semibold text-muted-foreground">
               {departments.length} Departments
@@ -931,7 +931,7 @@ export default function DepartmentsPage() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                  <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
                     <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                     <TableHead className="text-center text-xs font-bold text-muted-foreground">Department Title</TableHead>
                     <TableHead className="text-center text-xs font-bold text-muted-foreground">Department Labs</TableHead>
@@ -945,7 +945,7 @@ export default function DepartmentsPage() {
                     const deptLabs = getDeptLabs(dept, rooms);
 
                     return (
-                      <TableRow key={dept.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                      <TableRow key={dept.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                         <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
                           #{index + 1}
                         </TableCell>

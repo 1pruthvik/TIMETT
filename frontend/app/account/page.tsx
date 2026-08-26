@@ -367,7 +367,7 @@ function AccountAndSettingsContent() {
       {activeTab === "profile" && (
         <div className="space-y-12 tt-animate-fade pt-4">
           {/* Header Row: User Avatar, Name, Email and Sign Out */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-8 border-b border-white/[0.06]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-8 border-b border-black/[0.08] dark:border-white/[0.06]">
             <div className="flex items-center gap-5">
               <Avatar className="size-20 border-0 shadow-[0_0_25px_rgba(0,112,243,0.35)]">
                 <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-[#0052FF] via-[#0070F3] to-[#0A1B4F] text-white">

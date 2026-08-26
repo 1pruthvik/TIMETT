@@ -56,7 +56,7 @@ export default function DashboardPage() {
             <Link href="/timetable">
               <Button
                 variant="outline"
-                className="h-14 rounded-2xl border-white/15 bg-white/[0.04] hover:bg-white/[0.08] px-8 text-base font-semibold text-white cursor-pointer gap-3"
+                className="h-14 rounded-2xl border border-black/[0.08] dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-8 text-base font-semibold text-foreground cursor-pointer gap-3"
               >
                 <CalendarDays className="size-5 text-[#38BDF8]" />
                 Open Timetable Studio

@@ -246,7 +246,7 @@ export default function OfferingsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh offerings"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -486,9 +486,7 @@ export default function OfferingsPage() {
                     className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                   />
                 </div>
-              </div>
-
-              {editError && <p className="text-xs text-red-500">{editError}</p>}
+              </div>              {editError && <p className="text-xs text-red-500">{editError}</p>}
 
               <DialogFooter className="pt-2">
                 <Button
@@ -513,7 +511,7 @@ export default function OfferingsPage() {
 
         {/* ── Unboxed, Spread Offerings Layout ── */}
         <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
             <h3 className="text-lg font-bold text-foreground">Active Subject Offerings</h3>
             <span className="text-xs font-semibold text-muted-foreground">
               {offerings.length} Offerings
@@ -532,7 +530,7 @@ export default function OfferingsPage() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                  <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
                     <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                     <TableHead className="text-center text-xs font-bold text-muted-foreground">Subject</TableHead>
                     <TableHead className="text-center text-xs font-bold text-muted-foreground">Assigned Faculty</TableHead>
@@ -548,12 +546,12 @@ export default function OfferingsPage() {
                     const sec = sections.find((s) => s.id === off.section_id);
 
                     return (
-                      <TableRow key={off.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                      <TableRow key={off.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                         <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
                           #{index + 1}
                         </TableCell>
                         <TableCell className="text-center py-4">
-                          <span className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.05] px-2.5 py-1 text-xs font-bold text-foreground">
+                          <span className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.05] px-2.5 py-1 text-xs font-bold text-foreground">
                             <span className="text-[#0070F3]">{sub?.code || `Sub #${off.subject_id}`}</span>
                             <span className="text-muted-foreground font-normal">· {sub?.name}</span>
                           </span>
@@ -562,7 +560,7 @@ export default function OfferingsPage() {
                           {fac?.name || `Faculty #${off.faculty_id}`}
                         </TableCell>
                         <TableCell className="text-center py-4">
-                          <span className="inline-flex items-center justify-center rounded-lg bg-white/[0.05] px-2.5 py-0.5 text-xs font-bold text-[#0070F3]">
+                          <span className="inline-flex items-center justify-center rounded-lg bg-black/[0.04] dark:bg-white/[0.05] px-2.5 py-0.5 text-xs font-bold text-[#0070F3]">
                             {sec?.name || `Section #${off.section_id}`}
                           </span>
                         </TableCell>

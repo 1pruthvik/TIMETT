@@ -270,17 +270,16 @@ export default function AcademicTermsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh academic terms"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
           </Button>
 
           {/* Add Year Dialog */}
-          {/* Add Year Dialog */}
           <Dialog open={yearOpen} onOpenChange={setYearOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-5 text-sm font-bold text-white cursor-pointer gap-2 transition-all hover:scale-105">
+              <Button variant="outline" className="h-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-5 text-sm font-bold text-foreground cursor-pointer gap-2 transition-all hover:scale-105">
                 <Plus className="size-4" /> Add Year
               </Button>
             </DialogTrigger>
@@ -373,16 +372,14 @@ export default function AcademicTermsPage() {
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Year</span>
+                <span className="tt-eyebrow">Modify Session</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">Edit Academic Year</DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">Update calendar year label.</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdateYear} className="space-y-4 pt-2">
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Year Label *</label>
                 <Input
-                  placeholder="2026 - 2027"
                   value={editYearName}
                   onChange={(e) => setEditYearName(e.target.value)}
                   required
@@ -391,7 +388,6 @@ export default function AcademicTermsPage() {
               </div>
               {editYearError && <p className="text-xs text-red-500">{editYearError}</p>}
               <DialogFooter className="pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditYearOpen(false)} className="h-11 rounded-2xl px-5 border-0">Cancel</Button>
                 <Button type="submit" disabled={submittingEditYear || !editYearName.trim()} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
                   {submittingEditYear ? "Updating..." : "Update Year"}
                 </Button>
@@ -409,13 +405,12 @@ export default function AcademicTermsPage() {
                 <span className="tt-eyebrow">Modify Term</span>
               </div>
               <DialogTitle className="text-xl font-bold text-foreground">Edit Semester</DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">Update semester name or parent year.</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdateSemester} className="space-y-4 pt-2">
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Academic Year *</label>
                 <select
-                  className="w-full h-11 rounded-xl bg-muted/40 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border-0"
+                  className="w-full h-11 rounded-xl bg-muted/40 px-4 text-sm text-foreground focus:outline-none border-0"
                   value={editSemYearId}
                   onChange={(e) => setEditSemYearId(Number(e.target.value))}
                   required
@@ -430,7 +425,6 @@ export default function AcademicTermsPage() {
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Semester Name *</label>
                 <Input
-                  placeholder="e.g. Semester 1, Odd Sem"
                   value={editSemName}
                   onChange={(e) => setEditSemName(e.target.value)}
                   required
@@ -439,7 +433,6 @@ export default function AcademicTermsPage() {
               </div>
               {editSemError && <p className="text-xs text-red-500">{editSemError}</p>}
               <DialogFooter className="pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditSemOpen(false)} className="h-11 rounded-2xl px-5 border-0">Cancel</Button>
                 <Button type="submit" disabled={submittingEditSem || !editSemName.trim() || !editSemYearId} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
                   {submittingEditSem ? "Updating..." : "Update Semester"}
                 </Button>
@@ -448,11 +441,11 @@ export default function AcademicTermsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ── Unboxed, Spread Information Layout ── */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 pt-2">
+        {/* ── Unboxed, Spread Dual Grid ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 pt-2">
           {/* Academic Years Division */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
               <h3 className="text-lg font-bold text-foreground">Academic Years</h3>
               <span className="text-xs font-semibold text-muted-foreground">
                 {academicYears.length} Years
@@ -463,11 +456,11 @@ export default function AcademicTermsPage() {
               {loading ? (
                 <LoadingState text="Loading academic years..." />
               ) : academicYears.length === 0 ? (
-                <EmptyState icon={Calendar} title="No academic years" />
+                <EmptyState icon={CalendarRange} title="No academic years found" />
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                    <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
                       <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-center text-xs font-bold text-muted-foreground">Year Range</TableHead>
                       <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
@@ -475,7 +468,7 @@ export default function AcademicTermsPage() {
                   </TableHeader>
                   <TableBody>
                     {academicYears.map((yr, index) => (
-                      <TableRow key={yr.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                      <TableRow key={yr.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                         <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
                           #{index + 1}
                         </TableCell>
@@ -512,7 +505,7 @@ export default function AcademicTermsPage() {
 
           {/* Semesters Division */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
               <h3 className="text-lg font-bold text-foreground">Semesters</h3>
               <span className="text-xs font-semibold text-muted-foreground">
                 {semesters.length} Semesters
@@ -527,7 +520,7 @@ export default function AcademicTermsPage() {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                    <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
                       <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
                       <TableHead className="text-center text-xs font-bold text-muted-foreground">Semester Term</TableHead>
                       <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
@@ -535,7 +528,7 @@ export default function AcademicTermsPage() {
                   </TableHeader>
                   <TableBody>
                     {semesters.map((sem, index) => (
-                      <TableRow key={sem.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                      <TableRow key={sem.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                         <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
                           #{index + 1}
                         </TableCell>

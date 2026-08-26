@@ -115,7 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-black text-foreground transition-colors duration-300">
+    <div className="relative flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Deep Space Ambient Chromatic Glow */}
       <TechBackground />
 
@@ -143,7 +143,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Expanding Navigation Menu (Frosted Glass Neutral Tint Blur Background) */}
           <nav
             className={cn(
-              "flex items-center gap-5 ml-4 transition-all duration-300 py-2.5 px-6 rounded-2xl bg-[#141414]/85 dark:bg-[#121212]/90 backdrop-blur-3xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.8)]",
+              "flex items-center gap-5 ml-4 transition-all duration-300 py-2.5 px-6 rounded-2xl bg-white/80 dark:bg-[#121212]/90 backdrop-blur-3xl border border-black/[0.08] dark:border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.8)]",
               menuOpen
                 ? "opacity-100 translate-x-0 pointer-events-auto"
                 : "opacity-0 -translate-x-4 pointer-events-none"
@@ -156,8 +156,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn(
                 "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
                 pathname === "/timetable"
-                  ? "text-[#38BDF8] font-extrabold"
-                  : "text-white/70 hover:text-white"
+                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
+                  : "text-foreground/70 hover:text-foreground"
               )}
             >
               Studio
@@ -177,14 +177,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap cursor-pointer",
                   isResourcePage
-                    ? "text-[#38BDF8] font-extrabold"
-                    : "text-white/70 hover:text-white"
+                    ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
+                    : "text-foreground/70 hover:text-foreground"
                 )}
               >
                 Resources
                 <ChevronDown
                   className={cn(
-                    "size-3 text-white/50 transition-transform duration-200",
+                    "size-3 text-foreground/50 transition-transform duration-200",
                     resDropdownOpen ? "rotate-180" : ""
                   )}
                 />
@@ -200,7 +200,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }}
                   onMouseLeave={() => setResDropdownOpen(false)}
                 >
-                  <div className="py-2.5 px-2 space-y-1 rounded-2xl bg-[#141414]/90 dark:bg-[#121212]/95 backdrop-blur-3xl border border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.9)]">
+                  <div className="py-2.5 px-2 space-y-1 rounded-2xl bg-white/90 dark:bg-[#121212]/95 backdrop-blur-3xl border border-black/[0.08] dark:border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.9)]">
                     {RESOURCE_SUB_NAV.map((sub) => (
                       <Link
                         key={sub.href}
@@ -212,8 +212,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         className={cn(
                           "flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold transition-all rounded-xl",
                           pathname === sub.href
-                            ? "text-[#38BDF8] font-bold bg-white/[0.06]"
-                            : "text-white/80 hover:text-white hover:bg-white/[0.04] hover:translate-x-1"
+                            ? "text-[#0070F3] dark:text-[#38BDF8] font-bold bg-black/[0.04] dark:bg-white/[0.06]"
+                            : "text-foreground/80 hover:text-foreground hover:bg-black/[0.03] dark:hover:bg-white/[0.04] hover:translate-x-1"
                         )}
                       >
                         <sub.icon className="size-3.5 text-[#0070F3]" />
@@ -231,8 +231,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn(
                 "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
                 pathname === "/constraints"
-                  ? "text-[#38BDF8] font-extrabold"
-                  : "text-white/70 hover:text-white"
+                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
+                  : "text-foreground/70 hover:text-foreground"
               )}
             >
               Kaci
@@ -244,8 +244,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn(
                 "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
                 pathname === "/versions"
-                  ? "text-[#38BDF8] font-extrabold"
-                  : "text-white/70 hover:text-white"
+                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
+                  : "text-foreground/70 hover:text-foreground"
               )}
             >
               Versions
@@ -286,7 +286,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {profileOpen && (
               <div
-                className="absolute right-0 top-[calc(100%+16px)] w-60 rounded-2xl bg-[#141414]/90 dark:bg-[#121212]/95 backdrop-blur-3xl p-2 border border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop before:content-[''] before:absolute before:-top-5 before:inset-x-0 before:h-5"
+                className="absolute right-0 top-[calc(100%+16px)] w-60 rounded-2xl bg-white/90 dark:bg-[#121212]/95 backdrop-blur-3xl p-2 border border-black/[0.08] dark:border-white/[0.08] shadow-[0_16px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop before:content-[''] before:absolute before:-top-5 before:inset-x-0 before:h-5"
                 onMouseEnter={() => {
                   if (profileTimeoutRef.current) clearTimeout(profileTimeoutRef.current);
                   setProfileOpen(true);
@@ -296,14 +296,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 }}
               >
                 {/* Header: Name and Email Together */}
-                <div className="flex items-center gap-3 p-2.5 border-b border-white/[0.08] mb-1.5">
+                <div className="flex items-center gap-3 p-2.5 border-b border-black/[0.08] dark:border-white/[0.08] mb-1.5">
                   <Avatar className="size-9 shadow-[0_0_15px_rgba(0,112,243,0.4)]">
                     <AvatarFallback className="bg-gradient-to-br from-[#0052FF] to-[#0A1B4F] text-xs font-bold text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="overflow-hidden">
-                    <p className="text-xs font-bold text-white truncate">
+                    <p className="text-xs font-bold text-foreground truncate">
                       {userName}
                     </p>
                     <p className="text-[10px] text-muted-foreground truncate">
@@ -317,7 +317,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     href="/account"
                     onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold hover:bg-white/[0.08] transition-colors text-white/90"
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors text-foreground/90"
                   >
                     <Settings className="size-4 text-[#0070F3]" />
                     Profile & Settings
@@ -325,7 +325,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Sign Out Action */}
-                <div className="border-t border-white/[0.08] mt-1 pt-1">
+                <div className="border-t border-black/[0.08] dark:border-white/[0.08] mt-1 pt-1">
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"

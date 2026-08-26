@@ -50,8 +50,8 @@ export default function VersionsPage() {
         <PageHeader title="Version & Release Notes" icon={Layers3} />
 
         {/* ── Active Current Version Banner ── */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-white/[0.1] bg-card/60 dark:bg-white/[0.025] backdrop-blur-xl shadow-lg space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+        <div className="p-6 sm:p-8 rounded-3xl border border-black/[0.08] dark:border-white/[0.1] bg-card/60 dark:bg-white/[0.025] backdrop-blur-xl shadow-lg space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-black/[0.06] dark:border-white/[0.08] pb-6">
             <div className="space-y-1.5">
               <div className="flex items-center gap-3">
                 <span className="text-2xl sm:text-4xl font-mono font-extrabold text-foreground tracking-tight">
@@ -86,7 +86,7 @@ export default function VersionsPage() {
               {currentVersion.features.map((feature, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]"
+                  className="flex items-start gap-2.5 p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.05]"
                 >
                   <Sparkles className="size-4 text-[#38BDF8] shrink-0 mt-0.5" />
                   <span className="text-xs text-foreground/90 font-medium leading-relaxed">
@@ -108,9 +108,9 @@ export default function VersionsPage() {
             {VERSIONS.map((ver) => (
               <div
                 key={ver.id}
-                className="p-5 rounded-2xl border border-white/[0.06] bg-card/40 dark:bg-white/[0.015] backdrop-blur-md space-y-3"
+                className="p-5 rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-card/40 dark:bg-white/[0.015] backdrop-blur-md space-y-3"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.04] pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/[0.04] dark:border-white/[0.04] pb-3">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-base font-bold text-foreground">
                       {ver.tag}

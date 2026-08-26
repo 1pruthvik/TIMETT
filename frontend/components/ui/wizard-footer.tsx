@@ -160,7 +160,7 @@ export function WizardFooter({
           <Link href={prevHref}>
             <Button
               variant="outline"
-              className="h-12 rounded-2xl border-white/10 bg-white/[0.03] hover:bg-white/[0.08] px-8 text-sm font-semibold text-white cursor-pointer gap-2 transition-all hover:scale-105"
+              className="h-12 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-8 text-sm font-semibold text-foreground cursor-pointer gap-2 transition-all hover:scale-105"
             >
               <ArrowLeft className="size-4" />
               Previous

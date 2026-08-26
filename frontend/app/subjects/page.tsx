@@ -386,7 +386,7 @@ export default function SubjectsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
             title="Refresh subjects"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -574,7 +574,7 @@ export default function SubjectsPage() {
               return (
                 <div key={dept.id} className="space-y-4">
                   {/* Department Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
                     <div className="flex items-center gap-3">
                       <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
                       <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
@@ -597,7 +597,7 @@ export default function SubjectsPage() {
                           className="space-y-3"
                         >
                           {/* Semester Sub-header with Quick Add Button */}
-                          <div className="flex items-center justify-between pb-2 border-b border-white/[0.04]">
+                          <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.04]">
                             <div className="flex items-center gap-2">
                               {group.isUnassigned ? (
                                 <Info className="size-4 text-amber-500" />
@@ -616,7 +616,7 @@ export default function SubjectsPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => openAddForDeptAndSem(dept.id, group.semTitle)}
-                              className="h-8 text-xs rounded-xl px-3 gap-1.5 font-bold border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
+                              className="h-8 text-xs rounded-xl px-3 gap-1.5 font-bold border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
                             >
                               <Plus className="size-3.5" /> Add Subject to {group.semTitle}
                             </Button>
@@ -637,11 +637,11 @@ export default function SubjectsPage() {
                                 return (
                                   <div
                                     key={sub.id}
-                                    className="flex flex-col justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.05] transition-colors space-y-3 shadow-none"
+                                    className="flex flex-col justify-between p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors space-y-3 shadow-none border border-black/[0.04] dark:border-white/[0.04]"
                                   >
                                     <div className="space-y-2">
                                       <div className="flex items-center justify-between">
-                                        <span className="rounded-lg bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] font-bold text-foreground">
+                                        <span className="rounded-lg bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] font-bold text-foreground">
                                           {sub.code}
                                         </span>
                                         <span className="text-[11px] font-semibold text-muted-foreground">
@@ -657,7 +657,7 @@ export default function SubjectsPage() {
                                       </div>
                                     </div>
 
-                                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-white/[0.04]">
+                                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
                                       <Button
                                         variant="ghost"
                                         size="icon"

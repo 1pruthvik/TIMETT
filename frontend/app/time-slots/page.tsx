@@ -164,9 +164,9 @@ function Clock12Picker({
           <span className="text-xs font-bold uppercase tracking-wider text-foreground">
             {label || "Select 12-Hour Time"}
           </span>
-          <Badge variant="outline" className="text-[10px] font-mono text-primary bg-primary/10">
+          <span className="text-xs font-mono font-medium text-muted-foreground">
             {formatTime12(value)}
-          </Badge>
+          </span>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -293,9 +293,9 @@ function DurationHMSPicker({
           <span className="text-xs font-bold uppercase tracking-wider text-foreground">
             {title}
           </span>
-          <Badge variant="outline" className="text-xs font-mono text-[#0070F3] dark:text-[#38BDF8] bg-[#0070F3]/10">
+          <span className="text-xs font-mono font-medium text-muted-foreground">
             {value.hours}h {value.minutes}m {value.seconds}s
-          </Badge>
+          </span>
         </div>
 
         {/* Quick Presets */}
@@ -752,9 +752,9 @@ export default function TimeSlotsPage() {
                   </div>
                 </div>
 
-                <Badge variant="outline" className="text-xs font-mono font-bold bg-primary/10 text-primary border-primary/20">
+                <span className="text-xs font-mono font-medium text-muted-foreground">
                   {selectedDays.length} Days Active
-                </Badge>
+                </span>
               </div>
 
               <div className="space-y-3">

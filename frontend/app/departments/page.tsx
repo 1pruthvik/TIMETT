@@ -911,12 +911,7 @@ export default function DepartmentsPage() {
 
         <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
           <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <div>
-              <h3 className="text-base font-bold text-foreground">Institutional Departments</h3>
-              <p className="text-xs text-muted-foreground">
-                {departments.length} {departments.length === 1 ? "department" : "departments"} registered with configured laboratories and active academic term sections
-              </p>
-            </div>
+            <h3 className="text-base font-bold text-foreground">Institutional Departments</h3>
           </div>
 
           <div className="p-4 sm:p-6">
@@ -954,16 +949,16 @@ export default function DepartmentsPage() {
                             {dept.name}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30 font-semibold gap-1">
-                              <FlaskConical className="size-3" />
-                              {deptLabs.length} Labs
-                            </Badge>
+                            <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                              <FlaskConical className="size-3.5" />
+                              <span>{deptLabs.length} Labs</span>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1">
-                              <GraduationCap className="size-3" />
-                              {deptSections.length} Sections
-                            </Badge>
+                            <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                              <GraduationCap className="size-3.5" />
+                              <span>{deptSections.length} Sections</span>
+                            </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">

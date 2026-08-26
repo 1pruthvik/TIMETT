@@ -1,35 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  ArrowUpRight,
   BookOpen,
   Building2,
   CalendarDays,
   CalendarRange,
+  ChevronDown,
   Clock,
   DoorOpen,
-  Layers,
+  Layers3,
   RefreshCw,
   Sparkles,
   Users,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { TimettLogo } from "@/components/ui/timett-logo";
 import { api, friendlyApiError, institutionId } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 /* ── Types ── */
 type Counts = {
   faculty: number;
   subjects: number;
   rooms: number;
-  sections: number;
+  departments: number;
   timeSlots: number;
-  offerings: number;
   timetables: number;
+  academicYears: number;
   academicYear: string;
   semester: string;
 };
@@ -38,10 +40,10 @@ const initial: Counts = {
   faculty: 0,
   subjects: 0,
   rooms: 0,
-  sections: 0,
+  departments: 0,
   timeSlots: 0,
-  offerings: 0,
   timetables: 0,
+  academicYears: 0,
   academicYear: "Academic year",
   semester: "Semester",
 };
@@ -54,48 +56,18 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-/* ── Stat Card Component ── */
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  href,
-}: {
-  icon: typeof Users;
-  label: string;
-  value: number;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group rounded-2xl border border-border bg-card/60 dark:bg-white/[0.025] p-4 sm:p-5 transition-all duration-200 hover:border-primary/40 hover:bg-card/80 dark:hover:bg-white/[0.04] cursor-pointer"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex size-9 items-center justify-center rounded-xl border border-border bg-card/80 dark:bg-white/[0.04] text-muted-foreground group-hover:text-primary transition-colors">
-          <Icon className="size-4" />
-        </div>
-        <ArrowUpRight className="size-3.5 text-muted-foreground/50 transition-colors group-hover:text-primary" />
-      </div>
-      <p className="mt-3 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-        {value.toString().padStart(2, "0")}
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </Link>
-  );
-}
-
 /* ── Dashboard Page ── */
 export default function DashboardPage() {
   const router = useRouter();
   const [counts, setCounts] = useState(initial);
-  const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [userName, setUserName] = useState("Mob-max30");
+  const [userName, setUserName] = useState("Admin");
+  const [activeSection, setActiveSection] = useState(0);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
-    setLoading(true);
     setError("");
     const id = institutionId();
     try {
@@ -103,9 +75,8 @@ export default function DashboardPage() {
         faculty,
         subjects,
         rooms,
-        sections,
+        departments,
         timeSlots,
-        offerings,
         timetables,
         years,
         semesters,
@@ -113,15 +84,10 @@ export default function DashboardPage() {
         api<unknown[]>(`/faculty/?institution_id=${id}`).catch(() => []),
         api<unknown[]>(`/subjects/?institution_id=${id}`).catch(() => []),
         api<unknown[]>(`/rooms/?institution_id=${id}`).catch(() => []),
-        api<unknown[]>(`/sections/?institution_id=${id}`).catch(() => []),
+        api<unknown[]>(`/departments/?institution_id=${id}`).catch(() => []),
         api<unknown[]>(`/time-slots/`).catch(() => []),
-        api<unknown[]>(`/subject-offerings/?institution_id=${id}`).catch(
-          () => []
-        ),
         api<unknown[]>("/timetables/").catch(() => []),
-        api<{ name: string }[]>(`/academic-years/?institution_id=${id}`).catch(
-          () => []
-        ),
+        api<{ name: string }[]>(`/academic-years/?institution_id=${id}`).catch(() => []),
         api<{ name: string }[]>(`/semesters/`).catch(() => []),
       ]);
 
@@ -129,17 +95,15 @@ export default function DashboardPage() {
         faculty: faculty.length,
         subjects: subjects.length,
         rooms: rooms.length,
-        sections: sections.length,
+        departments: departments.length,
         timeSlots: timeSlots.length,
-        offerings: offerings.length,
         timetables: timetables.length,
-        academicYear: years[0]?.name || "Academic year",
-        semester: semesters[0]?.name || "Semester",
+        academicYears: years.length,
+        academicYear: years[0]?.name || "2026 - 2027",
+        semester: semesters[0]?.name || "Semester 3 (Odd)",
       });
     } catch (reason) {
       setError(friendlyApiError(reason));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -150,6 +114,31 @@ export default function DashboardPage() {
       if (user.name) setUserName(user.name.split(" ")[0]);
     } catch {}
   }, []);
+
+  // Track active section during scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollPos = container.scrollTop;
+      const height = container.clientHeight;
+      const index = Math.round(scrollPos / height);
+      setActiveSection(index);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToSection = (index: number) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const target = document.getElementById(`dash-card-${index}`);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const handleGenerateTimetable = async () => {
     setGenerating(true);
@@ -189,170 +178,257 @@ export default function DashboardPage() {
     }
   };
 
-  const checks = useMemo(
-    () => [
-      {
-        label: "Academic term configured",
-        ok: counts.academicYear !== "Academic year",
-      },
-      { label: "Subjects configured", ok: counts.subjects > 0 },
-      { label: "Faculty assigned", ok: counts.faculty > 0 },
-      { label: "Rooms available", ok: counts.rooms > 0 },
-      { label: "Student sections configured", ok: counts.sections > 0 },
-    ],
-    [counts]
-  );
-
-  const ready = Math.round(
-    (checks.filter((c) => c.ok).length / checks.length) * 100
-  );
-
-  const readinessMessage =
-    ready === 100
-      ? "Every constraint is reconciled and the department's calendar is ready to be composed."
-      : ready >= 60
-        ? "Most resources are configured. Review remaining items before generating."
-        : "Your workspace needs more configuration before generating a timetable.";
+  /* ── 8 Resource & Control Flash Cards in Order (Timetable Studio is directly on starting screen) ── */
+  const flashCards = [
+    {
+      num: "01",
+      total: "08",
+      category: "Institutional Structure",
+      title: "Academic Terms",
+      icon: CalendarRange,
+      href: "/academic-terms",
+      stat: `${counts.academicYears} Academic Years Configured`,
+      btnText: "Open Academic Terms",
+    },
+    {
+      num: "02",
+      total: "08",
+      category: "Academic Hierarchy",
+      title: "Departments",
+      icon: Building2,
+      href: "/departments",
+      stat: `${counts.departments} Registered Departments`,
+      btnText: "Open Departments",
+    },
+    {
+      num: "03",
+      total: "08",
+      category: "Physical Infrastructure",
+      title: "Rooms & Labs",
+      icon: DoorOpen,
+      href: "/rooms",
+      stat: `${counts.rooms} Physical Facilities`,
+      btnText: "Open Rooms & Labs",
+    },
+    {
+      num: "04",
+      total: "08",
+      category: "Curriculum Inventory",
+      title: "Subjects",
+      icon: BookOpen,
+      href: "/subjects",
+      stat: `${counts.subjects} Course Subjects`,
+      btnText: "Open Subjects",
+    },
+    {
+      num: "05",
+      total: "08",
+      category: "Teaching Staff",
+      title: "Faculty Instructors",
+      icon: Users,
+      href: "/faculty",
+      stat: `${counts.faculty} Registered Instructors`,
+      btnText: "Open Faculty",
+    },
+    {
+      num: "06",
+      total: "08",
+      category: "Temporal Framework",
+      title: "Time Slots",
+      icon: Clock,
+      href: "/time-slots",
+      stat: `${counts.timeSlots} Active Slots Matrix`,
+      btnText: "Open Time Slots",
+    },
+    {
+      num: "07",
+      total: "08",
+      category: "Autonomous Intelligence",
+      title: "Kaci",
+      icon: Sparkles,
+      href: "/constraints",
+      stat: "Discrete CP-SAT Optimization Solver Active",
+      btnText: "Open Kaci",
+    },
+    {
+      num: "08",
+      total: "08",
+      category: "Release Archive",
+      title: "Versions",
+      icon: Layers3,
+      href: "/versions",
+      stat: "Current Version: v1.0 • Initial Production Release",
+      btnText: "Open Versions",
+    },
+  ];
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-[1200px] space-y-8 tt-animate-fade">
-        {/* ── Hero Section ── */}
-        <section className="grid min-h-[260px] items-center gap-6 lg:grid-cols-[1fr_1fr]">
-          {/* Left: Greeting */}
-          <div className="space-y-4 py-2">
-            <div>
-              <h1 className="font-heading text-4xl font-bold leading-[1.15] text-foreground sm:text-5xl">
+      {/* ── Vertical Navigation Dots (Right Edge) ── */}
+      <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-center gap-3">
+        <button
+          onClick={() => scrollToSection(0)}
+          title="Timetable Studio & Welcome"
+          className={cn(
+            "size-2.5 rounded-full transition-all duration-300 cursor-pointer",
+            activeSection === 0
+              ? "bg-[#0070F3] scale-150 shadow-[0_0_10px_#0070F3]"
+              : "bg-white/20 hover:bg-white/50"
+          )}
+        />
+        {flashCards.map((card, i) => (
+          <button
+            key={card.href}
+            onClick={() => scrollToSection(i + 1)}
+            title={card.title}
+            className={cn(
+              "size-2.5 rounded-full transition-all duration-300 cursor-pointer",
+              activeSection === i + 1
+                ? "bg-[#0070F3] scale-150 shadow-[0_0_10px_#0070F3]"
+                : "bg-white/20 hover:bg-white/50"
+            )}
+          />
+        ))}
+      </div>
+
+      {/* ── Fullscreen Scroll Snap Container ── */}
+      <div
+        ref={containerRef}
+        className="h-screen w-full overflow-y-auto snap-y snap-mandatory scroll-smooth"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {/* ═══════════════════════════════════════════════════
+            SCREEN 0: WELCOME & TIMETABLE STUDIO (Full Height)
+        ═══════════════════════════════════════════════════ */}
+        <section
+          id="dash-card-0"
+          className="h-screen min-h-screen w-full flex flex-col justify-between items-center text-center px-6 sm:px-12 lg:px-20 py-10 relative snap-start snap-always"
+        >
+          {/* Top Brand Tag */}
+          <div className="flex items-center gap-2.5 tt-animate-fade">
+            <TimettLogo className="size-8 drop-shadow-[0_0_12px_rgba(0,112,243,0.7)]" />
+            <span className="font-heading text-base font-black tracking-tight text-white">
+              TIMETT
+            </span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              • Intelligent Scheduler
+            </span>
+          </div>
+
+          {/* Center Welcome & Timetable Studio Launch */}
+          <div className="max-w-4xl w-full space-y-8 tt-animate-fade">
+            <div className="space-y-3">
+              <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
                 {getGreeting()},
               </h1>
-              <h1 className="font-heading text-4xl font-bold italic leading-[1.15] sm:text-5xl">
+              <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold italic tracking-tight">
                 <span className="tt-gradient-text">{userName}.</span>
               </h1>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Button
-                onClick={handleGenerateTimetable}
-                disabled={generating}
-                className="h-11 rounded-xl tt-gradient-btn px-5 text-sm font-semibold gap-2 cursor-pointer disabled:opacity-75"
-              >
-                {generating ? (
-                  <>
-                    <RefreshCw className="size-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="size-4" />
-                    Generate timetable
-                  </>
-                )}
-              </Button>
+            {error && (
+              <div className="mx-auto max-w-md rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2.5 text-xs text-destructive">
+                {error}
+              </div>
+            )}
+
+            {/* Timetable Studio Launch Action */}
+            <div className="flex items-center justify-center pt-4">
               <Link href="/timetable">
-                <Button
-                  variant="outline"
-                  className="h-11 rounded-xl border-border bg-card/60 dark:bg-white/[0.03] px-5 text-sm font-semibold text-foreground hover:bg-card gap-2 cursor-pointer"
-                >
-                  <CalendarDays className="size-4" />
-                  Open timetable
+                <Button className="h-14 rounded-2xl tt-gradient-btn px-10 text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all">
+                  <CalendarDays className="size-5" />
+                  Open Timetable Studio
+                  <ArrowRight className="size-5" />
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Right: Rectangular Frosted Glass Resource Modules Block */}
-          <div className="w-full">
-            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-5 sm:p-6 shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.08)]">
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-white/[0.06]">
-                <div className="flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-[#0070F3] shadow-[0_0_8px_#0070F3] animate-pulse" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-                    Resource Modules
-                  </h3>
+          {/* Bottom Scroll Down Indicator */}
+          <button
+            onClick={() => scrollToSection(1)}
+            className="flex flex-col items-center gap-2 text-white/40 hover:text-white transition-colors cursor-pointer group pb-2"
+            aria-label="Scroll to first module"
+          >
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-white transition-colors">
+              Scroll down to explore
+            </span>
+            <div className="flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] group-hover:border-primary/40 group-hover:bg-primary/10 transition-all animate-bounce">
+              <ChevronDown className="size-4 text-white/60 group-hover:text-primary transition-colors" />
+            </div>
+          </button>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════
+            SCREENS 1 TO 8: SPREAD FLASH CARDS (No borders, No descriptions)
+        ═══════════════════════════════════════════════════ */}
+        {flashCards.map((card, index) => {
+          const Icon = card.icon;
+          const isLast = index === flashCards.length - 1;
+
+          return (
+            <section
+              key={card.href}
+              id={`dash-card-${index + 1}`}
+              className="h-screen min-h-screen w-full flex flex-col justify-between items-center px-6 sm:px-12 lg:px-24 py-12 relative snap-start snap-always"
+            >
+              {/* Top Meta Header */}
+              <div className="w-full max-w-6xl flex items-center justify-between pt-2">
+                <span className="text-sm font-mono font-bold tracking-widest text-muted-foreground/70">
+                  {card.num} / {card.total}
+                </span>
+                <span className="text-xs font-bold uppercase tracking-widest text-[#38BDF8]">
+                  {card.category}
+                </span>
+              </div>
+
+              {/* Central Spread Flash Card (Border removed, spread wide across screen) */}
+              <div className="w-full max-w-6xl py-8 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Icon className="size-10 sm:size-12 text-[#38BDF8] stroke-[1.75]" />
+                    <h2 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
+                      {card.title}
+                    </h2>
+                  </div>
+                  <p className="text-base sm:text-lg font-mono font-medium text-white/50 pl-1">
+                    {card.stat}
+                  </p>
+                </div>
+
+                <div className="shrink-0">
+                  <Link href={card.href}>
+                    <Button className="tt-gradient-btn h-14 rounded-2xl px-8 text-sm sm:text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all">
+                      {card.btnText}
+                      <ArrowRight className="size-5" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {[
-                  { label: "Academic Terms", href: "/academic-terms", icon: CalendarRange },
-                  { label: "Departments", href: "/departments", icon: Building2 },
-                  { label: "Rooms & Labs", href: "/rooms", icon: DoorOpen },
-                  { label: "Subjects", href: "/subjects", icon: BookOpen },
-                  { label: "Faculty", href: "/faculty", icon: Users },
-                  { label: "Time Slots", href: "/time-slots", icon: Clock },
-                ].map((r) => (
-                  <Link
-                    key={r.href}
-                    href={r.href}
-                    className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.06] hover:border-[#0070F3]/50 p-3.5 transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,112,243,0.25)]"
+              {/* Bottom Nav Hint */}
+              <div className="pb-2">
+                {!isLast ? (
+                  <button
+                    onClick={() => scrollToSection(index + 2)}
+                    className="flex items-center gap-2 text-xs font-bold text-muted-foreground/60 hover:text-white transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="grid size-8 place-items-center rounded-xl bg-[#0070F3]/10 text-[#38BDF8] border border-[#0070F3]/25 group-hover:bg-[#0070F3]/20 group-hover:scale-110 transition-all">
-                        <r.icon className="size-4" />
-                      </span>
-                      <ArrowRight className="size-3 text-white/30 group-hover:text-[#38BDF8] group-hover:translate-x-0.5 transition-all" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white group-hover:text-[#38BDF8] transition-colors leading-tight">
-                        {r.label}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                    Next module
+                    <ChevronDown className="size-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => scrollToSection(0)}
+                    className="flex items-center gap-2 text-xs font-bold text-muted-foreground/60 hover:text-white transition-colors cursor-pointer"
+                  >
+                    Back to top
+                    <ChevronDown className="size-4 rotate-180" />
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Error Banner ── */}
-        {error && (
-          <div className="flex items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-            <span>{error}</span>
-            <Button variant="ghost" size="sm" onClick={load}>
-              Retry
-            </Button>
-          </div>
-        )}
-
-        {/* ── 6 Resource Stat Cards ── */}
-        <section className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
-          <StatCard
-            icon={Users}
-            label="Faculty"
-            value={counts.faculty}
-            href="/faculty"
-          />
-          <StatCard
-            icon={BookOpen}
-            label="Subjects"
-            value={counts.subjects}
-            href="/subjects"
-          />
-          <StatCard
-            icon={Users}
-            label="Sections"
-            value={counts.sections}
-            href="/sections"
-          />
-          <StatCard
-            icon={DoorOpen}
-            label="Rooms & labs"
-            value={counts.rooms}
-            href="/rooms"
-          />
-          <StatCard
-            icon={Clock}
-            label="Time slots"
-            value={counts.timeSlots}
-            href="/time-slots"
-          />
-          <StatCard
-            icon={Layers}
-            label="Offerings"
-            value={counts.offerings}
-            href="/offerings"
-          />
-        </section>
+            </section>
+          );
+        })}
       </div>
     </AppShell>
   );

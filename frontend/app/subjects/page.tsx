@@ -574,23 +574,16 @@ export default function SubjectsPage() {
                 <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
                   {/* Department Card Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-[#0052FF]/20 border border-[#0070F3]/30 text-[#0070F3]">
-                        <Building2 className="size-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Department Semester Curriculum
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="size-5 text-muted-foreground stroke-[1.75]" />
+                      <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/30 font-semibold gap-1.5 px-3 py-1">
+                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                         <BookOpen className="size-3.5" />
-                        {deptSubjects.length} {deptSubjects.length === 1 ? "Subject" : "Subjects"}
-                      </Badge>
+                        <span>{deptSubjects.length} {deptSubjects.length === 1 ? "Subject" : "Subjects"}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -617,16 +610,9 @@ export default function SubjectsPage() {
                               <span className="text-xs font-bold text-foreground">
                                 {group.semTitle}
                               </span>
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] font-semibold ${
-                                  group.isUnassigned
-                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
-                                    : "bg-[#0070F3]/10 text-[#0070F3] dark:text-[#38BDF8] border-[#0070F3]/20"
-                                } px-2 py-0.5`}
-                              >
+                              <span className="text-[11px] font-medium text-muted-foreground">
                                 {group.subjects.length} {group.subjects.length === 1 ? "Subject" : "Subjects"}
-                              </Badge>
+                              </span>
                             </div>
 
                             <Button
@@ -658,19 +644,12 @@ export default function SubjectsPage() {
                                   >
                                     <div className="space-y-1.5">
                                       <div className="flex items-center justify-between">
-                                        <span className="rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/20 px-2 py-0.5 font-mono text-[11px] font-bold text-[#0070F3] dark:text-[#38BDF8]">
+                                        <span className="rounded-lg bg-muted/60 px-2 py-0.5 font-mono text-[11px] font-bold text-foreground">
                                           {sub.code}
                                         </span>
-                                        <Badge
-                                          variant="outline"
-                                          className={`text-[10px] font-semibold ${
-                                            type === "Lab"
-                                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
-                                              : "bg-primary/10 text-primary border-primary/20"
-                                          }`}
-                                        >
+                                        <span className="text-[11px] font-medium text-muted-foreground">
                                           {type === "Lab" ? "Practical Lab" : type}
-                                        </Badge>
+                                        </span>
                                       </div>
                                       <h5 className="font-bold text-sm text-foreground line-clamp-1">
                                         {sub.name}

@@ -22,9 +22,7 @@ export function PageHeader({
       <div className="space-y-1">
         <div className="flex items-center gap-2.5">
           {Icon && (
-            <div className="flex size-8 items-center justify-center rounded-lg bg-[rgba(56,189,248,0.08)] text-[#38BDF8]">
-              <Icon className="size-4" />
-            </div>
+            <Icon className="size-5 text-muted-foreground stroke-[1.75]" />
           )}
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {title}

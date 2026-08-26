@@ -151,14 +151,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
+  const isDashboard = pathname === "/dashboard" || pathname === "/";
+
   return (
     <div className="relative flex flex-col min-h-screen bg-black text-foreground transition-colors duration-300">
       {/* Deep Space Ambient Chromatic Glow */}
       <TechBackground />
 
-      {/* ── Frosted Glass Top Navigation Bar ── */}
-      <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-black/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]">
-        <div className="flex h-[58px] items-center gap-3.5 px-5 lg:px-8">
+      {/* ── Frosted Glass Top Navigation Bar (Hidden on Dashboard) ── */}
+      {!isDashboard && (
+        <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-black/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+          <div className="flex h-[58px] items-center gap-3.5 px-5 lg:px-8">
           {/* Logo (Geometric 3D Cyan-Blue Ribbon T) */}
           <Link
             href="/dashboard"
@@ -198,21 +201,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         if (!isResourcePage) router.push("/academic-terms");
                       }}
                       className={cn(
-                        "relative flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase transition-all whitespace-nowrap cursor-pointer rounded-xl",
+                        "relative flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap cursor-pointer",
                         active
-                          ? "text-white bg-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/[0.1]"
-                          : "text-white/60 hover:text-white hover:bg-white/[0.04]"
+                          ? "text-white"
+                          : "text-white/60 hover:text-white"
                       )}
                     >
                       Resources
                       <ChevronDown className={cn("size-3 text-white/50 transition-transform duration-200", resDropdownOpen ? "rotate-180" : "")} />
                       {active && (
-                        <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#0052FF] via-[#0070F3] to-[#38BDF8] shadow-[0_0_12px_#0070F3]" />
+                        <span className="absolute inset-x-2 bottom-0 h-[2px] bg-[#0070F3]" />
                       )}
                     </button>
 
                     {resDropdownOpen && (
-                      <div className="absolute left-0 top-full mt-1 w-60 rounded-2xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-1.5 shadow-[0_16px_50px_rgba(0,0,0,0.9)] z-50 tt-animate-pop">
+                      <div className="absolute left-0 top-full mt-1 w-56 rounded-xl border border-white/[0.1] bg-[#0A0A12]/95 backdrop-blur-2xl p-1.5 shadow-2xl z-50 tt-animate-pop">
                         <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                           Resource Modules
                         </div>
@@ -222,10 +225,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             href={sub.href}
                             onClick={() => setResDropdownOpen(false)}
                             className={cn(
-                              "flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+                              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors",
                               pathname === sub.href
-                                ? "bg-[#0070F3]/20 text-[#38BDF8] font-bold border border-[#0070F3]/30"
-                                : "hover:bg-white/[0.08] text-white/90 hover:text-white"
+                                ? "text-[#38BDF8] font-bold bg-white/[0.06]"
+                                : "hover:bg-white/[0.08] text-white/80 hover:text-white"
                             )}
                           >
                             <sub.icon className="size-3.5" />
@@ -243,15 +246,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={label}
                   href={href}
                   className={cn(
-                    "relative flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold tracking-wide uppercase transition-all whitespace-nowrap rounded-xl",
+                    "relative flex items-center gap-2 px-3.5 py-2 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
                     active
-                      ? "text-white bg-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/[0.1]"
-                      : "text-white/60 hover:text-white hover:bg-white/[0.04]"
+                      ? "text-white"
+                      : "text-white/60 hover:text-white"
                   )}
                 >
                   {label}
                   {active && (
-                    <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-gradient-to-r from-[#0052FF] via-[#0070F3] to-[#38BDF8] shadow-[0_0_12px_#0070F3]" />
+                    <span className="absolute inset-x-2 bottom-0 h-[2px] bg-[#0070F3]" />
                   )}
                 </Link>
               );
@@ -421,36 +424,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* ── Sub-Navigation Bar for Resource Pages ── */}
         {isResourcePage && (
-          <div className="border-t border-white/[0.06] bg-black/40 backdrop-blur-xl px-5 lg:px-8 py-2.5 overflow-x-auto shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
-            <div className="flex items-center gap-2 max-w-7xl mx-auto">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mr-1.5 select-none">
+          <div className="border-t border-white/[0.06] bg-black/40 backdrop-blur-xl px-5 lg:px-8 py-2 overflow-x-auto shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
+            <div className="flex items-center gap-4 max-w-7xl mx-auto">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 select-none">
                 MANAGE:
               </span>
-              {RESOURCE_SUB_NAV.map((sub) => {
-                const isSubActive = pathname === sub.href;
-                return (
-                  <Link
-                    key={sub.href}
-                    href={sub.href}
-                    className={cn(
-                      "flex items-center gap-2 rounded-full px-4 py-1.5 text-xs transition-all whitespace-nowrap",
-                      isSubActive
-                        ? "bg-gradient-to-r from-[#0052FF] via-[#0066FF] to-[#00A3FF] text-white shadow-[0_0_20px_rgba(0,102,255,0.6)] border border-white/30 font-bold scale-[1.03]"
-                        : "bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.08] hover:border-white/[0.18] text-white/70 hover:text-white font-medium shadow-xs"
-                    )}
-                  >
-                    <sub.icon className="size-3.5" />
-                    {sub.label}
-                  </Link>
-                );
-              })}
+              <div className="flex items-center gap-2">
+                {RESOURCE_SUB_NAV.map((sub) => {
+                  const isSubActive = pathname === sub.href;
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 text-xs transition-colors whitespace-nowrap",
+                        isSubActive
+                          ? "text-[#38BDF8] font-bold"
+                          : "text-white/60 hover:text-white font-medium"
+                      )}
+                    >
+                      <sub.icon className={cn("size-3.5", isSubActive ? "text-[#38BDF8]" : "text-white/50")} />
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
       </header>
+      )}
 
       {/* Mobile Nav Dropdown */}
-      {mobileOpen && (
+      {!isDashboard && mobileOpen && (
         <nav className="fixed inset-x-3 top-[60px] z-50 rounded-2xl border border-white/[0.12] bg-[#0A0A12]/95 backdrop-blur-2xl p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] lg:hidden">
           {navigation.map(([label, href, Icon]) => (
             <Link
@@ -483,7 +489,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Page Content */}
-      <main className="relative z-10 flex-1 p-4 sm:p-6 lg:p-8">
+      <main className={cn("relative z-10 flex-1", isDashboard ? "p-0" : "p-4 sm:p-6 lg:p-8")}>
         {children}
       </main>
 

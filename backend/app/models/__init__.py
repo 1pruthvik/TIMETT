@@ -15,3 +15,5 @@ from app.models.constraint import Constraint
 from app.models.timetable_version import TimetableVersion
 from app.models.generation_run import GenerationRun
 from app.models.user import User
+from app.models.stream import Stream
+from app.models.cycle_group import CycleGroup

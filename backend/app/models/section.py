@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
@@ -29,3 +29,11 @@ class Section(Base):
         String(50),
         nullable=True,
     )
+
+    cycle_group_id: Mapped[int | None] = mapped_column(
+        ForeignKey("cycle_groups.id"),
+        nullable=True,
+        index=True,
+    )
+
+    cycle_group = relationship("CycleGroup", back_populates="sections")

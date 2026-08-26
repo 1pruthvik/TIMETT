@@ -66,23 +66,30 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
     elif ext in ["png", "jpg", "jpeg", "webp", "bmp", "tiff"]:
         try:
-            from PIL import Image
-            import pytesseract
-            img = Image.open(io.BytesIO(content))
-            extracted_text = pytesseract.image_to_string(img)
+            import easyocr
+            reader = easyocr.Reader(['en'], gpu=False)
+            results = reader.readtext(content, detail=0)
+            extracted_text = "\n".join(results)
         except Exception:
             try:
-                doc = fitz.open(stream=content, filetype=ext)
-                for page in doc:
-                    extracted_text += page.get_text() + "\n"
+                from PIL import Image
+                import pytesseract
+                img = Image.open(io.BytesIO(content))
+                extracted_text = pytesseract.image_to_string(img)
             except Exception:
-                extracted_text = content.decode("utf-8", errors="ignore")
+                try:
+                    doc = fitz.open(stream=content, filetype=ext)
+                    for page in doc:
+                        extracted_text += page.get_text() + "\n"
+                except Exception:
+                    extracted_text = content.decode("utf-8", errors="ignore")
     else:
         # Fallback text parsing for docx/txt
         try:
             extracted_text = content.decode("utf-8", errors="ignore")
         except Exception:
             extracted_text = str(content)
+
 
 
     theory_list: list[VTUSubject] = []
@@ -160,25 +167,12 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
                 if not any(s.code == code for s in theory_list):
                     theory_list.append(subj)
 
-    # Fallback default 2025/2021 VTU Scheme subjects if OCR image text is blank
-    if not theory_list and not practical_list:
-        theory_list = [
-            VTUSubject(code="1BMATCS301", name="Probability, Distributions and Statistics", category="theory", weekly_hours=4),
-            VTUSubject(code="1BCS302", name="Object Oriented Programming with Java", category="theory", weekly_hours=4),
-            VTUSubject(code="1BCS303", name="Digital Design and Computer Organization", category="theory", weekly_hours=4),
-            VTUSubject(code="1BCS304", name="Operating Systems", category="theory", weekly_hours=3),
-            VTUSubject(code="1BCS305", name="Data Structures and Applications", category="theory", weekly_hours=3),
-        ]
-        practical_list = [
-            VTUSubject(code="1BCSL306", name="Data Structures Laboratory", category="practical", weekly_hours=3),
-            VTUSubject(code="1BXXL307x", name="Ability Enhancement Course Lab", category="practical", weekly_hours=3),
-        ]
-
     return ParsedSchemeResponse(
         course_code=None,
         theory_subjects=theory_list,
         practical_subjects=practical_list,
     )
+
 
 
 

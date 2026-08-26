@@ -489,17 +489,8 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 
               {/* Segregated Subjects Display for Active Course */}
               {(() => {
-                const activeData = courseSubjectsMap[activeCourseCode] || {
-                  theory: [
-                    { code: `21${activeCourseCode}32`, name: "Data Structures and Applications", category: "theory", weekly_hours: 4 },
-                    { code: `21${activeCourseCode}33`, name: "Analog and Digital Electronics", category: "theory", weekly_hours: 4 },
-                    { code: "21MAT31", name: "Transform Calculus & Fourier Series", category: "theory", weekly_hours: 4 },
-                  ],
-                  practical: [
-                    { code: `21${activeCourseCode}L35`, name: "Data Structures Laboratory", category: "practical", weekly_hours: 3 },
-                    { code: `21${activeCourseCode}L36`, name: "Electronics Laboratory", category: "practical", weekly_hours: 3 },
-                  ],
-                };
+                const activeData = courseSubjectsMap[activeCourseCode] || { theory: [], practical: [] };
+
 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

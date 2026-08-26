@@ -867,7 +867,7 @@ export default function TimetablePage() {
             icon={CalendarDays}
           >
             {/* Undo / Redo Controls */}
-            <div className="flex items-center gap-1 border border-border rounded-xl p-1 bg-card/60">
+            <div className="flex items-center gap-1 rounded-xl p-1 bg-card/60">
               <Button
                 variant="ghost"
                 size="icon"
@@ -891,7 +891,7 @@ export default function TimetablePage() {
             </div>
 
             {/* Export Actions */}
-            <div className="flex items-center gap-1.5 border border-border rounded-xl p-1 bg-card/60">
+            <div className="flex items-center gap-1.5 rounded-xl p-1 bg-card/60">
               <Button
                 variant="ghost"
                 size="sm"
@@ -934,7 +934,7 @@ export default function TimetablePage() {
               variant="outline"
               size="icon"
               onClick={fetchAllData}
-              className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+              className="size-10 rounded-xl border-0 bg-card/60 hover:bg-card text-muted-foreground hover:text-foreground cursor-pointer"
               title="Refresh Timetable"
             >
               <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
@@ -944,7 +944,7 @@ export default function TimetablePage() {
             {lifecycle !== "FINALIZED" ? (
               <Button
                 onClick={handleFinalize}
-                className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 px-4 shadow-sm cursor-pointer"
+                className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 px-4 shadow-sm cursor-pointer border-0"
               >
                 <CheckCircle2 className="size-4" /> Finalize Schedule
               </Button>
@@ -952,7 +952,7 @@ export default function TimetablePage() {
               <Button
                 onClick={() => { setLifecycle("EDITING"); setVersionTag("v1.1-draft"); }}
                 variant="outline"
-                className="rounded-xl font-bold gap-2 px-4 border-primary/40 text-primary cursor-pointer"
+                className="rounded-xl font-bold gap-2 px-4 text-primary cursor-pointer border-0 bg-primary/10"
               >
                 <Layers3 className="size-4" /> Create New Version
               </Button>
@@ -970,7 +970,7 @@ export default function TimetablePage() {
 
         {/* View Switcher & Filter Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
-          <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-2xl border border-border">
+          <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-2xl">
             <button
               onClick={() => setViewMode("section")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -1021,7 +1021,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                  className="rounded-xl border-0 bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Sections (Overview)</option>
                   {sections.map((s) => (
@@ -1037,7 +1037,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedFaculty}
                   onChange={(e) => setSelectedFaculty(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                  className="rounded-xl border-0 bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Instructors</option>
                   {faculty.map((f) => (
@@ -1053,7 +1053,7 @@ export default function TimetablePage() {
                 <select
                   value={selectedRoom}
                   onChange={(e) => setSelectedRoom(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                  className="rounded-xl border-0 bg-card px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Rooms & Labs</option>
                   {rooms.map((r) => (

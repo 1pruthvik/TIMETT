@@ -39,6 +39,7 @@ import {
   CalendarRange,
   ArrowRight,
 } from "lucide-react";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -991,6 +992,10 @@ export default function DepartmentsPage() {
             )}
           </div>
         </GlassPanel>
+        <WizardFooter
+          prevHref="/academic-terms"
+          nextHref="/rooms"
+        />
       </div>
     </AppShell>
   );

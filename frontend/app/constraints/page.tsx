@@ -279,7 +279,7 @@ export default function KaciPage() {
               <button
                 key={idx}
                 onClick={() => handleSendMessage(sug)}
-                className="whitespace-nowrap text-xs font-semibold px-3.5 py-1.5 rounded-full border border-border/80 bg-card/60 hover:bg-card hover:border-[#0070F3]/50 text-foreground transition-all cursor-pointer shrink-0 backdrop-blur-md"
+                className="whitespace-nowrap text-xs font-semibold px-3.5 py-1.5 rounded-full border-0 bg-card/60 hover:bg-card text-foreground transition-all cursor-pointer shrink-0 backdrop-blur-md"
               >
                 {sug}
               </button>

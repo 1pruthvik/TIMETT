@@ -47,6 +47,24 @@ def get_vtu_courses():
     return PREFETCHED_VTU_COURSES
 
 
+_EASYOCR_READER = None
+
+
+def get_easyocr_reader():
+    global _EASYOCR_READER
+    if _EASYOCR_READER is None:
+        import warnings
+        warnings.filterwarnings("ignore")
+        try:
+            import torch
+            import easyocr
+            use_gpu = torch.cuda.is_available()
+            _EASYOCR_READER = easyocr.Reader(['en'], gpu=use_gpu)
+        except Exception:
+            _EASYOCR_READER = None
+    return _EASYOCR_READER
+
+
 @router.post("/parse-scheme", response_model=ParsedSchemeResponse)
 async def parse_vtu_scheme(file: UploadFile = File(...)):
     if not file.filename:
@@ -66,11 +84,14 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
     elif ext in ["png", "jpg", "jpeg", "webp", "bmp", "tiff"]:
         try:
-            import easyocr
-            reader = easyocr.Reader(['en'], gpu=False)
-            results = reader.readtext(content, detail=0)
-            extracted_text = "\n".join(results)
+            reader = get_easyocr_reader()
+            if reader is not None:
+                results = reader.readtext(content, detail=0)
+                extracted_text = "\n".join(results)
         except Exception:
+            pass
+
+        if not extracted_text:
             try:
                 from PIL import Image
                 import pytesseract
@@ -83,6 +104,7 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
                         extracted_text += page.get_text() + "\n"
                 except Exception:
                     extracted_text = content.decode("utf-8", errors="ignore")
+
     else:
         # Fallback text parsing for docx/txt
         try:

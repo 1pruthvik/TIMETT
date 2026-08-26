@@ -283,10 +283,10 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="w-full px-3 py-2 text-sm rounded-lg border bg-background focus:ring-2 focus:ring-primary/40"
                   >
-                    <option value="1">1st Year (Physics / Chemistry Cycle)</option>
-                    <option value="2">2nd Year (Semester III / IV)</option>
-                    <option value="3">3rd Year (Semester V / VI)</option>
-                    <option value="4">4th Year (Semester VII / VIII)</option>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
                   </select>
                 </div>
 
@@ -295,23 +295,36 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setSelectedSemType("odd")}
-                      className={`py-2 text-xs font-medium rounded-lg border transition ${
-                        selectedSemType === "odd" ? "border-primary bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                      className={`py-2.5 px-3 text-xs font-medium rounded-lg border transition ${
+                        selectedSemType === "odd" ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" : "hover:bg-muted"
                       }`}
                     >
-                      Odd Sem (I, III, V, VII)
+                      {selectedYear === "1"
+                        ? "1st Sem (Physics / Chem Cycle)"
+                        : selectedYear === "2"
+                        ? "3rd Sem"
+                        : selectedYear === "3"
+                        ? "5th Sem"
+                        : "7th Sem"}
                     </button>
                     <button
                       onClick={() => setSelectedSemType("even")}
-                      className={`py-2 text-xs font-medium rounded-lg border transition ${
-                        selectedSemType === "even" ? "border-primary bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                      className={`py-2.5 px-3 text-xs font-medium rounded-lg border transition ${
+                        selectedSemType === "even" ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" : "hover:bg-muted"
                       }`}
                     >
-                      Even Sem (II, IV, VI, VIII)
+                      {selectedYear === "1"
+                        ? "2nd Sem (Physics / Chem Cycle)"
+                        : selectedYear === "2"
+                        ? "4th Sem"
+                        : selectedYear === "3"
+                        ? "6th Sem"
+                        : "8th Sem"}
                     </button>
                   </div>
                 </div>
               </div>
+
             </div>
           )}
 

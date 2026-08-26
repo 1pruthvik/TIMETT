@@ -471,7 +471,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
               <div className="border-2 border-dashed border-primary/30 rounded-2xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative">
                 <input
                   type="file"
-                  accept=".pdf,.docx,.txt"
+                  accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
                   onChange={handleSchemeFileUpload}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
@@ -480,10 +480,11 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                     {parsingScheme ? <RefreshCw className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
                   </div>
                   <p className="text-sm font-semibold">
-                    {parsingScheme ? `Extracting VTU Subjects for ${activeCourseCode}...` : `Click or Drag VTU Scheme Document for ${activeCourseCode} (PDF/DOCX) Here`}
+                    {parsingScheme ? `Extracting VTU Subjects for ${activeCourseCode}...` : `Click or Drag VTU Scheme Document / Photo for ${activeCourseCode} (PDF / Image / DOCX) Here`}
                   </p>
                   <p className="text-xs text-muted-foreground">Parser auto-categorizes Theory vs Practical Lab subjects for {activeCourseCode}</p>
                 </div>
+
               </div>
 
               {/* Segregated Subjects Display for Active Course */}
@@ -569,14 +570,15 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <div className="border border-dashed rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/40 transition cursor-pointer relative">
                     <input
                       type="file"
-                      accept=".pdf,.docx,.txt"
+                      accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
                       onChange={handleFacultyFileUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
                     <div className="flex items-center justify-center space-x-2 text-xs font-semibold">
                       {parsingFaculty ? <RefreshCw className="h-4 w-4 animate-spin text-primary" /> : <Upload className="h-4 w-4 text-primary" />}
-                      <span>{parsingFaculty ? "Extracting Faculty..." : "Upload Faculty List (PDF / DOCX)"}</span>
+                      <span>{parsingFaculty ? "Extracting Faculty..." : "Upload Faculty List / Photo (PDF / Image / DOCX)"}</span>
                     </div>
+
                   </div>
 
                   {/* Manual Faculty Input */}

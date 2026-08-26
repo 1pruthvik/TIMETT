@@ -55,19 +55,35 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
     content = await file.read()
     extracted_text = ""
 
-    if file.filename.lower().endswith(".pdf"):
+    ext = file.filename.lower().split(".")[-1]
+
+    if ext == "pdf":
         try:
             doc = fitz.open(stream=content, filetype="pdf")
             for page in doc:
                 extracted_text += page.get_text() + "\n"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
+    elif ext in ["png", "jpg", "jpeg", "webp", "bmp", "tiff"]:
+        try:
+            from PIL import Image
+            import pytesseract
+            img = Image.open(io.BytesIO(content))
+            extracted_text = pytesseract.image_to_string(img)
+        except Exception:
+            try:
+                doc = fitz.open(stream=content, filetype=ext)
+                for page in doc:
+                    extracted_text += page.get_text() + "\n"
+            except Exception:
+                extracted_text = content.decode("utf-8", errors="ignore")
     else:
         # Fallback text parsing for docx/txt
         try:
             extracted_text = content.decode("utf-8", errors="ignore")
         except Exception:
             extracted_text = str(content)
+
 
     theory_list: list[VTUSubject] = []
     practical_list: list[VTUSubject] = []
@@ -134,15 +150,31 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
     content = await file.read()
     extracted_text = ""
 
-    if file.filename.lower().endswith(".pdf"):
+    ext = file.filename.lower().split(".")[-1]
+
+    if ext == "pdf":
         try:
             doc = fitz.open(stream=content, filetype="pdf")
             for page in doc:
                 extracted_text += page.get_text() + "\n"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
+    elif ext in ["png", "jpg", "jpeg", "webp", "bmp", "tiff"]:
+        try:
+            from PIL import Image
+            import pytesseract
+            img = Image.open(io.BytesIO(content))
+            extracted_text = pytesseract.image_to_string(img)
+        except Exception:
+            try:
+                doc = fitz.open(stream=content, filetype=ext)
+                for page in doc:
+                    extracted_text += page.get_text() + "\n"
+            except Exception:
+                extracted_text = content.decode("utf-8", errors="ignore")
     else:
         extracted_text = content.decode("utf-8", errors="ignore")
+
 
     faculties: list[dict[str, str]] = []
     lines = extracted_text.splitlines()

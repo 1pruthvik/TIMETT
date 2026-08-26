@@ -48,14 +48,14 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   const [selectedYear, setSelectedYear] = useState("2"); // 1st, 2nd, 3rd, 4th
   const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
 
-  // Courses list
+  // Courses list & Active Target Course for Timetable Generation
   const [courses, setCourses] = useState<VTUCourse[]>([]);
+  const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
   const [loadingCourses, setLoadingCourses] = useState(false);
 
-  // Parsed Scheme & Faculty
+  // Per-Course Mapped Parsed Scheme Subjects { "CSE": { theory: [...], practical: [...] } }
+  const [courseSubjectsMap, setCourseSubjectsMap] = useState<Record<string, { theory: Subject[]; practical: Subject[] }>>({});
   const [parsingScheme, setParsingScheme] = useState(false);
-  const [theorySubjects, setTheorySubjects] = useState<Subject[]>([]);
-  const [practicalSubjects, setPracticalSubjects] = useState<Subject[]>([]);
 
   // Faculties side-by-side
   const [facultyList, setFacultyList] = useState<FacultyItem[]>([]);
@@ -80,19 +80,40 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     }
   }, [isOpen]);
 
+  const saveCoursesToStorage = (updatedCourses: VTUCourse[]) => {
+    try {
+      localStorage.setItem("vtu_college_offered_courses", JSON.stringify(updatedCourses));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const fetchVTUCourses = async () => {
     setLoadingCourses(true);
     try {
+      // Check if user has saved college course preferences in localStorage
+      const saved = localStorage.getItem("vtu_college_offered_courses");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setCourses(parsed);
+        if (parsed.length > 0) {
+          const selectedOne = parsed.find((c: any) => c.selected);
+          if (selectedOne) setActiveCourseCode(selectedOne.code);
+        }
+        setLoadingCourses(false);
+        return;
+      }
+
       const res = await fetch("http://127.0.0.1:8000/vtu/courses");
       if (res.ok) {
         const data = await res.json();
-        setCourses(
-          data.map((c: any) => ({
-            ...c,
-            selected: true,
-            studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
-          }))
-        );
+        const initial = data.map((c: any) => ({
+          ...c,
+          selected: c.code === "CSE" || c.code === "ECE" || c.code === "ME" || c.code === "ISE",
+          studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
+        }));
+        setCourses(initial);
+        saveCoursesToStorage(initial);
       }
     } catch (e) {
       console.error(e);
@@ -102,15 +123,19 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   };
 
   const handleToggleCourse = (code: string) => {
-    setCourses((prev) =>
-      prev.map((c) => (c.code === code ? { ...c, selected: !c.selected } : c))
-    );
+    setCourses((prev) => {
+      const updated = prev.map((c) => (c.code === code ? { ...c, selected: !c.selected } : c));
+      saveCoursesToStorage(updated);
+      return updated;
+    });
   };
 
   const handleUpdateStudentCount = (code: string, count: number) => {
-    setCourses((prev) =>
-      prev.map((c) => (c.code === code ? { ...c, studentCount: Math.max(0, count) } : c))
-    );
+    setCourses((prev) => {
+      const updated = prev.map((c) => (c.code === code ? { ...c, studentCount: Math.max(0, count) } : c));
+      saveCoursesToStorage(updated);
+      return updated;
+    });
   };
 
   const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,8 +153,13 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       });
       if (res.ok) {
         const data = await res.json();
-        setTheorySubjects(data.theory_subjects || []);
-        setPracticalSubjects(data.practical_subjects || []);
+        const tSubjs = data.theory_subjects || [];
+        const pSubjs = data.practical_subjects || [];
+
+        setCourseSubjectsMap((prev) => ({
+          ...prev,
+          [activeCourseCode]: { theory: tSubjs, practical: pSubjs },
+        }));
       }
     } catch (err) {
       console.error(err);
@@ -137,6 +167,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       setParsingScheme(false);
     }
   };
+
 
   const handleFacultyFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -335,7 +366,9 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-semibold">2. Pre-Fetched VTU B.E. Degree Courses & Student Intake</h3>
-                  <p className="text-xs text-muted-foreground">Select/retain courses offered by your college and enter admitted student count.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Checkboxes save your college's offered portfolio (remembered automatically). Click a course card to select it for timetable generation.
+                  </p>
                 </div>
                 <span className="text-xs font-mono px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold">
                   Total Students: {totalStudents}
@@ -349,50 +382,90 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[45vh] overflow-y-auto pr-1">
-                  {courses.map((c) => (
-                    <div
-                      key={c.code}
-                      className={`p-3 rounded-xl border transition flex items-center justify-between space-x-3 ${
-                        c.selected ? "border-primary/40 bg-card shadow-xs" : "opacity-40 bg-muted/20 border-dashed"
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3 min-w-0">
-                        <input
-                          type="checkbox"
-                          checked={c.selected}
-                          onChange={() => handleToggleCourse(c.code)}
-                          className="h-4 w-4 rounded border-primary text-primary focus:ring-primary/40"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold truncate">{c.name}</p>
-                          <span className="text-[10px] font-mono text-primary font-semibold">{c.code}</span>
-                        </div>
-                      </div>
-
-                      {c.selected && (
-                        <div className="flex items-center space-x-1 shrink-0">
-                          <span className="text-[10px] text-muted-foreground">Students:</span>
+                  {courses.map((c) => {
+                    const isActiveTarget = activeCourseCode === c.code;
+                    return (
+                      <div
+                        key={c.code}
+                        onClick={() => {
+                          if (c.selected) setActiveCourseCode(c.code);
+                        }}
+                        className={`p-3.5 rounded-xl border transition flex items-center justify-between space-x-3 cursor-pointer ${
+                          isActiveTarget && c.selected
+                            ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-md"
+                            : c.selected
+                            ? "border-border bg-card hover:border-primary/50 shadow-xs"
+                            : "opacity-40 bg-muted/20 border-dashed cursor-default"
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3 min-w-0">
                           <input
-                            type="number"
-                            value={c.studentCount}
-                            onChange={(e) => handleUpdateStudentCount(c.code, Number(e.target.value))}
-                            className="w-16 px-2 py-1 text-xs rounded border bg-background text-right font-mono focus:ring-1 focus:ring-primary"
+                            type="checkbox"
+                            checked={c.selected}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleToggleCourse(c.code);
+                            }}
+                            className="h-4 w-4 rounded border-primary text-primary focus:ring-primary/40 cursor-pointer"
                           />
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <p className="text-xs font-bold truncate">{c.name}</p>
+                              {isActiveTarget && c.selected && (
+                                <span className="px-1.5 py-0.2 text-[9px] font-extrabold rounded bg-primary text-primary-foreground">
+                                  Target
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-mono text-primary font-semibold">{c.code}</span>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {c.selected && (
+                          <div className="flex items-center space-x-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <span className="text-[10px] text-muted-foreground">Students:</span>
+                            <input
+                              type="number"
+                              value={c.studentCount}
+                              onChange={(e) => handleUpdateStudentCount(c.code, Number(e.target.value))}
+                              className="w-16 px-2 py-1 text-xs rounded border bg-background text-right font-mono focus:ring-1 focus:ring-primary"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
 
-          {/* STEP 3: VTU Scheme Document Upload & Auto Segregation */}
+          {/* STEP 3: VTU Scheme Document Upload & Auto Segregation Per Course */}
           {step === 3 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-base font-semibold">3. VTU Scheme Document Upload & Subject Ingestion</h3>
-                <p className="text-xs text-muted-foreground">Upload VTU Scheme PDF/DOCX or use default scheme data. Subjects will be automatically segregated into Theory & Practical Labs.</p>
+                <p className="text-xs text-muted-foreground">
+                  Upload VTU Scheme PDF/DOCX for <span className="font-bold text-primary">{activeCourseCode}</span>. Subjects are segregated into Theory & Practical Labs.
+                </p>
+              </div>
+
+              {/* Course Selection Tabs for Scheme Ingestion */}
+              <div className="flex flex-wrap gap-2 pb-1 border-b border-border">
+                {selectedCourses.map((c) => (
+                  <button
+                    key={c.code}
+                    onClick={() => setActiveCourseCode(c.code)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 ${
+                      activeCourseCode === c.code
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-muted/40 text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <span>{c.code}</span>
+                    <span className="text-[10px] opacity-75">({c.studentCount})</span>
+                  </button>
+                ))}
               </div>
 
               <div className="border-2 border-dashed border-primary/30 rounded-2xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative">
@@ -407,62 +480,79 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                     {parsingScheme ? <RefreshCw className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
                   </div>
                   <p className="text-sm font-semibold">
-                    {parsingScheme ? "Extracting VTU Subjects..." : "Click or Drag VTU Scheme Document (PDF/DOCX) Here"}
+                    {parsingScheme ? `Extracting VTU Subjects for ${activeCourseCode}...` : `Click or Drag VTU Scheme Document for ${activeCourseCode} (PDF/DOCX) Here`}
                   </p>
-                  <p className="text-xs text-muted-foreground">Parser auto-categorizes Theory vs Practical Lab subjects</p>
+                  <p className="text-xs text-muted-foreground">Parser auto-categorizes Theory vs Practical Lab subjects for {activeCourseCode}</p>
                 </div>
               </div>
 
-              {/* Segregated Subjects Display */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Theory Subjects */}
-                <div className="rounded-xl border p-4 bg-card space-y-3">
-                  <h4 className="text-xs font-bold text-primary tracking-wider uppercase flex items-center space-x-2">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Theory Subjects ({theorySubjects.length})</span>
-                  </h4>
-                  {theorySubjects.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">No theory subjects parsed yet. Upload scheme above.</p>
-                  ) : (
-                    <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-                      {theorySubjects.map((s, idx) => (
-                        <div key={idx} className="p-2 rounded-lg border bg-muted/30 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-mono font-bold text-primary">{s.code}</span>
-                            <p className="font-medium text-foreground">{s.name}</p>
-                          </div>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">{s.weekly_hours} hrs/wk</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {/* Segregated Subjects Display for Active Course */}
+              {(() => {
+                const activeData = courseSubjectsMap[activeCourseCode] || {
+                  theory: [
+                    { code: `21${activeCourseCode}32`, name: "Data Structures and Applications", category: "theory", weekly_hours: 4 },
+                    { code: `21${activeCourseCode}33`, name: "Analog and Digital Electronics", category: "theory", weekly_hours: 4 },
+                    { code: "21MAT31", name: "Transform Calculus & Fourier Series", category: "theory", weekly_hours: 4 },
+                  ],
+                  practical: [
+                    { code: `21${activeCourseCode}L35`, name: "Data Structures Laboratory", category: "practical", weekly_hours: 3 },
+                    { code: `21${activeCourseCode}L36`, name: "Electronics Laboratory", category: "practical", weekly_hours: 3 },
+                  ],
+                };
 
-                {/* Practical / Lab Subjects */}
-                <div className="rounded-xl border p-4 bg-card space-y-3">
-                  <h4 className="text-xs font-bold text-accent tracking-wider uppercase flex items-center space-x-2">
-                    <Layers className="h-4 w-4" />
-                    <span>Practical & Lab Subjects ({practicalSubjects.length})</span>
-                  </h4>
-                  {practicalSubjects.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">No lab subjects parsed yet. Upload scheme above.</p>
-                  ) : (
-                    <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-                      {practicalSubjects.map((s, idx) => (
-                        <div key={idx} className="p-2 rounded-lg border bg-muted/30 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-mono font-bold text-accent">{s.code}</span>
-                            <p className="font-medium text-foreground">{s.name}</p>
-                          </div>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-mono">{s.weekly_hours} hrs/wk</span>
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Theory Subjects */}
+                    <div className="rounded-xl border p-4 bg-card space-y-3">
+                      <h4 className="text-xs font-bold text-primary tracking-wider uppercase flex items-center space-x-2">
+                        <BookOpen className="h-4 w-4" />
+                        <span>Theory Subjects for {activeCourseCode} ({activeData.theory.length})</span>
+                      </h4>
+                      {activeData.theory.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">No theory subjects parsed yet for {activeCourseCode}. Upload scheme above.</p>
+                      ) : (
+                        <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                          {activeData.theory.map((s, idx) => (
+                            <div key={idx} className="p-2 rounded-lg border bg-muted/30 flex items-center justify-between text-xs">
+                              <div>
+                                <span className="font-mono font-bold text-primary">{s.code}</span>
+                                <p className="font-medium text-foreground">{s.name}</p>
+                              </div>
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">{s.weekly_hours} hrs/wk</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+
+                    {/* Practical / Lab Subjects */}
+                    <div className="rounded-xl border p-4 bg-card space-y-3">
+                      <h4 className="text-xs font-bold text-accent tracking-wider uppercase flex items-center space-x-2">
+                        <Layers className="h-4 w-4" />
+                        <span>Practical & Lab Subjects for {activeCourseCode} ({activeData.practical.length})</span>
+                      </h4>
+                      {activeData.practical.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">No lab subjects parsed yet for {activeCourseCode}. Upload scheme above.</p>
+                      ) : (
+                        <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                          {activeData.practical.map((s, idx) => (
+                            <div key={idx} className="p-2 rounded-lg border bg-muted/30 flex items-center justify-between text-xs">
+                              <div>
+                                <span className="font-mono font-bold text-accent">{s.code}</span>
+                                <p className="font-medium text-foreground">{s.name}</p>
+                              </div>
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-mono">{s.weekly_hours} hrs/wk</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
+
 
           {/* STEP 4: Side-by-Side Faculty Ingestion */}
           {step === 4 && (
@@ -569,8 +659,11 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 </div>
                 <div className="p-3 rounded-xl border bg-accent/5 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium">Subjects Active</p>
-                  <p className="text-lg font-extrabold text-accent">{theorySubjects.length + practicalSubjects.length}</p>
+                  <p className="text-lg font-extrabold text-accent">
+                    {((courseSubjectsMap[activeCourseCode]?.theory?.length || 3) + (courseSubjectsMap[activeCourseCode]?.practical?.length || 2))}
+                  </p>
                 </div>
+
               </div>
 
               {/* Inputs Grid */}

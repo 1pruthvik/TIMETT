@@ -627,7 +627,7 @@ export default function FacultyPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
             title="Refresh faculty roster"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
@@ -635,12 +635,12 @@ export default function FacultyPage() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
                 <Plus className="size-4" /> Add Faculty
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -665,7 +665,7 @@ export default function FacultyPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="rounded-xl border-border bg-muted/40"
+                      className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                     />
                   </div>
                   <div>
@@ -673,20 +673,20 @@ export default function FacultyPage() {
                       Designation
                     </label>
                     <Input
-                      placeholder="e.g. Assistant Professor"
+                      placeholder="e.g. Associate Professor"
                       value={designation}
                       onChange={(e) => setDesignation(e.target.value)}
-                      className="rounded-xl border-border bg-muted/40"
+                      className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Home Department (Faculty Belongs To) *
+                    Home Department *
                   </label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                     value={departmentId}
                     onChange={(e) => setDepartmentId(Number(e.target.value))}
                   >
@@ -699,7 +699,7 @@ export default function FacultyPage() {
                 </div>
 
                 {/* Handled Course Allocations */}
-                <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
+                <div className="space-y-3 rounded-2xl bg-white/[0.03] p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-foreground">
@@ -713,7 +713,7 @@ export default function FacultyPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 rounded-lg gap-1 text-xs font-semibold border-border bg-card cursor-pointer"
+                      className="h-8 rounded-xl px-3 gap-1 text-xs font-semibold border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
                       onClick={addAssignmentRow}
                     >
                       <Plus className="size-3.5" /> Add Load
@@ -730,7 +730,7 @@ export default function FacultyPage() {
                       return (
                         <div
                           key={idx}
-                          className="flex flex-col sm:flex-row items-start sm:items-center gap-2 rounded-xl border border-border bg-card/80 p-3"
+                          className="flex flex-col sm:flex-row items-start sm:items-center gap-2 rounded-xl bg-white/[0.04] p-3"
                         >
                           {/* Handling Department */}
                           <div className="w-full sm:w-36">
@@ -738,7 +738,7 @@ export default function FacultyPage() {
                               Handling Dept
                             </label>
                             <select
-                              className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
+                              className="w-full h-9 rounded-lg bg-muted/60 px-2 text-xs text-foreground cursor-pointer border-0"
                               value={item.handling_department_id}
                               onChange={(e) =>
                                 updateAssignment(idx, "handling_department_id", Number(e.target.value))
@@ -758,7 +758,7 @@ export default function FacultyPage() {
                               Semester
                             </label>
                             <select
-                              className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
+                              className="w-full h-9 rounded-lg bg-muted/60 px-2 text-xs text-foreground cursor-pointer border-0"
                               value={item.semester_name}
                               onChange={(e) =>
                                 updateAssignment(idx, "semester_name", e.target.value)
@@ -778,7 +778,7 @@ export default function FacultyPage() {
                               Subject Handled
                             </label>
                             <select
-                              className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
+                              className="w-full h-9 rounded-lg bg-muted/60 px-2 text-xs text-foreground cursor-pointer border-0"
                               value={item.subject_id}
                               onChange={(e) =>
                                 updateAssignment(
@@ -808,7 +808,7 @@ export default function FacultyPage() {
                             <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
                               Periods/Wk
                             </label>
-                            <div className="h-8 px-2.5 rounded-lg border border-border bg-muted/60 flex items-center justify-center font-mono font-bold text-xs text-foreground">
+                            <div className="h-9 px-2.5 rounded-lg bg-white/[0.06] flex items-center justify-center font-mono font-bold text-xs text-foreground">
                               {item.weekly_hours} hrs/wk
                             </div>
                           </div>
@@ -828,19 +828,19 @@ export default function FacultyPage() {
                   </div>
 
                   {/* Total Hours Banner */}
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border-0 text-xs">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
                       <Clock className="size-4 text-primary" />
                       Total Cumulative Faculty Workload:
                     </span>
-                    <Badge className="bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-0.5">
+                    <Badge className="bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-0.5 border-0">
                       {totalAddHours} Hours / Week
                     </Badge>
                   </div>
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-600 dark:text-red-400">
+                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border-0 p-3 text-xs text-red-600 dark:text-red-400">
                     <AlertCircle className="size-4 shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -850,7 +850,7 @@ export default function FacultyPage() {
                   <Button
                     type="submit"
                     disabled={submitting || !name.trim()}
-                    className="tt-gradient-btn rounded-xl font-bold w-full"
+                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
                   >
                     {submitting ? "Saving..." : "Save Faculty Member"}
                   </Button>
@@ -860,58 +860,58 @@ export default function FacultyPage() {
           </Dialog>
         </PageHeader>
 
-        {/* Search & Overview Stats */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-80">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        {/* Search & Statistics Bar with Generous Padding */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+          <div className="relative w-full sm:w-96">
+            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search faculty or department..."
+              placeholder="Search faculty by name or designation..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 rounded-xl bg-card border-border text-xs"
+              className="h-11 pl-10 pr-4 rounded-2xl bg-muted/40 border-0 text-sm"
             />
           </div>
 
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
+            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
               {departments.length} Departments
             </Badge>
-            <Badge variant="outline" className="text-xs font-semibold px-3 py-1 bg-card border-border">
-              {faculty.length} Faculty Instructors
+            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
+              {faculty.length} Total Faculty
             </Badge>
           </div>
         </div>
 
-        {/* Faculty Categorized by Home Department */}
+        {/* Hierarchical Departments -> Faculty Members (Unboxed Layout) */}
         {loading ? (
-          <LoadingState text="Loading faculty members by department..." />
+          <LoadingState text="Loading faculty members and teaching allocations..." />
         ) : departments.length === 0 ? (
           <EmptyState
             icon={Building2}
             title="No departments found"
           />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12 pt-2">
             {filteredDepartments.map((dept) => {
               const deptFaculty = faculty.filter((f) => f.department_id === dept.id);
 
               return (
-                <GlassPanel key={dept.id} className="p-0 overflow-hidden border-border shadow-sm">
+                <div key={dept.id} className="space-y-4">
                   {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 border-b border-border bg-card/60">
-                    <div className="flex items-center gap-2.5">
-                      <Building2 className="size-5 text-muted-foreground stroke-[1.75]" />
-                      <h3 className="text-base font-bold text-foreground">{dept.name}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
+                      <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                      <Users className="size-3.5" />
+                    <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+                      <Users className="size-4 text-[#0070F3]" />
                       <span>{deptFaculty.length} {deptFaculty.length === 1 ? "Instructor" : "Instructors"}</span>
                     </div>
                   </div>
 
                   {/* Faculty Roster in this Department */}
-                  <div className="p-5 bg-card/30">
+                  <div className="pt-2">
                     {deptFaculty.length === 0 ? (
                       <p className="text-xs text-muted-foreground italic py-3">
                         No faculty members currently belong to {dept.name}. Click &ldquo;Add Faculty&rdquo; to register instructors for this department.
@@ -928,18 +928,18 @@ export default function FacultyPage() {
                           return (
                             <div
                               key={fac.id}
-                              className="rounded-2xl border border-border bg-card p-4 space-y-3 hover:border-primary/40 transition-colors shadow-xs"
+                              className="rounded-2xl bg-white/[0.03] hover:bg-white/[0.05] p-5 space-y-4 transition-colors border-0 shadow-none"
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div>
-                                  <h4 className="font-bold text-sm text-foreground">{fac.name}</h4>
-                                  <p className="text-xs text-muted-foreground">
+                                  <h4 className="font-bold text-base text-foreground">{fac.name}</h4>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
                                     {fac.designation || "Assistant Professor"}
                                   </p>
                                 </div>
 
                                 <div className="text-right">
-                                  <span className="font-mono font-bold text-xs text-foreground block">
+                                  <span className="font-mono font-bold text-sm text-foreground block">
                                     {totalHours > 0 ? `${totalHours} hrs/week` : "0 hrs/week"}
                                   </span>
                                   <span className="text-[10px] text-muted-foreground block mt-0.5">
@@ -949,7 +949,7 @@ export default function FacultyPage() {
                               </div>
 
                               {/* Handling Course Loads */}
-                              <div className="space-y-1.5 pt-1">
+                              <div className="space-y-2 pt-1">
                                 <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
                                   Handled Courses & Fixed Curriculum Hours:
                                 </span>
@@ -958,7 +958,7 @@ export default function FacultyPage() {
                                     No teaching loads currently configured.
                                   </span>
                                 ) : (
-                                  <div className="flex flex-wrap gap-1.5">
+                                  <div className="flex flex-wrap gap-2">
                                     {assignedLoads.map((load, lIdx) => {
                                       const sub = subjects.find((s) => s.id === load.subject_id);
                                       const targetDept = departments.find((d) => d.id === load.handling_department_id);
@@ -968,7 +968,7 @@ export default function FacultyPage() {
                                         <Badge
                                           key={lIdx}
                                           variant="outline"
-                                          className="text-[11px] font-medium bg-muted/60 text-foreground border-border px-2.5 py-1 flex items-center gap-1.5"
+                                          className="text-xs font-medium bg-white/[0.05] text-foreground border-0 px-3 py-1 flex items-center gap-1.5 rounded-xl"
                                         >
                                           <span className="font-bold text-[#0070F3]">
                                             {targetDept?.name || "Dept"}
@@ -977,7 +977,7 @@ export default function FacultyPage() {
                                           <span>{load.semester_name}</span>
                                           <span className="text-muted-foreground">•</span>
                                           <span className="font-semibold">{sub ? `${sub.code} - ${sub.name}` : "Subject"}</span>
-                                          <span className="rounded-md bg-primary/10 text-primary font-mono text-[10px] px-1 py-0.2">
+                                          <span className="rounded-md bg-primary/20 text-primary font-mono text-[10px] px-1.5 py-0.5 font-bold">
                                             {hours} hrs/wk
                                           </span>
                                         </Badge>
@@ -988,21 +988,21 @@ export default function FacultyPage() {
                               </div>
 
                               {/* Actions Bar */}
-                              <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-border/40">
+                              <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-white/[0.04]">
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => openAvailability(fac)}
-                                  className="h-7 text-xs rounded-lg gap-1 border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                                  className="h-8 text-xs rounded-xl px-3 gap-1.5 border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
                                 >
-                                  <CalendarClock className="size-3.5" /> Availability
+                                  <CalendarClock className="size-3.5 text-[#0070F3]" /> Availability
                                 </Button>
 
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => openEditModal(fac)}
-                                  className="size-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
                                   title="Edit faculty"
                                 >
                                   <Pencil className="size-3.5" />
@@ -1012,7 +1012,7 @@ export default function FacultyPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleDelete(fac.id)}
-                                  className="size-7 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
                                   title="Delete faculty"
                                 >
                                   <Trash2 className="size-3.5" />
@@ -1024,7 +1024,7 @@ export default function FacultyPage() {
                       </div>
                     )}
                   </div>
-                </GlassPanel>
+                </div>
               );
             })}
           </div>

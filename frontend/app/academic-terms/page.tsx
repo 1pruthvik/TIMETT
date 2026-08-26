@@ -277,13 +277,14 @@ export default function AcademicTermsPage() {
           </Button>
 
           {/* Add Year Dialog */}
+          {/* Add Year Dialog */}
           <Dialog open={yearOpen} onOpenChange={setYearOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer border-border bg-card/80">
+              <Button variant="outline" className="h-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-5 text-sm font-bold text-white cursor-pointer gap-2 transition-all hover:scale-105">
                 <Plus className="size-4" /> Add Year
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[400px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[400px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -300,12 +301,12 @@ export default function AcademicTermsPage() {
                     value={yearName}
                     onChange={(e) => setYearName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                   />
                 </div>
                 {yearError && <p className="text-xs text-red-500">{yearError}</p>}
                 <DialogFooter className="pt-2">
-                  <Button type="submit" disabled={submittingYear || !yearName.trim()} className="tt-gradient-btn rounded-xl font-bold">
+                  <Button type="submit" disabled={submittingYear || !yearName.trim()} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
                     {submittingYear ? "Saving..." : "Save Year"}
                   </Button>
                 </DialogFooter>
@@ -316,11 +317,11 @@ export default function AcademicTermsPage() {
           {/* Add Semester Dialog */}
           <Dialog open={semOpen} onOpenChange={setSemOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
                 <Plus className="size-4" /> Add Semester
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -333,7 +334,7 @@ export default function AcademicTermsPage() {
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Academic Year *</label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border-0"
                     value={selectedYearId}
                     onChange={(e) => setSelectedYearId(Number(e.target.value))}
                     required
@@ -352,12 +353,12 @@ export default function AcademicTermsPage() {
                     value={semName}
                     onChange={(e) => setSemName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40"
+                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                   />
                 </div>
                 {semError && <p className="text-xs text-red-500">{semError}</p>}
                 <DialogFooter className="pt-2">
-                  <Button type="submit" disabled={submittingSem || !semName.trim() || !selectedYearId} className="tt-gradient-btn rounded-xl font-bold">
+                  <Button type="submit" disabled={submittingSem || !semName.trim() || !selectedYearId} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
                     {submittingSem ? "Saving..." : "Save Semester"}
                   </Button>
                 </DialogFooter>
@@ -368,7 +369,7 @@ export default function AcademicTermsPage() {
 
         {/* Edit Year Dialog */}
         <Dialog open={editYearOpen} onOpenChange={setEditYearOpen}>
-          <DialogContent className="sm:max-w-[400px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[400px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
@@ -385,13 +386,13 @@ export default function AcademicTermsPage() {
                   value={editYearName}
                   onChange={(e) => setEditYearName(e.target.value)}
                   required
-                  className="rounded-xl border-border bg-muted/40"
+                  className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                 />
               </div>
               {editYearError && <p className="text-xs text-red-500">{editYearError}</p>}
               <DialogFooter className="pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditYearOpen(false)} className="rounded-xl">Cancel</Button>
-                <Button type="submit" disabled={submittingEditYear || !editYearName.trim()} className="tt-gradient-btn rounded-xl font-bold">
+                <Button type="button" variant="outline" onClick={() => setEditYearOpen(false)} className="h-11 rounded-2xl px-5 border-0">Cancel</Button>
+                <Button type="submit" disabled={submittingEditYear || !editYearName.trim()} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
                   {submittingEditYear ? "Updating..." : "Update Year"}
                 </Button>
               </DialogFooter>
@@ -401,7 +402,7 @@ export default function AcademicTermsPage() {
 
         {/* Edit Semester Dialog */}
         <Dialog open={editSemOpen} onOpenChange={setEditSemOpen}>
-          <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
@@ -414,7 +415,7 @@ export default function AcademicTermsPage() {
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Academic Year *</label>
                 <select
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="w-full h-11 rounded-xl bg-muted/40 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border-0"
                   value={editSemYearId}
                   onChange={(e) => setEditSemYearId(Number(e.target.value))}
                   required
@@ -433,13 +434,13 @@ export default function AcademicTermsPage() {
                   value={editSemName}
                   onChange={(e) => setEditSemName(e.target.value)}
                   required
-                  className="rounded-xl border-border bg-muted/40"
+                  className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                 />
               </div>
               {editSemError && <p className="text-xs text-red-500">{editSemError}</p>}
               <DialogFooter className="pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditSemOpen(false)} className="rounded-xl">Cancel</Button>
-                <Button type="submit" disabled={submittingEditSem || !editSemName.trim() || !editSemYearId} className="tt-gradient-btn rounded-xl font-bold">
+                <Button type="button" variant="outline" onClick={() => setEditSemOpen(false)} className="h-11 rounded-2xl px-5 border-0">Cancel</Button>
+                <Button type="submit" disabled={submittingEditSem || !editSemName.trim() || !editSemYearId} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
                   {submittingEditSem ? "Updating..." : "Update Semester"}
                 </Button>
               </DialogFooter>
@@ -447,130 +448,127 @@ export default function AcademicTermsPage() {
           </DialogContent>
         </Dialog>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Academic Years Panel */}
-          <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
-            <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-              <h3 className="text-base font-bold text-foreground">Academic Years</h3>
-              <span className="text-xs font-medium text-muted-foreground">
+        {/* ── Unboxed, Spread Information Layout ── */}
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 pt-2">
+          {/* Academic Years Division */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <h3 className="text-lg font-bold text-foreground">Academic Years</h3>
+              <span className="text-xs font-semibold text-muted-foreground">
                 {academicYears.length} Years
               </span>
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div>
               {loading ? (
                 <LoadingState text="Loading academic years..." />
               ) : academicYears.length === 0 ? (
                 <EmptyState icon={Calendar} title="No academic years" />
               ) : (
-                <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                        <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                        <TableHead className="text-xs font-bold text-muted-foreground">Year Range</TableHead>
-                        <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
+                      <TableHead className="text-center text-xs font-bold text-muted-foreground">Year Range</TableHead>
+                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {academicYears.map((yr, index) => (
+                      <TableRow key={yr.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
+                          #{index + 1}
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-foreground py-4">{yr.name}</TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditYearModal(yr)}
+                              title="Edit year"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDeleteYear(yr.id)}
+                              title="Delete year"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {academicYears.map((yr, index) => (
-                        <TableRow key={yr.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                            #{index + 1}
-                          </TableCell>
-                          <TableCell className="font-bold text-foreground">{yr.name}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                onClick={() => openEditYearModal(yr)}
-                                title="Edit year"
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                onClick={() => handleDeleteYear(yr.id)}
-                                title="Delete year"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </div>
-          </GlassPanel>
+          </div>
 
-          {/* Semesters Panel */}
-          <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
-            <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-              <h3 className="text-base font-bold text-foreground">Semesters</h3>
-              <span className="text-xs font-medium text-muted-foreground">
+          {/* Semesters Division */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <h3 className="text-lg font-bold text-foreground">Semesters</h3>
+              <span className="text-xs font-semibold text-muted-foreground">
                 {semesters.length} Semesters
               </span>
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div>
               {loading ? (
                 <LoadingState text="Loading semesters..." />
               ) : semesters.length === 0 ? (
                 <EmptyState icon={CalendarRange} title="No semesters found" />
               ) : (
-                <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                        <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                        <TableHead className="text-xs font-bold text-muted-foreground">Semester Term</TableHead>
-                        <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
+                      <TableHead className="text-center text-xs font-bold text-muted-foreground">Semester Term</TableHead>
+                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {semesters.map((sem, index) => (
+                      <TableRow key={sem.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
+                          #{index + 1}
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-foreground py-4">{sem.name}</TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditSemesterModal(sem)}
+                              title="Edit semester"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDeleteSemester(sem.id)}
+                              title="Delete semester"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {semesters.map((sem, index) => (
-                        <TableRow key={sem.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                            #{index + 1}
-                          </TableCell>
-                          <TableCell className="font-bold text-foreground">{sem.name}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                onClick={() => openEditSemesterModal(sem)}
-                                title="Edit semester"
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                onClick={() => handleDeleteSemester(sem.id)}
-                                title="Delete semester"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </div>
-          </GlassPanel>
+          </div>
         </div>
         <WizardFooter nextHref="/departments" />
       </div>

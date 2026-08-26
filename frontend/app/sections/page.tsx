@@ -231,21 +231,21 @@ export default function SectionsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
             title="Refresh sections"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Link href="/departments">
-            <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
+            <Button variant="outline" className="h-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-5 text-sm font-bold text-white cursor-pointer gap-2 transition-all hover:scale-105">
               <Building2 className="size-4 text-[#0070F3]" />
               Manage via Department
             </Button>
           </Link>
 
           <Link href="/rooms">
-            <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
+            <Button variant="outline" className="h-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-5 text-sm font-bold text-white cursor-pointer gap-2 transition-all hover:scale-105">
               <DoorOpen className="size-4 text-[#0070F3]" />
               Facility Mapping
             </Button>
@@ -253,11 +253,11 @@ export default function SectionsPage() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
                 <Plus className="size-4" /> Add Custom Cohort
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -281,7 +281,7 @@ export default function SectionsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="rounded-xl border-border bg-muted/40 focus:border-primary"
+                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                   />
                 </div>
 
@@ -290,7 +290,7 @@ export default function SectionsPage() {
                     Department *
                   </label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                     value={departmentId}
                     onChange={(e) => setDepartmentId(Number(e.target.value))}
                     required
@@ -312,7 +312,7 @@ export default function SectionsPage() {
                     min="1"
                     value={studentCount}
                     onChange={(e) => setStudentCount(e.target.value)}
-                    className="rounded-xl border-border bg-muted/40 font-mono"
+                    className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                   />
                 </div>
 
@@ -322,7 +322,7 @@ export default function SectionsPage() {
                   <Button
                     type="submit"
                     disabled={submitting || !name.trim() || !departmentId}
-                    className="tt-gradient-btn rounded-xl font-bold"
+                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
                   >
                     {submitting ? "Adding..." : "Save Cohort"}
                   </Button>
@@ -334,7 +334,7 @@ export default function SectionsPage() {
 
         {/* Edit Section Modal */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[420px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
@@ -354,7 +354,7 @@ export default function SectionsPage() {
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   required
-                  className="rounded-xl border-border bg-muted/40"
+                  className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                 />
               </div>
 
@@ -363,7 +363,7 @@ export default function SectionsPage() {
                   Department *
                 </label>
                 <select
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none"
+                  className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                   value={editDepartmentId}
                   onChange={(e) => setEditDepartmentId(Number(e.target.value))}
                   required
@@ -385,7 +385,7 @@ export default function SectionsPage() {
                   min="1"
                   value={editStudentCount}
                   onChange={(e) => setEditStudentCount(e.target.value)}
-                  className="rounded-xl border-border bg-muted/40 font-mono"
+                  className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                 />
               </div>
 
@@ -395,7 +395,7 @@ export default function SectionsPage() {
                 <Button
                   type="submit"
                   disabled={submittingEdit || !editName.trim() || !editDepartmentId}
-                  className="tt-gradient-btn rounded-xl font-bold"
+                  className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
                 >
                   {submittingEdit ? "Updating..." : "Update Section"}
                 </Button>
@@ -404,12 +404,16 @@ export default function SectionsPage() {
           </DialogContent>
         </Dialog>
 
-        <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
-          <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <h3 className="text-base font-bold text-foreground">Active Cohort Roster</h3>
+        {/* ── Unboxed, Spread Cohort Layout ── */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <h3 className="text-lg font-bold text-foreground">Active Cohort Roster</h3>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {sections.length} Sections
+            </span>
           </div>
 
-          <div className="p-4 sm:p-6">
+          <div>
             {loading ? (
               <LoadingState text="Loading sections database..." />
             ) : sections.length === 0 ? (
@@ -419,91 +423,87 @@ export default function SectionsPage() {
                 description='Use the "Manage via Department" button above to auto-generate sections & labs per semester.'
               />
             ) : (
-              <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                      <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Section / Cohort Identifier</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Category</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Department</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Designated Facility</TableHead>
-                      <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sections.map((sec, index) => {
-                      const deptName =
-                        departments.find((d) => d.id === sec.department_id)?.name ||
-                        `Dept #${sec.department_id}`;
-                      const isLab = sec.name.toLowerCase().includes("lab");
-                      const mappedRoomId = sectionRoomMap[sec.id];
-                      const mappedRoom = rooms.find((r) => r.id === mappedRoomId);
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Section / Cohort Identifier</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Category</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Department</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Designated Facility</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sections.map((sec, index) => {
+                    const deptName =
+                      departments.find((d) => d.id === sec.department_id)?.name ||
+                      `Dept #${sec.department_id}`;
+                    const isLab = sec.name.toLowerCase().includes("lab");
+                    const mappedRoomId = sectionRoomMap[sec.id];
+                    const mappedRoom = rooms.find((r) => r.id === mappedRoomId);
 
-                      return (
-                        <TableRow key={sec.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                            #{index + 1}
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-bold text-sm text-foreground">
-                              {sec.name}
+                    return (
+                      <TableRow key={sec.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
+                          #{index + 1}
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-sm text-foreground py-4">
+                          {sec.name}
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          {isLab ? (
+                            <span className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-amber-400">
+                              <FlaskConical className="size-3.5" /> Practical Lab
                             </span>
-                          </TableCell>
-                          <TableCell>
-                            {isLab ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                                <FlaskConical className="size-3.5" /> Practical Lab
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                                <GraduationCap className="size-3.5" /> Theory Section
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs font-medium text-muted-foreground">
-                            {deptName}
-                          </TableCell>
-                          <TableCell>
-                            {mappedRoom ? (
-                              <span className="font-mono text-xs font-bold text-foreground">
-                                {mappedRoom.name}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground italic">Dynamic Allocation</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                onClick={() => openEditModal(sec)}
-                                title="Edit section"
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                onClick={() => handleDelete(sec.id)}
-                                title="Delete section"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                          ) : (
+                            <span className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-[#0070F3]">
+                              <GraduationCap className="size-3.5" /> Theory Section
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center text-xs font-medium text-muted-foreground py-4">
+                          {deptName}
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          {mappedRoom ? (
+                            <span className="font-mono text-xs font-bold text-foreground">
+                              {mappedRoom.name}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Dynamic Allocation</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditModal(sec)}
+                              title="Edit section"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDelete(sec.id)}
+                              title="Delete section"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             )}
           </div>
-        </GlassPanel>
+        </div>
       </div>
     </AppShell>
   );

@@ -571,14 +571,14 @@ export default function DepartmentsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
             title="Refresh departments"
           >
             <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Link href="/academic-terms">
-            <Button variant="outline" className="h-10 rounded-xl gap-2 font-semibold border-border bg-card hover:bg-muted text-foreground">
+            <Button variant="outline" className="h-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-5 text-sm font-bold text-white cursor-pointer gap-2 transition-all hover:scale-105">
               <CalendarRange className="size-4 text-[#0070F3]" />
               Academic Terms ({academicSemesters.length} Semesters)
             </Button>
@@ -586,11 +586,11 @@ export default function DepartmentsPage() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
                 <Plus className="size-4" /> Add Department
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
@@ -910,12 +910,16 @@ export default function DepartmentsPage() {
           </DialogContent>
         </Dialog>
 
-        <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
-          <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <h3 className="text-base font-bold text-foreground">Institutional Departments</h3>
+        {/* ── Unboxed, Spread Departments Layout ── */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <h3 className="text-lg font-bold text-foreground">Institutional Departments</h3>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {departments.length} Departments
+            </span>
           </div>
 
-          <div className="p-4 sm:p-6">
+          <div>
             {loading ? (
               <LoadingState text="Loading departments and academic term structure..." />
             ) : departments.length === 0 ? (
@@ -925,73 +929,71 @@ export default function DepartmentsPage() {
                 description='Click "Add Department" above to create departments with labs and semester sections.'
               />
             ) : (
-              <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                      <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Department Title</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Department Labs</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Semester Sections</TableHead>
-                      <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {departments.map((dept, index) => {
-                      const deptSections = sections.filter((s) => s.department_id === dept.id);
-                      const deptLabs = getDeptLabs(dept, rooms);
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Department Title</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Department Labs</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Semester Sections</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {departments.map((dept, index) => {
+                    const deptSections = sections.filter((s) => s.department_id === dept.id);
+                    const deptLabs = getDeptLabs(dept, rooms);
 
-                      return (
-                        <TableRow key={dept.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                            #{index + 1}
-                          </TableCell>
-                          <TableCell className="font-bold text-foreground text-sm">
-                            {dept.name}
-                          </TableCell>
-                          <TableCell>
-                            <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                              <FlaskConical className="size-3.5" />
-                              <span>{deptLabs.length} Labs</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                              <GraduationCap className="size-3.5" />
-                              <span>{deptSections.length} Sections</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                onClick={() => openEditModal(dept)}
-                                title="Edit department, labs, and sections"
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                onClick={() => handleDelete(dept.id)}
-                                title="Delete department"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                    return (
+                      <TableRow key={dept.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
+                          #{index + 1}
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-foreground text-sm py-4">
+                          {dept.name}
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground font-medium">
+                            <FlaskConical className="size-3.5 text-amber-500" />
+                            <span>{deptLabs.length} Labs</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground font-medium">
+                            <GraduationCap className="size-3.5 text-[#0070F3]" />
+                            <span>{deptSections.length} Sections</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditModal(dept)}
+                              title="Edit department, labs, and sections"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDelete(dept.id)}
+                              title="Delete department"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             )}
           </div>
-        </GlassPanel>
+        </div>
         <WizardFooter
           prevHref="/academic-terms"
           nextHref="/rooms"

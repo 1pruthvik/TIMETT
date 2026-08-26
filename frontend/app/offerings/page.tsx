@@ -246,30 +246,29 @@ export default function OfferingsPage() {
             variant="outline"
             size="icon"
             onClick={fetchData}
-            className="size-10 rounded-xl border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+            className="size-11 rounded-2xl border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
             title="Refresh offerings"
           >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
+            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
           </Button>
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-10 rounded-xl gap-2 font-bold px-4 cursor-pointer">
-                <Plus className="size-4" />
-                Add Course Offering
+              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
+                <Plus className="size-4" /> Add Course Offering
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+            <DialogContent className="sm:max-w-[480px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
               <DialogHeader>
                 <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                   <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Faculty-Course Mapping</span>
+                  <span className="tt-eyebrow">Curriculum Allocation</span>
                 </div>
                 <DialogTitle className="text-xl font-bold text-foreground">
-                  Create Subject Offering
+                  Map Course Offering
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Bind a subject and section cohort to an instructor with weekly credit hours.
+                  Assign a subject and section to an instructor for a semester term.
                 </DialogDescription>
               </DialogHeader>
 
@@ -279,7 +278,7 @@ export default function OfferingsPage() {
                     Subject Course *
                   </label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                     value={subjectId}
                     onChange={(e) => setSubjectId(Number(e.target.value))}
                     required
@@ -298,7 +297,7 @@ export default function OfferingsPage() {
                       Instructor *
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                       value={facultyId}
                       onChange={(e) => setFacultyId(Number(e.target.value))}
                       required
@@ -316,7 +315,7 @@ export default function OfferingsPage() {
                       Student Section *
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                       value={sectionId}
                       onChange={(e) => setSectionId(Number(e.target.value))}
                       required
@@ -336,7 +335,7 @@ export default function OfferingsPage() {
                       Target Semester *
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                       value={semesterId}
                       onChange={(e) => setSemesterId(Number(e.target.value))}
                       required
@@ -360,7 +359,7 @@ export default function OfferingsPage() {
                       value={weeklyHours}
                       onChange={(e) => setWeeklyHours(parseInt(e.target.value, 10) || 3)}
                       required
-                      className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
+                      className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                     />
                   </div>
                 </div>
@@ -371,9 +370,9 @@ export default function OfferingsPage() {
                   <Button
                     type="submit"
                     disabled={submitting || !subjectId || !facultyId || !sectionId}
-                    className="tt-gradient-btn rounded-xl font-bold"
+                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
                   >
-                    {submitting ? "Saving..." : "Save Offering"}
+                    {submitting ? "Adding..." : "Add Offering"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -383,7 +382,7 @@ export default function OfferingsPage() {
 
         {/* Edit Offering Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
+          <DialogContent className="sm:max-w-[480px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
             <DialogHeader>
               <div className="flex items-center gap-2 text-[#0070F3] mb-1">
                 <Pencil className="size-4" />
@@ -403,7 +402,7 @@ export default function OfferingsPage() {
                   Subject Course *
                 </label>
                 <select
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                   value={editSubjectId}
                   onChange={(e) => setEditSubjectId(Number(e.target.value))}
                   required
@@ -422,7 +421,7 @@ export default function OfferingsPage() {
                     Instructor *
                   </label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                     value={editFacultyId}
                     onChange={(e) => setEditFacultyId(Number(e.target.value))}
                     required
@@ -440,7 +439,7 @@ export default function OfferingsPage() {
                     Student Section *
                   </label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                     value={editSectionId}
                     onChange={(e) => setEditSectionId(Number(e.target.value))}
                     required
@@ -460,7 +459,7 @@ export default function OfferingsPage() {
                     Target Semester *
                   </label>
                   <select
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
                     value={editSemesterId}
                     onChange={(e) => setEditSemesterId(Number(e.target.value))}
                     required
@@ -484,7 +483,7 @@ export default function OfferingsPage() {
                     value={editWeeklyHours}
                     onChange={(e) => setEditWeeklyHours(parseInt(e.target.value, 10) || 3)}
                     required
-                    className="rounded-xl border-border bg-muted/40 focus:border-primary font-mono"
+                    className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
                   />
                 </div>
               </div>
@@ -496,14 +495,14 @@ export default function OfferingsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setEditOpen(false)}
-                  className="rounded-xl"
+                  className="h-11 rounded-2xl px-5 border-0"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={submittingEdit || !editSubjectId || !editFacultyId || !editSectionId}
-                  className="tt-gradient-btn rounded-xl font-bold"
+                  className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold"
                 >
                   {submittingEdit ? "Updating..." : "Update Offering"}
                 </Button>
@@ -512,12 +511,16 @@ export default function OfferingsPage() {
           </DialogContent>
         </Dialog>
 
-        <GlassPanel className="overflow-hidden p-0 shadow-sm border-border">
-          <div className="flex items-center justify-between border-b border-border p-4 sm:px-6 bg-card/40">
-            <h3 className="text-base font-bold text-foreground">Active Subject Offerings</h3>
+        {/* ── Unboxed, Spread Offerings Layout ── */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <h3 className="text-lg font-bold text-foreground">Active Subject Offerings</h3>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {offerings.length} Offerings
+            </span>
           </div>
 
-          <div className="p-4 sm:p-6">
+          <div>
             {loading ? (
               <LoadingState text="Loading course mappings..." />
             ) : offerings.length === 0 ? (
@@ -527,77 +530,75 @@ export default function OfferingsPage() {
                 description='Click "Add Course Offering" above to map subjects and sections to faculty members.'
               />
             ) : (
-              <div className="rounded-2xl border border-border overflow-hidden bg-card/40">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                      <TableHead className="text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Subject</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Assigned Faculty</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Section</TableHead>
-                      <TableHead className="text-xs font-bold text-muted-foreground">Load (Hrs/Wk)</TableHead>
-                      <TableHead className="text-right text-xs font-bold text-muted-foreground">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {offerings.map((off, index) => {
-                      const sub = subjects.find((s) => s.id === off.subject_id);
-                      const fac = faculty.find((f) => f.id === off.faculty_id);
-                      const sec = sections.find((s) => s.id === off.section_id);
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-white/[0.06] hover:bg-transparent">
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Subject</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Assigned Faculty</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Section</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Load (Hrs/Wk)</TableHead>
+                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {offerings.map((off, index) => {
+                    const sub = subjects.find((s) => s.id === off.subject_id);
+                    const fac = faculty.find((f) => f.id === off.faculty_id);
+                    const sec = sections.find((s) => s.id === off.section_id);
 
-                      return (
-                        <TableRow key={off.id} className="border-border hover:bg-muted/20 transition-colors">
-                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">
-                            #{index + 1}
-                          </TableCell>
-                          <TableCell>
-                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#0070F3]/12 border border-[#0070F3]/30 px-2.5 py-1 text-xs font-bold text-[#0070F3] dark:text-[#60A5FA]">
-                              <span>{sub?.code || `Sub #${off.subject_id}`}</span>
-                              <span className="text-muted-foreground font-normal">· {sub?.name}</span>
-                            </span>
-                          </TableCell>
-                          <TableCell className="font-bold text-foreground text-sm">
-                            {fac?.name || `Faculty #${off.faculty_id}`}
-                          </TableCell>
-                          <TableCell>
-                            <span className="inline-flex items-center rounded-lg bg-[#0070F3]/10 border border-[#0070F3]/30 px-2.5 py-0.5 text-xs font-bold text-[#0070F3] dark:text-[#38BDF8]">
-                              {sec?.name || `Section #${off.section_id}`}
-                            </span>
-                          </TableCell>
-                          <TableCell className="font-mono text-sm font-semibold text-foreground">
-                            {off.weekly_hours} hrs
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                onClick={() => openEditModal(off)}
-                                title="Edit offering"
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                onClick={() => handleDelete(off.id)}
-                                title="Delete offering"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                    return (
+                      <TableRow key={off.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
+                          #{index + 1}
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <span className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-white/[0.05] px-2.5 py-1 text-xs font-bold text-foreground">
+                            <span className="text-[#0070F3]">{sub?.code || `Sub #${off.subject_id}`}</span>
+                            <span className="text-muted-foreground font-normal">· {sub?.name}</span>
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-foreground text-sm py-4">
+                          {fac?.name || `Faculty #${off.faculty_id}`}
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <span className="inline-flex items-center justify-center rounded-lg bg-white/[0.05] px-2.5 py-0.5 text-xs font-bold text-[#0070F3]">
+                            {sec?.name || `Section #${off.section_id}`}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-sm font-semibold text-foreground py-4">
+                          {off.weekly_hours} hrs
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openEditModal(off)}
+                              title="Edit offering"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleDelete(off.id)}
+                              title="Delete offering"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             )}
           </div>
-        </GlassPanel>
+        </div>
       </div>
     </AppShell>
   );

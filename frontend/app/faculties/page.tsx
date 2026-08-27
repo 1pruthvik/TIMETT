@@ -69,41 +69,70 @@ export default function FacultiesPage() {
   const [showAddDept, setShowAddDept] = useState(false);
   const [newDeptName, setNewDeptName] = useState("");
 
+  const isGarbageText = (str: string): boolean => {
+    if (!str || typeof str !== "string") return true;
+    const s = str.trim();
+    if (s.length < 2 || s.length > 100) return true;
+    if (/PK[\x00-\x1f]|sheet\d|worksheets\/|xml|\[\]|\^|~|@|#|\$|%|\*|[{}]|<|>|\\|\/|[\u0000-\u001F\u007F-\u009F]/.test(s)) return true;
+    const nonStd = (s.match(/[^a-zA-Z0-9\s&(),.-]/g) || []).length;
+    if (nonStd > 2) return true;
+    return false;
+  };
+
   useEffect(() => {
     try {
-      // 1. Load departments from storage or courses
+      // 1. Load departments from storage or courses and purge garbled binary strings
+      let parsedDepts: string[] = [];
       const savedDepts = localStorage.getItem("vtu_college_departments");
       if (savedDepts) {
-        setDepartments(JSON.parse(savedDepts));
-      } else {
-        const savedCourses = localStorage.getItem("vtu_college_offered_courses");
-        if (savedCourses) {
-          const parsedCourses = JSON.parse(savedCourses);
-          const courseNames = parsedCourses
-            .filter((c: any) => c.selected && c.name)
-            .map((c: any) => c.name);
-          const merged = Array.from(new Set([...courseNames, ...DEFAULT_DEPARTMENTS]));
-          setDepartments(merged);
-          localStorage.setItem("vtu_college_departments", JSON.stringify(merged));
-        } else {
-          localStorage.setItem("vtu_college_departments", JSON.stringify(DEFAULT_DEPARTMENTS));
+        try {
+          parsedDepts = JSON.parse(savedDepts);
+        } catch {
+          parsedDepts = [];
         }
       }
 
-      // 2. Load faculties
-      const saved = localStorage.getItem("vtu_faculty_list");
-      if (saved) {
-        setFacultyList(JSON.parse(saved));
-      } else {
-        const defaultFac: FacultyItem[] = [
-          { name: "Dr. Pranav Bhat", department: "Computer Science & Engineering", designation: "Professor", proficientSubjects: ["1BCS601", "1BCS502"] },
-          { name: "Prof. Ujwal Amar", department: "Computer Science & Engineering", designation: "Associate Professor", proficientSubjects: ["1BCS603", "1BCS604"] },
-          { name: "Prof. Pruthvik K", department: "Computer Science & Engineering", designation: "Assistant Professor", proficientSubjects: ["1BCSL606", "1BIS601"] },
-          { name: "Dr. Nivish Gowda", department: "Electronics & Communication Engineering", designation: "Professor", proficientSubjects: ["BEC601", "BEC602"] },
-        ];
-        setFacultyList(defaultFac);
-        localStorage.setItem("vtu_faculty_list", JSON.stringify(defaultFac));
+      if (!parsedDepts || parsedDepts.length === 0) {
+        const savedCourses = localStorage.getItem("vtu_college_offered_courses");
+        if (savedCourses) {
+          try {
+            const parsedCourses = JSON.parse(savedCourses);
+            parsedDepts = parsedCourses.filter((c: any) => c.selected && c.name).map((c: any) => c.name);
+          } catch {
+            parsedDepts = [];
+          }
+        }
       }
+
+      const cleanedDepts = Array.from(new Set([...DEFAULT_DEPARTMENTS, ...parsedDepts]))
+        .filter((d) => !isGarbageText(d));
+      setDepartments(cleanedDepts);
+      localStorage.setItem("vtu_college_departments", JSON.stringify(cleanedDepts));
+
+      // 2. Load faculties and purge garbled binary items
+      let parsedFac: FacultyItem[] = [];
+      const savedFac = localStorage.getItem("vtu_faculty_list");
+      if (savedFac) {
+        try {
+          parsedFac = JSON.parse(savedFac);
+        } catch {
+          parsedFac = [];
+        }
+      }
+
+      const defaultFac: FacultyItem[] = [
+        { name: "Dr. Pranav Bhat", department: "Computer Science & Engineering", designation: "Professor", proficientSubjects: ["1BCS601", "1BCS502"] },
+        { name: "Prof. Ujwal Amar", department: "Computer Science & Engineering", designation: "Associate Professor", proficientSubjects: ["1BCS603", "1BCS604"] },
+        { name: "Prof. Pruthvik K", department: "Computer Science & Engineering", designation: "Assistant Professor", proficientSubjects: ["1BCSL606", "1BIS601"] },
+        { name: "Dr. Nivish Gowda", department: "Electronics & Communication Engineering", designation: "Professor", proficientSubjects: ["BEC601", "BEC602"] },
+      ];
+
+      const cleanedFac = (parsedFac.length > 0 ? parsedFac : defaultFac).filter(
+        (f) => f && !isGarbageText(f.name) && !isGarbageText(f.department)
+      );
+
+      setFacultyList(cleanedFac);
+      localStorage.setItem("vtu_faculty_list", JSON.stringify(cleanedFac));
 
       // 3. Extract active subjects from storage for mapping proficiencies
       const savedSubjs = localStorage.getItem("vtu_course_subjects_map");

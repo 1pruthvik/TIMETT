@@ -21,6 +21,7 @@ export default function SectionsPage() {
   const [roomCapacity, setRoomCapacity] = useState(60);
   const [labCapacity, setLabCapacity] = useState(30);
   const [coincidedLabGroup, setCoincidedLabGroup] = useState("CS Central Lab Facility");
+  const [labRotationMode, setLabRotationMode] = useState<"synchronous_parallel" | "independent">("synchronous_parallel");
 
   // Slot Durations
   const [theoryMin, setTheoryMin] = useState(50);
@@ -250,6 +251,24 @@ export default function SectionsPage() {
                   onChange={(e) => setLabCapacity(Number(e.target.value))}
                   className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                  Lab Batch Coinciding / Scheduling Strategy
+                </label>
+                <select
+                  value={labRotationMode}
+                  onChange={(e) => setLabRotationMode(e.target.value as "synchronous_parallel" | "independent")}
+                  className="w-full h-12 px-4 text-xs font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                >
+                  <option value="synchronous_parallel">
+                    🔄 Synchronous Parallel Rotation (Batch A1 & A2 attend parallel labs simultaneously & rotate weekly)
+                  </option>
+                  <option value="independent">
+                    ⚡ Independent Batch Scheduling (Batches take labs in separate time slots)
+                  </option>
+                </select>
               </div>
 
               <div className="space-y-2">

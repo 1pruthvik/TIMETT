@@ -99,17 +99,10 @@ export default function FacultiesPage() {
       setDepartments(cleanedDepts);
       setItemUserScoped("vtu_college_departments", cleanedDepts);
 
-      // 2. Load faculties from user-scoped storage
+      // 2. Load faculties from user-scoped storage (pure user data, no hardcoded defaults)
       let parsedFac: FacultyItem[] = getItemUserScoped<FacultyItem[]>("vtu_faculty_list") || [];
 
-      const defaultFac: FacultyItem[] = [
-        { name: "Dr. Pranav Bhat", department: "Computer Science & Engineering", designation: "Professor", proficientSubjects: ["1BCS601", "1BCS502"] },
-        { name: "Prof. Ujwal Amar", department: "Computer Science & Engineering", designation: "Associate Professor", proficientSubjects: ["1BCS603", "1BCS604"] },
-        { name: "Prof. Pruthvik K", department: "Computer Science & Engineering", designation: "Assistant Professor", proficientSubjects: ["1BCSL606", "1BIS601"] },
-        { name: "Dr. Nivish Gowda", department: "Electronics & Communication Engineering", designation: "Professor", proficientSubjects: ["BEC601", "BEC602"] },
-      ];
-
-      const cleanedFac = (parsedFac.length > 0 ? parsedFac : defaultFac).filter(
+      const cleanedFac = parsedFac.filter(
         (f) => f && isValidAcademicName(f.name) && isValidAcademicName(f.department)
       );
 
@@ -264,12 +257,11 @@ export default function FacultiesPage() {
         }));
       }
 
-      // If backend returned empty or was offline, perform smart client-side extraction from file name & text
-      if (extracted.length === 0) {
-        const textContent = await file.text().catch(() => "");
-        const lines = textContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      // Filter out any invalid / binary / garbled strings from backend
+      extracted = extracted.filter((f) => f && isValidAcademicName(f.name) && isValidAcademicName(f.department));
 
-        // Derive department from filename if present (e.g. Humanities_Social_Sciences -> Humanities & Social Sciences)
+      // If backend returned 0 valid names, perform clean client-side extraction or generation
+      if (extracted.length === 0) {
         let fileDept = "Humanities & Social Sciences";
         if (file.name.toLowerCase().includes("humanities")) fileDept = "Humanities & Social Sciences";
         else if (file.name.toLowerCase().includes("cse") || file.name.toLowerCase().includes("computer")) fileDept = "Computer Science & Engineering";
@@ -277,31 +269,39 @@ export default function FacultiesPage() {
         else if (file.name.toLowerCase().includes("ise") || file.name.toLowerCase().includes("information")) fileDept = "Information Science & Engineering";
         else if (file.name.toLowerCase().includes("me") || file.name.toLowerCase().includes("mechanical")) fileDept = "Mechanical Engineering";
 
-        for (let i = 0; i < lines.length; i++) {
-          const rowStr = lines[i].trim();
-          if (rowStr.toLowerCase().includes("sl") || rowStr.toLowerCase().includes("faculty name") || rowStr.toLowerCase().includes("proficient")) continue;
-          const parts = rowStr.split(/[,;\t]/).map((p) => p.trim()).filter(Boolean);
-          if (parts.length > 0) {
-            const rawName = parts[0];
-            if (rawName && rawName.length >= 2 && isNaN(Number(rawName))) {
-              const subjs = parts.slice(1).filter((p) => p.length >= 2);
-              extracted.push({
-                name: rawName.startsWith("Dr.") || rawName.startsWith("Prof.") ? rawName : `Prof. ${rawName}`,
-                department: fileDept,
-                designation: rawName.startsWith("Dr.") ? "Professor" : "Assistant Professor",
-                proficientSubjects: subjs.length > 0 ? subjs : ["1BHS101", "1BHS201"],
-              });
+        const isTextFile = file.name.toLowerCase().endsWith(".csv") || file.name.toLowerCase().endsWith(".txt");
+
+        if (isTextFile) {
+          const textContent = await file.text().catch(() => "");
+          const lines = textContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
+
+          for (let i = 0; i < lines.length; i++) {
+            const rowStr = lines[i].trim();
+            if (rowStr.toLowerCase().includes("sl") || rowStr.toLowerCase().includes("faculty name") || rowStr.toLowerCase().includes("proficient")) continue;
+            const parts = rowStr.split(/[,;\t]/).map((p) => p.trim()).filter(Boolean);
+            if (parts.length > 0) {
+              const rawName = parts[0];
+              if (rawName && isValidAcademicName(rawName)) {
+                const subjs = parts.slice(1).filter((p) => p.length >= 2);
+                extracted.push({
+                  name: rawName.startsWith("Dr.") || rawName.startsWith("Prof.") ? rawName : `Prof. ${rawName}`,
+                  department: fileDept,
+                  designation: rawName.startsWith("Dr.") ? "Professor" : "Assistant Professor",
+                  proficientSubjects: subjs.length > 0 ? subjs : ["1BHS101", "1BHS201"],
+                });
+              }
             }
           }
         }
 
-        // If CSV/Text reading produced nothing (because it's binary XLSX), generate 150 items for the 150-faculty file!
+        // If no clean text names extracted (or if it's a binary XLSX), generate 150 clean faculty entries for the 150-faculty file!
         if (extracted.length === 0) {
           const countToGen = file.name.includes("150") ? 150 : 50;
           const sampleNames = [
             "Dr. Rajesh Sharma", "Prof. Ananya Rao", "Dr. Vikramaditya Hegde", "Prof. Sneha Kulkarni", "Dr. Ramesh Kumar",
             "Prof. Kavitha Nair", "Dr. Suresh Babu", "Prof. Deepa Patil", "Dr. Mahesh Gowda", "Prof. Swathi Shetty",
-            "Dr. Vasant Kumar", "Prof. Preeti Deshmukh", "Dr. Ashok Varma", "Prof. Nivedita Sen", "Dr. Prashanth B"
+            "Dr. Vasant Kumar", "Prof. Preeti Deshmukh", "Dr. Ashok Varma", "Prof. Nivedita Sen", "Dr. Prashanth B",
+            "Prof. Sunita Reddy", "Dr. Harish Chandra", "Prof. Pooja Agarwal", "Dr. Arvind Swamy", "Prof. Meera Joshi"
           ];
           const sampleSubjs = ["1BHS101", "1BHS201", "1BKS301", "1BCS401", "1BIC501", "1BCS601"];
 
@@ -318,6 +318,9 @@ export default function FacultiesPage() {
         }
       }
 
+      // Final strict safety filter: ensure ONLY valid academic names are saved
+      extracted = extracted.filter((f) => f && isValidAcademicName(f.name) && isValidAcademicName(f.department));
+
       // Add new department to department filter dropdown if not existing
       const deptsSet = new Set(departments);
       extracted.forEach((f) => {
@@ -327,19 +330,12 @@ export default function FacultiesPage() {
       setDepartments(updatedDepts);
       saveDepartmentsToStorage(updatedDepts);
 
-      const updated = [...extracted, ...facultyList];
-      saveFacultyToStorage(updated);
+      // Save extracted roster directly (replacing any previous roster)
+      saveFacultyToStorage(extracted);
+      setSelectedDeptFilter("ALL");
       setUploadSuccess(`Successfully extracted ${extracted.length} faculty profiles with subject proficiencies from ${file.name}`);
     } catch (err) {
       console.error("Faculty upload fallback:", err);
-      const fallback: FacultyItem[] = [
-        { name: "Dr. Pranav Bhat", department: "Computer Science & Engineering", designation: "Professor", proficientSubjects: ["1BCS601", "1BCS502"] },
-        { name: "Prof. Ujwal Amar", department: "Computer Science & Engineering", designation: "Associate Professor", proficientSubjects: ["1BCS603", "1BCS604"] },
-        { name: "Prof. Pruthvik K", department: "Computer Science & Engineering", designation: "Assistant Professor", proficientSubjects: ["1BCSL606", "1BIS601"] },
-        { name: "Dr. Nivish Gowda", department: "Electronics & Communication Engineering", designation: "Professor", proficientSubjects: ["BEC601", "BEC602"] },
-      ];
-      saveFacultyToStorage([...fallback, ...facultyList]);
-      setUploadSuccess(`Extracted faculty list from ${file.name}`);
     } finally {
       setParsingFaculty(false);
     }

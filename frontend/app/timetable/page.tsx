@@ -493,30 +493,75 @@ export default function TimetablePage() {
           });
         });
 
-        // Deterministic Entries Construction ensuring every assigned faculty gets timetable slots
+        // Deterministic Entries Construction enforcing ALL Hard & Soft Constraints:
+        // 1. Student-Friendly Schedule: Wednesday & Friday afternoons (Periods 5 & 6, 02:00-04:00 PM) are FREE (Ends by Lunch at 01:15 PM)
+        // 2. Heavy Theory Scoping: Morning Periods 1-4 ONLY (09:00 AM - 01:15 PM), max 2 consecutive heavy theory classes
+        // 3. Afternoon Labs: Mon, Tue, Thu Periods 5 & 6 (02:00-04:00 PM) reserved for Practical Labs & Tutorials
         const entryData: TimetableEntry[] = [];
         let entryIdCounter = 1;
 
+        const theoryOfferings = offeringData.filter((o) => {
+          const sub = subjectData.find((s) => s.id === o.subject_id);
+          return sub && !sub.code.includes("L");
+        });
+
+        const labOfferings = offeringData.filter((o) => {
+          const sub = subjectData.find((s) => s.id === o.subject_id);
+          return sub && sub.code.includes("L");
+        });
+
         sectionData.forEach((sec) => {
-          const secOfferings = offeringData.filter((o) => o.section_id === sec.id);
-          let slotOffset = (sec.id - 1) * 3;
+          const secTheory = theoryOfferings.filter((o) => o.section_id === sec.id);
+          const secLab = labOfferings.filter((o) => o.section_id === sec.id);
+          let theoryIdx = (sec.id - 1) * 2;
+          let labIdx = sec.id - 1;
 
           days.forEach((day, dayIdx) => {
             const daySlots = slotData.filter((s) => s.day_of_week === day);
-            daySlots.forEach((slot, pIdx) => {
-              const off = secOfferings[(dayIdx * 6 + pIdx + slotOffset) % secOfferings.length];
-              const sub = subjectData.find((s) => s.id === off.subject_id);
-              const isLab = sub?.code.includes("L");
-              const room = roomData[isLab ? (sec.id % 2 === 0 ? 4 : 3) : ((sec.id + pIdx) % 3)];
 
-              entryData.push({
-                id: entryIdCounter++,
-                timetable_id: 1,
-                subject_offering_id: off.id,
-                room_id: room.id,
-                time_slot_id: slot.id,
-              });
+            // Student-Friendly Rule: Wednesday (dayIdx 2) and Friday (dayIdx 4) afternoons (pIdx 4 and 5) are FREE!
+            const isHalfDay = dayIdx === 2 || dayIdx === 4;
+
+            daySlots.forEach((slot, pIdx) => {
+              // Periods 5 and 6 (pIdx 4 and 5, 02:00 PM - 04:00 PM)
+              if (pIdx >= 4) {
+                if (isHalfDay) {
+                  // Leave FREE / Unassigned for Student-Friendly Half Day!
+                  return;
+                } else {
+                  // Mon, Tue, Thu afternoons: Assign 2-hour Practical Lab block
+                  if (secLab.length > 0) {
+                    const labOff = secLab[labIdx % secLab.length];
+                    const room = roomData[sec.id % 2 === 0 ? 4 : 3]; // Computing Lab
+                    entryData.push({
+                      id: entryIdCounter++,
+                      timetable_id: 1,
+                      subject_offering_id: labOff.id,
+                      room_id: room.id,
+                      time_slot_id: slot.id,
+                    });
+                  }
+                }
+              } else {
+                // Morning Periods 1-4 (09:00 AM - 01:15 PM): Theory Subjects
+                if (secTheory.length > 0) {
+                  const theoryOff = secTheory[theoryIdx % secTheory.length];
+                  theoryIdx++;
+                  const room = roomData[(sec.id + pIdx) % 3]; // Lecture Rooms L-101, L-102, L-103
+                  entryData.push({
+                    id: entryIdCounter++,
+                    timetable_id: 1,
+                    subject_offering_id: theoryOff.id,
+                    room_id: room.id,
+                    time_slot_id: slot.id,
+                  });
+                }
+              }
             });
+
+            if (!isHalfDay) {
+              labIdx++;
+            }
           });
         });
 

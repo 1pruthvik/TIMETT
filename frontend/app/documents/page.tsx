@@ -1,27 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Upload,
   BookOpen,
   Layers,
-  RefreshCw,
-  Plus,
-  Trash2,
-  CheckCircle2,
+  GraduationCap,
+  Sparkles,
   Clock,
+  CheckCircle2,
+  ChevronDown,
+  Building2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
-
-interface Subject {
-  code: string;
-  name: string;
-  category: "theory" | "practical";
-  weekly_hours: number;
-}
 
 interface VTUCourse {
   code: string;
@@ -30,23 +23,108 @@ interface VTUCourse {
   studentCount: number;
 }
 
+// ── Official VTU 1st Year (Physics Group) ESC-I Offerings ──
+const VTU_ESC_OPTIONS = [
+  { code: "1BESC104A", name: "Building Sciences and Mechanics", dept: "Civil Dept", weekly_hours: 3 },
+  { code: "1BESC104B", name: "Introduction to Electrical Engineering", dept: "EEE Dept", weekly_hours: 3 },
+  { code: "1BESC104C", name: "Introduction to Electronics & Communication Engineering", dept: "ECE Dept", weekly_hours: 3 },
+  { code: "1BESC104D", name: "Introduction to Mechanical Engineering", dept: "ME Dept", weekly_hours: 3 },
+  { code: "1BESC104E", name: "Essentials of Information Technology", dept: "CSE/IT Dept", weekly_hours: 3 },
+];
+
+// ── Official VTU 1st Year (Physics Group) PSC <-> PSCL Pairs ──
+const VTU_PSC_OPTIONS = [
+  {
+    psc: { code: "1BCIV105", name: "Engineering Mechanics", dept: "Civil Dept", weekly_hours: 3 },
+    pscl: { code: "1BMEML107", name: "Mechanics and Materials Lab", dept: "Civil Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BBEE105", name: "Basics of Electrical Engineering", dept: "EEE Dept", weekly_hours: 3 },
+    pscl: { code: "1BBEEL107", name: "Basic Electrical Lab", dept: "EEE Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BECE105", name: "Fundamentals of Electronics & Communication Engineering", dept: "ECE Dept", weekly_hours: 3 },
+    pscl: { code: "1BECEL107", name: "Fundamentals of Electronics & Communication Engineering Lab", dept: "ECE Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEME105", name: "Elements of Mechanical Engineering", dept: "ME Dept", weekly_hours: 3 },
+    pscl: { code: "1BEMEL107", name: "Elements of Mechanical Engineering Lab", dept: "ME Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEIT105", name: "Programming in C", dept: "CSE Dept", weekly_hours: 3 },
+    pscl: { code: "1BPOPL107", name: "C Programming Lab", dept: "CSE Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEBT105", name: "Elements of Biotechnology and Biomimetics", dept: "BT Dept", weekly_hours: 3 },
+    pscl: { code: "1BEBTL107", name: "Elements of Biotechnology Lab", dept: "BT Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BSSA105", name: "Principles of Soil Science and Agronomy", dept: "Agri Dept", weekly_hours: 3 },
+    pscl: { code: "1BSSAL107", name: "Soil Science and Agronomy Field Lab", dept: "Agri Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEAE105", name: "Elements of Aeronautical Engineering", dept: "Aero Dept", weekly_hours: 3 },
+    pscl: { code: "1BEAEL107", name: "Elements of Aeronautical Engineering Lab", dept: "Aero Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BECHE105", name: "Elements of Chemical Engineering", dept: "Chem Dept", weekly_hours: 3 },
+    pscl: { code: "1BECHEL107", name: "Elements of Chemical Engineering Lab", dept: "Chem Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BETX105", name: "Technology of Textile", dept: "Textile Dept", weekly_hours: 3 },
+    pscl: { code: "1BETEXL107", name: "Technology of Textile Lab", dept: "Textile Dept", weekly_hours: 2 },
+  },
+];
+
+// Helper to determine stream-specific fixed codes
+function getStreamSpecificSubjects(courseCode: string) {
+  const upper = courseCode.toUpperCase();
+  if (upper.includes("EC") || upper === "ECE") {
+    return {
+      maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE/ECE Stream", l: 3, t: 2 },
+      physics: { code: "1BPHEC102", name: "Quantum Physics and Electronics Sensors (ECE stream)", l: 3, p: 2 },
+      caed: { code: "1BCEDEC103", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
+    };
+  }
+  if (upper === "EEE" || upper.includes("EE")) {
+    return {
+      maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE Stream", l: 3, t: 2 },
+      physics: { code: "1BPHEE102", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
+      caed: { code: "1BCEDE103", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
+    };
+  }
+  if (upper === "ME" || upper.includes("MECH")) {
+    return {
+      maths: { code: "1BMATM101", name: "Differential Calculus and Linear Algebra: ME Stream", l: 3, t: 2 },
+      physics: { code: "1BPHYM102", name: "Physics of Materials (Mech stream)", l: 3, p: 2 },
+      caed: { code: "1BCEDM103", name: "Computer-Aided Engineering Drawing for ME stream", l: 2, p: 2 },
+    };
+  }
+  if (upper === "CIV" || upper.includes("CIVIL")) {
+    return {
+      maths: { code: "1BMATC101", name: "Differential Calculus and Linear Algebra: CV Stream", l: 3, t: 2 },
+      physics: { code: "1BPHYC102", name: "Physics for Sustainable Structural Systems (CV stream)", l: 3, p: 2 },
+      caed: { code: "1BCEDC103", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
+    };
+  }
+  // Default: CSE / ISE / AI-ML
+  return {
+    maths: { code: "1BMATS101", name: "Calculus and Linear Algebra: CSE Stream", l: 3, t: 2 },
+    physics: { code: "1BPHYS102", name: "Quantum Physics and Applications (CSE stream)", l: 3, p: 2 },
+    caed: { code: "1BCEDS103", name: "Computer-Aided Engineering Drawing for CSE stream", l: 2, p: 2 },
+  };
+}
+
 export default function DocumentsPage() {
   const router = useRouter();
 
   const [courses, setCourses] = useState<VTUCourse[]>([]);
   const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
-  const [courseSubjectsMap, setCourseSubjectsMap] = useState<
-    Record<string, { theory: Subject[]; practical: Subject[] }>
-  >({});
-  const [parsingScheme, setParsingScheme] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
-  // Manual Add Subject
-  const [showAddSubj, setShowAddSubj] = useState(false);
-  const [newSubjCode, setNewSubjCode] = useState("");
-  const [newSubjName, setNewSubjName] = useState("");
-  const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "practical">("theory");
-  const [newSubjHours, setNewSubjHours] = useState(4);
+  // Map of courseCode -> { escCode?: string; pscCode?: string }
+  const [courseSelections, setCourseSelections] = useState<
+    Record<string, { escCode?: string; pscCode?: string }>
+  >({});
 
   useEffect(() => {
     try {
@@ -57,174 +135,92 @@ export default function DocumentsPage() {
         const sel = parsed.find((c: any) => c.selected);
         if (sel) setActiveCourseCode(sel.code);
       } else {
-        setCourses([
+        const defaultCourses: VTUCourse[] = [
           { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180 },
           { code: "ECE", name: "Electronics & Communication Engineering", selected: true, studentCount: 120 },
-        ]);
+        ];
+        setCourses(defaultCourses);
       }
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
-      if (savedSubjects) {
-        setCourseSubjectsMap(JSON.parse(savedSubjects));
-      } else {
-        const initialMap = {
-          CSE: {
-            theory: [
-              { code: "1BMATCS301", name: "Mathematics for Computer Science", category: "theory", weekly_hours: 4 },
-              { code: "1BCS302", name: "Digital Design & Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS303", name: "Operating Systems Architecture", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Data Structures and Applications", category: "theory", weekly_hours: 4 },
-            ],
-            practical: [
-              { code: "1BCSL305", name: "Data Structures Laboratory", category: "practical", weekly_hours: 3 },
-              { code: "1BCSL306", name: "Object Oriented Java Lab", category: "practical", weekly_hours: 3 },
-            ],
-          },
-        };
-        setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
+      const savedSelections = localStorage.getItem("vtu_course_curriculum_selections");
+      if (savedSelections) {
+        setCourseSelections(JSON.parse(savedSelections));
       }
     } catch (e) {
       console.error(e);
     }
   }, []);
 
-  const saveSubjectsToStorage = (updatedMap: any) => {
+  const saveSelections = (updated: Record<string, { escCode?: string; pscCode?: string }>) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_curriculum_selections", JSON.stringify(updated));
     } catch (e) {
       console.error(e);
     }
   };
 
-  const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setParsingScheme(true);
-    setUploadSuccess(null);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/vtu/parse-scheme", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const tSubjs = data.theory_subjects || [];
-        const pSubjs = data.practical_subjects || [];
-
-        setCourseSubjectsMap((prev) => {
-          const updated = {
-            ...prev,
-            [activeCourseCode]: { theory: tSubjs, practical: pSubjs },
-          };
-          saveSubjectsToStorage(updated);
-          return updated;
-        });
-        setUploadSuccess(`Extracted ${tSubjs.length} Theory & ${pSubjs.length} Lab subjects for ${activeCourseCode}!`);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setParsingScheme(false);
-    }
-  };
-
-  const handleAddManualSubject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubjCode || !newSubjName) return;
-
-    const newSubj: Subject = {
-      code: newSubjCode.toUpperCase().trim(),
-      name: newSubjName.trim(),
-      category: newSubjCategory,
-      weekly_hours: Number(newSubjHours) || 4,
-    };
-
-    setCourseSubjectsMap((prev) => {
-      const current = prev[activeCourseCode] || { theory: [], practical: [] };
-      const updated = {
-        ...prev,
-        [activeCourseCode]: {
-          theory:
-            newSubjCategory === "theory"
-              ? [...current.theory, newSubj]
-              : current.theory,
-          practical:
-            newSubjCategory === "practical"
-              ? [...current.practical, newSubj]
-              : current.practical,
-        },
-      };
-      saveSubjectsToStorage(updated);
-      return updated;
-    });
-
-    setNewSubjCode("");
-    setNewSubjName("");
-    setShowAddSubj(false);
-  };
-
-  const handleRemoveSubject = (category: "theory" | "practical", index: number) => {
-    setCourseSubjectsMap((prev) => {
-      const current = prev[activeCourseCode] || { theory: [], practical: [] };
-      const updated = {
-        ...prev,
-        [activeCourseCode]: {
-          theory:
-            category === "theory"
-              ? current.theory.filter((_, i) => i !== index)
-              : current.theory,
-          practical:
-            category === "practical"
-              ? current.practical.filter((_, i) => i !== index)
-              : current.practical,
-        },
-      };
-      saveSubjectsToStorage(updated);
-      return updated;
-    });
-  };
-
   const selectedCourses = courses.filter((c) => c.selected);
-  const activeData = courseSubjectsMap[activeCourseCode] || { theory: [], practical: [] };
+  const currentSelection = courseSelections[activeCourseCode] || {};
+
+  // Handlers for ESC and PSC selection
+  const handleSelectESC = (escCode: string) => {
+    setCourseSelections((prev) => {
+      const updated = {
+        ...prev,
+        [activeCourseCode]: { ...prev[activeCourseCode], escCode },
+      };
+      saveSelections(updated);
+      return updated;
+    });
+  };
+
+  const handleSelectPSC = (pscCode: string) => {
+    setCourseSelections((prev) => {
+      const updated = {
+        ...prev,
+        [activeCourseCode]: { ...prev[activeCourseCode], pscCode },
+      };
+      saveSelections(updated);
+      return updated;
+    });
+  };
+
+  // Compute active stream subjects
+  const streamData = useMemo(() => {
+    return getStreamSpecificSubjects(activeCourseCode);
+  }, [activeCourseCode]);
+
+  const chosenESC = VTU_ESC_OPTIONS.find((e) => e.code === currentSelection.escCode);
+  const chosenPSCPair = VTU_PSC_OPTIONS.find((p) => p.psc.code === currentSelection.pscCode);
 
   return (
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header (No suggestions/descriptions) */}
+        {/* Page Hero Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            VTU Scheme Document Upload & Subject Ingestion
-          </h1>
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+              VTU Curriculum & Subject Allocation
+            </h1>
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mt-1">
+              1st Year • Physics Group (I Semester)
+            </p>
+          </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowAddSubj(!showAddSubj)}
-              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Subject</span>
-            </button>
+            <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
+              <span>Active Branch:</span>
+              <span className="text-primary font-extrabold">{activeCourseCode}</span>
+            </div>
           </div>
         </div>
 
-        {/* Course Selector Tabs Bar */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Course Scheme
-            </h2>
-            <span className="text-xs font-mono text-primary font-bold">
-              {activeData.theory.length} Theory + {activeData.practical.length} Practical Labs
-            </span>
-          </div>
-
+        {/* Course Tabs Selector */}
+        <div className="space-y-2">
+          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            Select Degree Branch
+          </h2>
           <div className="flex flex-wrap gap-2.5 pb-2">
             {selectedCourses.map((c) => (
               <button
@@ -238,189 +234,272 @@ export default function DocumentsPage() {
                 }`}
               >
                 <span>{c.code}</span>
-                <span className="text-[10px] opacity-75 font-mono">({c.studentCount} students)</span>
+                <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Manual Subject Form */}
-        {showAddSubj && (
-          <form
-            onSubmit={handleAddManualSubject}
-            className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-primary">Add Subject for {activeCourseCode}</h3>
-              <button
-                type="button"
-                onClick={() => setShowAddSubj(false)}
-                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <input
-                type="text"
-                placeholder="Code (e.g. 1BCS304)"
-                value={newSubjCode}
-                onChange={(e) => setNewSubjCode(e.target.value)}
-                className="h-11 px-4 text-xs font-mono rounded-xl border border-border bg-background"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Subject Name"
-                value={newSubjName}
-                onChange={(e) => setNewSubjName(e.target.value)}
-                className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
-                required
-              />
-              <select
-                value={newSubjCategory}
-                onChange={(e) => {
-                  const cat = e.target.value as "theory" | "practical";
-                  setNewSubjCategory(cat);
-                  setNewSubjHours(cat === "practical" ? 3 : 4);
-                }}
-                className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer"
-              >
-                <option value="theory">Theory (4 hrs/wk)</option>
-                <option value="practical">Practical / Lab (3 hrs/wk)</option>
-              </select>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
-              >
-                Save Subject
-              </button>
-            </div>
-          </form>
-        )}
+        {/* Main 3 Blocks Layout for the Selected Branch */}
+        <div className="space-y-6">
 
-        {/* Scheme File Upload Dropzone */}
-        <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
-          <input
-            type="file"
-            accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
-            onChange={handleSchemeFileUpload}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-          />
-          <div className="flex flex-col items-center justify-center space-y-3">
-            <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-xs">
-              {parsingScheme ? (
-                <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-              ) : (
-                <Upload className="h-8 w-8" />
-              )}
-            </div>
-            <p className="text-base font-bold text-foreground">
-              {parsingScheme
-                ? `Extracting Subjects for ${activeCourseCode}...`
-                : `Upload VTU Scheme for ${activeCourseCode} (PDF / PNG / JPG / DOCX)`}
-            </p>
-          </div>
-        </div>
-
-        {uploadSuccess && (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-semibold flex items-center space-x-3 tt-animate-fade">
-            <CheckCircle2 className="h-5 w-5" />
-            <span>{uploadSuccess}</span>
-          </div>
-        )}
-
-        {/* Theory and Practical Lists */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Theory Subjects */}
-          <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* 📘 BLOCK 1: THEORY SUBJECTS (L) */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
             <div className="flex items-center justify-between border-b border-border/50 pb-3">
               <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
                 <BookOpen className="h-4 w-4" />
-                <span>Theory Subjects ({activeData.theory.length})</span>
+                <span>Theory Subjects (Lecture Hours)</span>
               </h3>
-              <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode}</span>
+              <span className="text-xs font-mono font-bold text-muted-foreground">7 Subjects</span>
             </div>
 
-            {activeData.theory.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic py-8 text-center">
-                No theory subjects extracted.
-              </p>
-            ) : (
-              <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
-                {activeData.theory.map((s, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-primary/40 transition"
-                  >
-                    <div className="min-w-0 pr-3">
-                      <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
-                    </div>
-                    <div className="flex items-center space-x-3 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{s.weekly_hours} hrs/wk</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSubject("theory", idx)}
-                        className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              
+              {/* 1. Maths */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-primary text-xs">{streamData.maths.code}</span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.maths.name}</p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>3 hrs/wk</span>
+                </span>
               </div>
-            )}
+
+              {/* 2. Physics */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-primary text-xs">{streamData.physics.code}</span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.physics.name}</p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>3 hrs/wk</span>
+                </span>
+              </div>
+
+              {/* 3. CAED */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-primary text-xs">{streamData.caed.code}</span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.caed.name}</p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>2 hrs/wk</span>
+                </span>
+              </div>
+
+              {/* 4. ESC-I with Selector */}
+              <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-primary text-xs">
+                    {chosenESC ? chosenESC.code : "1BXXX104x"}
+                  </span>
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                    3 hrs/wk
+                  </span>
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-sm">
+                    {chosenESC ? chosenESC.name : "Engineering Science Course-I (ESC-I)"}
+                  </p>
+                  {chosenESC && (
+                    <span className="text-[11px] text-muted-foreground font-mono">{chosenESC.dept}</span>
+                  )}
+                </div>
+                <select
+                  value={currentSelection.escCode || ""}
+                  onChange={(e) => handleSelectESC(e.target.value)}
+                  className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">-- Choose ESC-I Course --</option>
+                  {VTU_ESC_OPTIONS.map((opt) => (
+                    <option key={opt.code} value={opt.code}>
+                      {opt.code} — {opt.name} ({opt.dept})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 5. PSC with Selector */}
+              <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-primary text-xs">
+                    {chosenPSCPair ? chosenPSCPair.psc.code : "1Bxxx105x"}
+                  </span>
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                    3 hrs/wk
+                  </span>
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-sm">
+                    {chosenPSCPair ? chosenPSCPair.psc.name : "Programme Specific Course (PSC)"}
+                  </p>
+                  {chosenPSCPair && (
+                    <span className="text-[11px] text-muted-foreground font-mono">{chosenPSCPair.psc.dept}</span>
+                  )}
+                </div>
+                <select
+                  value={currentSelection.pscCode || ""}
+                  onChange={(e) => handleSelectPSC(e.target.value)}
+                  className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">-- Choose PSC Course --</option>
+                  {VTU_PSC_OPTIONS.map((opt) => (
+                    <option key={opt.psc.code} value={opt.psc.code}>
+                      {opt.psc.code} — {opt.psc.name} ({opt.psc.dept})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 6. Soft Skills */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-primary text-xs">1BSKS106</span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">Soft Skills</p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>1 hr/wk</span>
+                </span>
+              </div>
+
+              {/* 7. Kannada */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-primary text-xs">1BKSK109 / 1BKBK109</span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                    Samskrutika Kannada / Balake Kannada
+                  </p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>1 hr/wk</span>
+                </span>
+              </div>
+
+            </div>
           </div>
 
-          {/* Practical / Lab Subjects */}
-          <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* 📐 BLOCK 2: TUTORIAL SESSIONS (T) */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
+            <div className="flex items-center justify-between border-b border-border/50 pb-3">
+              <h3 className="text-sm font-bold text-amber-500 uppercase tracking-wider flex items-center space-x-2">
+                <GraduationCap className="h-4 w-4" />
+                <span>Tutorial Sessions</span>
+              </h3>
+              <span className="text-xs font-mono font-bold text-muted-foreground">1 Session</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-amber-500 text-xs">
+                    {streamData.maths.code}-TUT
+                  </span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                    {streamData.maths.name} (Tutorial)
+                  </p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>2 hrs/wk</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* 🔬 BLOCK 3: PRACTICAL & LAB SUBJECTS (P) */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
             <div className="flex items-center justify-between border-b border-border/50 pb-3">
               <h3 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
                 <Layers className="h-4 w-4" />
-                <span>Practical & Lab Subjects ({activeData.practical.length})</span>
+                <span>Practical & Lab Subjects</span>
               </h3>
-              <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode}</span>
+              <span className="text-xs font-mono font-bold text-muted-foreground">4 Labs</span>
             </div>
 
-            {activeData.practical.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic py-8 text-center">
-                No practical lab subjects extracted.
-              </p>
-            ) : (
-              <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
-                {activeData.practical.map((s, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-[#00A3FF]/40 transition"
-                  >
-                    <div className="min-w-0 pr-3">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
-                    </div>
-                    <div className="flex items-center space-x-3 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{s.weekly_hours} hrs/wk</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSubject("practical", idx)}
-                        className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              
+              {/* 1. Applied Physics Lab */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                    {streamData.physics.code}-LAB
+                  </span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                    Applied Physics Practical Sessions
+                  </p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>2 hrs/wk</span>
+                </span>
               </div>
-            )}
+
+              {/* 2. CAED Practice Lab */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                    {streamData.caed.code}-LAB
+                  </span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                    Computer-Aided Engineering Drawing Lab
+                  </p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>2 hrs/wk</span>
+                </span>
+              </div>
+
+              {/* 3. Auto-Paired PSCL Lab */}
+              <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                      {chosenPSCPair ? chosenPSCPair.pscl.code : "1BxxxL107x"}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
+                      Auto-Paired Lab
+                    </span>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                    {chosenPSCPair ? chosenPSCPair.pscl.name : "Programme-Specific Course Lab (PSCL)"}
+                  </p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>2 hrs/wk</span>
+                </span>
+              </div>
+
+              {/* 4. Innovation & Design Thinking Lab */}
+              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                <div className="min-w-0 pr-3">
+                  <span className="font-mono font-bold text-[#00A3FF] text-xs">1BIDTL158</span>
+                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                    Innovation and Design Thinking Lab (Project-based)
+                  </p>
+                </div>
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <Clock className="h-3 w-3" />
+                  <span>2 hrs/wk</span>
+                </span>
+              </div>
+
+            </div>
           </div>
+
         </div>
 
         {/* Footer Navigation with Scrolling Overscroll Transition */}

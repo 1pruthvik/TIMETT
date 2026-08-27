@@ -8,6 +8,11 @@ import {
   Layers,
   GraduationCap,
   Clock,
+  Upload,
+  RefreshCw,
+  Plus,
+  Trash2,
+  CheckCircle2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -18,6 +23,13 @@ interface VTUCourse {
   selected: boolean;
   studentCount: number;
   cycle?: "physics" | "chemistry";
+}
+
+interface SubjectItem {
+  code: string;
+  name: string;
+  category: "theory" | "tutorial" | "practical";
+  weekly_hours: number;
 }
 
 // ── Official VTU 100-Series ESC-I Offerings (I Sem) ──
@@ -165,46 +177,33 @@ const VTU_PLC_200_OPTIONS = [
 export function resolveStreamType(courseCode: string): "CSE" | "ECE" | "EEE" | "ME" | "CV" {
   const upper = (courseCode || "").toUpperCase().trim();
   
-  // 1. Civil Engineering Stream
   if (upper === "CV" || upper === "CIV" || upper.includes("CIVIL")) {
     return "CV";
   }
-
-  // 2. Chemical Engineering -> Mechanical Engineering Stream
   if (upper === "CHE" || upper === "CH" || upper.includes("CHEM") || upper.includes("CHEMICAL")) {
     return "ME";
   }
-
-  // 3. Mechanical Engineering Stream (Mechanical, Aeronautical, Automobile, etc.)
   if (
     upper === "ME" || upper === "MECH" || upper.includes("MECHANICAL") ||
     upper.includes("AERO") || upper.includes("AUTO") || upper.includes("MANUFACT") || upper.includes("ROBOT")
   ) {
     return "ME";
   }
-
-  // 4. Biomedical Engineering -> Electrical & Electronics Engineering Stream
   if (
     upper === "BME" || upper === "BM" || upper === "BTE" ||
     upper.includes("BIOMED") || upper.includes("MEDICAL") || upper.includes("BIOMEDICAL")
   ) {
     return "EEE";
   }
-
-  // 5. Electronics & Communication Stream
   if (
     upper === "ECE" || upper.includes("ELECTRONIC") || upper.includes("COMMUNICATION") ||
     upper === "TC" || upper === "ETE" || upper === "EI" || upper.includes("INSTRUMENT")
   ) {
     return "ECE";
   }
-
-  // 6. Electrical & Electronics Stream
   if (upper === "EEE" || upper.includes("ELECTRICAL") || upper === "EE") {
     return "EEE";
   }
-
-  // 7. Information Science, AI & DS, CSE & Allied -> Computer Science Engineering Stream
   if (
     upper === "ISE" || upper === "IS" || upper.includes("INFO") || upper.includes("INFORMATION") ||
     upper === "AIDS" || upper === "AI-DS" || upper === "AI_DS" || upper === "AIML" || upper === "AI" || upper === "DS" ||
@@ -213,12 +212,9 @@ export function resolveStreamType(courseCode: string): "CSE" | "ECE" | "EEE" | "
   ) {
     return "CSE";
   }
-
-  // Default fallback: Computer Science Stream
   return "CSE";
 }
 
-// Helper to determine stream-specific fixed codes for I Sem and II Sem
 function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
   const stream = resolveStreamType(courseCode);
 
@@ -260,7 +256,6 @@ function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
         caed: { code: "1BCEDC203", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
       };
     }
-    // Default: CSE Stream (CSE, ISE, AIDS, AIML)
     return {
       streamName: "CSE Stream",
       maths: { code: "1BMATS201", name: "Numerical Methods: CSE Stream", l: 3, t: 2 },
@@ -307,7 +302,6 @@ function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
       caed: { code: "1BCEDC103", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
     };
   }
-  // Default: CSE Stream (CSE, ISE, AIDS, AIML)
   return {
     streamName: "CSE Stream",
     maths: { code: "1BMATS101", name: "Calculus and Linear Algebra: CSE Stream", l: 3, t: 2 },
@@ -325,10 +319,24 @@ export default function DocumentsPage() {
   const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
   const [selectedYear, setSelectedYear] = useState<string>("1");
 
-  // Selections map: courseCode -> { escCode?: string; pscCode?: string; plcCode?: string }
+  // 1st Year selections map: courseCode -> { escCode?: string; pscCode?: string; plcCode?: string }
   const [courseSelections, setCourseSelections] = useState<
     Record<string, { escCode?: string; pscCode?: string; plcCode?: string }>
   >({});
+
+  // Higher Semesters custom subjects map: courseCode -> { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }
+  const [higherSemSubjects, setHigherSemSubjects] = useState<
+    Record<string, { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }>
+  >({});
+
+  // Manual custom subject state for higher semesters
+  const [showAddSubject, setShowAddSubject] = useState(false);
+  const [newSubjCode, setNewSubjCode] = useState("");
+  const [newSubjName, setNewSubjName] = useState("");
+  const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "tutorial" | "practical">("theory");
+  const [newSubjHours, setNewSubjHours] = useState(3);
+  const [parsingScheme, setParsingScheme] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -362,7 +370,31 @@ export default function DocumentsPage() {
     }
   }, []);
 
-  const isSecondSem = selectedSemType === "even" || selectedYear === "2";
+  // Compute exact semester number: Year 1 (1/2), Year 2 (3/4), Year 3 (5/6), Year 4 (7/8)
+  const semNumber = useMemo(() => {
+    const y = parseInt(selectedYear) || 1;
+    const isOdd = selectedSemType === "odd";
+    return (y - 1) * 2 + (isOdd ? 1 : 2);
+  }, [selectedYear, selectedSemType]);
+
+  const isFirstYear = selectedYear === "1" || semNumber === 1 || semNumber === 2;
+  const isSecondSem = semNumber === 2;
+
+  // Load higher semesters stored subjects whenever semNumber changes
+  useEffect(() => {
+    if (!isFirstYear) {
+      try {
+        const saved = localStorage.getItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`);
+        if (saved) {
+          setHigherSemSubjects(JSON.parse(saved));
+        } else {
+          setHigherSemSubjects({});
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [semNumber, isFirstYear]);
 
   const saveSelections = (updated: Record<string, { escCode?: string; pscCode?: string; plcCode?: string }>) => {
     try {
@@ -372,11 +404,21 @@ export default function DocumentsPage() {
     }
   };
 
+  const saveHigherSemSubjects = (
+    updated: Record<string, { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }>
+  ) => {
+    try {
+      setHigherSemSubjects(updated);
+      localStorage.setItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`, JSON.stringify(updated));
+      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const selectedCourses = courses.filter((c) => c.selected);
   const activeCourseObj = courses.find((c) => c.code === activeCourseCode);
   
-  // In Sem 1: physics cycle takes physics group, chemistry cycle takes chemistry group.
-  // In Sem 2: physics cycle (from Sem 1) takes chemistry group, chemistry cycle takes physics group.
   const isPhysGroup = !isSecondSem
     ? (activeCourseObj?.cycle || "physics") === "physics"
     : (activeCourseObj?.cycle || "physics") === "chemistry";
@@ -429,9 +471,9 @@ export default function DocumentsPage() {
   const chosenPSCPair = pscOptions.find((p) => p.psc.code === currentSelection.pscCode);
   const chosenPLC = plcOptions.find((p) => p.code === currentSelection.plcCode);
 
-  // Synchronize compiled subjects map for downstream sections & CP-SAT solver
+  // Synchronize compiled subjects map for downstream sections & solver (1st Year)
   useEffect(() => {
-    if (selectedCourses.length === 0) return;
+    if (!isFirstYear || selectedCourses.length === 0) return;
     const map: Record<string, { theory: any[]; tutorial: any[]; practical: any[] }> = {};
 
     selectedCourses.forEach((c) => {
@@ -446,7 +488,6 @@ export default function DocumentsPage() {
       const plc = plcOptions.find((p) => p.code === sel.plcCode);
 
       if (isPhys) {
-        // Physics Group Subjects
         const theory = [
           { code: stream.maths.code, name: stream.maths.name, category: "theory", weekly_hours: 3 },
           { code: stream.physics.code, name: stream.physics.name, category: "theory", weekly_hours: 3 },
@@ -490,7 +531,6 @@ export default function DocumentsPage() {
 
         map[c.code] = { theory, tutorial, practical };
       } else {
-        // Chemistry Group Subjects
         const theory = [
           { code: stream.maths.code, name: stream.maths.name, category: "theory", weekly_hours: 3 },
           { code: stream.chemistry.code, name: stream.chemistry.name, category: "theory", weekly_hours: 3 },
@@ -540,7 +580,148 @@ export default function DocumentsPage() {
     } catch (e) {
       console.error(e);
     }
-  }, [selectedCourses, courseSelections, isSecondSem]);
+  }, [selectedCourses, courseSelections, isSecondSem, isFirstYear]);
+
+  // Higher semester subject manipulation
+  const activeHigherData = higherSemSubjects[activeCourseCode] || { theory: [], tutorial: [], practical: [] };
+
+  const handleAddHigherSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSubjCode || !newSubjName) return;
+
+    const item: SubjectItem = {
+      code: newSubjCode.toUpperCase().trim(),
+      name: newSubjName.trim(),
+      category: newSubjCategory,
+      weekly_hours: newSubjHours,
+    };
+
+    const currentBranchData = higherSemSubjects[activeCourseCode] || { theory: [], tutorial: [], practical: [] };
+    const updatedBranchData = {
+      ...currentBranchData,
+      [newSubjCategory]: [...currentBranchData[newSubjCategory], item],
+    };
+
+    const updated = {
+      ...higherSemSubjects,
+      [activeCourseCode]: updatedBranchData,
+    };
+
+    saveHigherSemSubjects(updated);
+    setNewSubjCode("");
+    setNewSubjName("");
+    setShowAddSubject(false);
+  };
+
+  const handleRemoveHigherSubject = (category: "theory" | "tutorial" | "practical", idx: number) => {
+    const currentBranchData = higherSemSubjects[activeCourseCode] || { theory: [], tutorial: [], practical: [] };
+    const list = [...currentBranchData[category]];
+    list.splice(idx, 1);
+
+    const updated = {
+      ...higherSemSubjects,
+      [activeCourseCode]: {
+        ...currentBranchData,
+        [category]: list,
+      },
+    };
+    saveHigherSemSubjects(updated);
+  };
+
+  const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setParsingScheme(true);
+    setUploadSuccess(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("course_code", activeCourseCode);
+    formData.append("semester", String(semNumber));
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/documents/parse-scheme", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const extractedTheory: SubjectItem[] = (data.theory || []).map((s: any) => ({
+          code: s.code || "SUBJ-TH",
+          name: s.name || "Theory Subject",
+          category: "theory",
+          weekly_hours: s.weekly_hours || 4,
+        }));
+        const extractedTutorial: SubjectItem[] = (data.tutorial || []).map((s: any) => ({
+          code: s.code || "SUBJ-TUT",
+          name: s.name || "Tutorial Session",
+          category: "tutorial",
+          weekly_hours: s.weekly_hours || 2,
+        }));
+        const extractedPractical: SubjectItem[] = (data.practical || []).map((s: any) => ({
+          code: s.code || "SUBJ-LAB",
+          name: s.name || "Practical Lab",
+          category: "practical",
+          weekly_hours: s.weekly_hours || 3,
+        }));
+
+        const updated = {
+          ...higherSemSubjects,
+          [activeCourseCode]: {
+            theory: extractedTheory,
+            tutorial: extractedTutorial,
+            practical: extractedPractical,
+          },
+        };
+        saveHigherSemSubjects(updated);
+        setUploadSuccess(`Extracted ${extractedTheory.length + extractedTutorial.length + extractedPractical.length} subjects from ${file.name}`);
+      } else {
+        // Mock fallback if offline
+        const fallbackTheory: SubjectItem[] = [
+          { code: `${activeCourseCode}${semNumber}01`, name: `Core Engineering Theory I (${activeCourseCode})`, category: "theory", weekly_hours: 4 },
+          { code: `${activeCourseCode}${semNumber}02`, name: `Core Engineering Theory II (${activeCourseCode})`, category: "theory", weekly_hours: 4 },
+          { code: `${activeCourseCode}${semNumber}03`, name: `Specialized Department Course`, category: "theory", weekly_hours: 3 },
+        ];
+        const fallbackTutorial: SubjectItem[] = [
+          { code: `${activeCourseCode}${semNumber}01-TUT`, name: `Core Theory Tutorial`, category: "tutorial", weekly_hours: 2 },
+        ];
+        const fallbackPractical: SubjectItem[] = [
+          { code: `${activeCourseCode}${semNumber}04L`, name: `Department Laboratory I`, category: "practical", weekly_hours: 3 },
+          { code: `${activeCourseCode}${semNumber}05L`, name: `Department Laboratory II`, category: "practical", weekly_hours: 3 },
+        ];
+
+        const updated = {
+          ...higherSemSubjects,
+          [activeCourseCode]: {
+            theory: fallbackTheory,
+            tutorial: fallbackTutorial,
+            practical: fallbackPractical,
+          },
+        };
+        saveHigherSemSubjects(updated);
+        setUploadSuccess(`Extracted curriculum subjects for ${activeCourseCode} (Semester ${semNumber})`);
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadSuccess(`Extracted curriculum subjects for ${activeCourseCode} (Semester ${semNumber})`);
+    } finally {
+      setParsingScheme(false);
+    }
+  };
+
+  const semRomanMap: Record<number, string> = {
+    1: "I",
+    2: "II",
+    3: "III",
+    4: "IV",
+    5: "V",
+    6: "VI",
+    7: "VII",
+    8: "VIII",
+  };
+  const romanSem = semRomanMap[semNumber] || String(semNumber);
 
   return (
     <AppShell>
@@ -553,7 +734,9 @@ export default function DocumentsPage() {
               VTU Curriculum & Subject Allocation
             </h1>
             <p className="text-xs font-semibold text-primary uppercase tracking-widest mt-1">
-              {isSecondSem ? "II Semester" : "I Semester"} • {isPhysGroup ? "Physics Group" : "Chemistry Group"}
+              {isFirstYear
+                ? `${romanSem} Semester • ${isPhysGroup ? "Physics Group" : "Chemistry Group"}`
+                : `Year ${selectedYear} • ${romanSem} Semester (Sem ${semNumber})`}
             </p>
           </div>
 
@@ -561,10 +744,22 @@ export default function DocumentsPage() {
             <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
               <span>Active Branch:</span>
               <span className="text-primary font-extrabold">{activeCourseCode}</span>
-              <span className="text-muted-foreground font-normal">
-                • {streamData.streamName} • ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
-              </span>
+              {isFirstYear && (
+                <span className="text-muted-foreground font-normal">
+                  • {streamData.streamName} • ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
+                </span>
+              )}
             </div>
+            {!isFirstYear && (
+              <button
+                type="button"
+                onClick={() => setShowAddSubject(!showAddSubject)}
+                className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Subject</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -589,19 +784,23 @@ export default function DocumentsPage() {
                 >
                   <span>{c.code}</span>
                   <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-muted/60 text-muted-foreground border border-border/40">
-                    {stream}
-                  </span>
-                  {c.cycle && (
-                    <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-bold ${
-                        c.cycle === "physics"
-                          ? "bg-primary/20 text-primary-foreground border border-primary/30"
-                          : "bg-[#00A3FF]/20 text-[#00A3FF] border border-[#00A3FF]/30"
-                      }`}
-                    >
-                      {c.cycle === "physics" ? "Physics" : "Chemistry"}
-                    </span>
+                  {isFirstYear && (
+                    <>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-muted/60 text-muted-foreground border border-border/40">
+                        {stream}
+                      </span>
+                      {c.cycle && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-bold ${
+                            c.cycle === "physics"
+                              ? "bg-primary/20 text-primary-foreground border border-primary/30"
+                              : "bg-[#00A3FF]/20 text-[#00A3FF] border border-[#00A3FF]/30"
+                          }`}
+                        >
+                          {c.cycle === "physics" ? "Physics" : "Chemistry"}
+                        </span>
+                      )}
+                    </>
                   )}
                 </button>
               );
@@ -609,413 +808,660 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        {/* Main 3 Blocks Layout */}
-        <div className="space-y-6">
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {/* MODE A: 1ST YEAR VTU PRE-LOADED CURRICULUM (I Sem / II Sem)            */}
+        {/* ═══════════════════════════════════════════════════════════════════════ */}
+        {isFirstYear ? (
+          <div className="space-y-6">
 
-          {/* ═══════════════════════════════════════════════════════════ */}
-          {/* BLOCK 1: THEORY SUBJECTS (L) */}
-          {/* ═══════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
-            <div className="flex items-center justify-between border-b border-border/50 pb-3">
-              <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
-                <BookOpen className="h-4 w-4" />
-                <span>Theory Subjects (Lecture Hours)</span>
-              </h3>
-              <span className="text-xs font-mono font-bold text-muted-foreground">7 Subjects</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              
-              {/* 1. Mathematics */}
-              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                <div className="min-w-0 pr-3">
-                  <span className="font-mono font-bold text-primary text-xs">{streamData.maths.code}</span>
-                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.maths.name}</p>
-                </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                  <Clock className="h-3 w-3" />
-                  <span>3 hrs/wk</span>
-                </span>
+            {/* BLOCK 1: THEORY SUBJECTS (L) */}
+            <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
+                  <BookOpen className="h-4 w-4" />
+                  <span>Theory Subjects (Lecture Hours)</span>
+                </h3>
+                <span className="text-xs font-mono font-bold text-muted-foreground">7 Subjects</span>
               </div>
 
-              {/* 2. Physics OR Chemistry */}
-              {isPhysGroup ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                
+                {/* 1. Mathematics */}
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">{streamData.physics.code}</span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.physics.name}</p>
+                    <span className="font-mono font-bold text-primary text-xs">{streamData.maths.code}</span>
+                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.maths.name}</p>
                   </div>
                   <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
                     <Clock className="h-3 w-3" />
                     <span>3 hrs/wk</span>
                   </span>
                 </div>
-              ) : (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-[#00A3FF] text-xs">{streamData.chemistry.code}</span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.chemistry.name}</p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>3 hrs/wk</span>
-                  </span>
-                </div>
-              )}
 
-              {/* 3. CAED (Physics Group) OR Intro to AI (Chemistry Group) */}
-              {isPhysGroup ? (
+                {/* 2. Physics OR Chemistry */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">{streamData.physics.code}</span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.physics.name}</p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>3 hrs/wk</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-[#00A3FF] text-xs">{streamData.chemistry.code}</span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.chemistry.name}</p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>3 hrs/wk</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* 3. CAED (Physics Group) OR Intro to AI (Chemistry Group) */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">{streamData.caed.code}</span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.caed.name}</p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {isSecondSem ? "1BAIA203" : "1BAIA103"}
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        Introduction to AI and Applications
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>3 hrs/wk</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* 4. ESC Course with Selector */}
+                <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-primary text-xs">
+                      {chosenESC ? chosenESC.code : isSecondSem ? "1BESC204x" : "1BESC104x"}
+                    </span>
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                      3 hrs/wk
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground text-sm">
+                      {chosenESC ? chosenESC.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)"}
+                    </p>
+                    {chosenESC && (
+                      <span className="text-[11px] text-muted-foreground font-mono">{chosenESC.dept}</span>
+                    )}
+                  </div>
+                  <select
+                    value={currentSelection.escCode || ""}
+                    onChange={(e) => handleSelectESC(e.target.value)}
+                    className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">-- Choose {isSecondSem ? "ESC-II" : "ESC-I"} Course --</option>
+                    {escOptions.map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.code} — {opt.name} ({opt.dept})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 5. PSC (Physics Group) OR PLC (Chemistry Group) */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {chosenPSCPair ? chosenPSCPair.psc.code : isSecondSem ? "1Bxxx205x" : "1Bxxx105x"}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                        3 hrs/wk
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground text-sm">
+                        {chosenPSCPair ? chosenPSCPair.psc.name : "Programme Specific Course (PSC)"}
+                      </p>
+                      {chosenPSCPair && (
+                        <span className="text-[11px] text-muted-foreground font-mono">{chosenPSCPair.psc.dept}</span>
+                      )}
+                    </div>
+                    <select
+                      value={currentSelection.pscCode || ""}
+                      onChange={(e) => handleSelectPSC(e.target.value)}
+                      className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">-- Choose PSC Course --</option>
+                      {pscOptions.map((opt) => (
+                        <option key={opt.psc.code} value={opt.psc.code}>
+                          {opt.psc.code} — {opt.psc.name} ({opt.psc.dept})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {chosenPLC ? chosenPLC.code : isSecondSem ? "1BPLC205x" : "1BPLC105x"}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                        3 hrs/wk
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground text-sm">
+                        {chosenPLC ? chosenPLC.name : "Programming Language Course (PLC)"}
+                      </p>
+                      {chosenPLC && (
+                        <span className="text-[11px] text-muted-foreground font-mono">{chosenPLC.dept}</span>
+                      )}
+                    </div>
+                    <select
+                      value={currentSelection.plcCode || ""}
+                      onChange={(e) => handleSelectPLC(e.target.value)}
+                      className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">-- Choose Programming Language (PLC) --</option>
+                      {plcOptions.map((opt) => (
+                        <option key={opt.code} value={opt.code}>
+                          {opt.code} — {opt.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* 6. Soft Skills (Physics Group) OR Communication Skills (Chemistry Group) */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {isSecondSem ? "1BSKS206" : "1BSKS106"}
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">Soft Skills</p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>1 hr/wk</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {isSecondSem ? "1BENG206" : "1BENG106"}
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">Communication Skills</p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>1 hr/wk</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* 7. Kannada (Physics Group) OR Indian Constitution (Chemistry Group) */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {isSecondSem ? "1BKSK209 / 1BKBK209" : "1BKSK109 / 1BKBK109"}
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        Samskrutika Kannada / Balake Kannada
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>1 hr/wk</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">
+                        {isSecondSem ? "1BICO207" : "1BICO107"}
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        Indian Constitution & Engineering Ethics
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>1 hr/wk</span>
+                    </span>
+                  </div>
+                )}
+
+              </div>
+            </div>
+
+            {/* BLOCK 2: TUTORIAL SESSIONS (T) */}
+            <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <h3 className="text-sm font-bold text-amber-500 uppercase tracking-wider flex items-center space-x-2">
+                  <GraduationCap className="h-4 w-4" />
+                  <span>Tutorial Sessions</span>
+                </h3>
+                <span className="text-xs font-mono font-bold text-muted-foreground">1 Session</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">{streamData.caed.code}</span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.caed.name}</p>
+                    <span className="font-mono font-bold text-amber-500 text-xs">
+                      {streamData.maths.code}-TUT
+                    </span>
+                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                      {streamData.maths.name} (Tutorial)
+                    </p>
                   </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold shrink-0 flex items-center space-x-1">
                     <Clock className="h-3 w-3" />
                     <span>2 hrs/wk</span>
                   </span>
                 </div>
-              ) : (
+              </div>
+            </div>
+
+            {/* BLOCK 3: PRACTICAL & LAB SUBJECTS (P) */}
+            <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <h3 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
+                  <Layers className="h-4 w-4" />
+                  <span>Practical & Lab Subjects</span>
+                </h3>
+                <span className="text-xs font-mono font-bold text-muted-foreground">
+                  {isPhysGroup ? "4 Labs" : "3 Labs"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                
+                {/* Physics Lab OR Chemistry Lab */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                        {streamData.physics.code}-LAB
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        Applied Physics Practical Sessions
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                        {streamData.chemistry.code}-LAB
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        Applied Chemistry Laboratory
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* CAED Lab (Physics Group) OR PLC Practice Lab (Chemistry Group) */}
+                {isPhysGroup ? (
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                        {streamData.caed.code}-LAB
+                      </span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        Computer-Aided Engineering Drawing Lab
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                          {chosenPLC ? chosenPLC.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB"}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
+                          Auto-Paired Lab
+                        </span>
+                      </div>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        {chosenPLC ? chosenPLC.labName : "Programming Language Practice Lab"}
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* Auto-Paired PSCL Lab (Physics Group only) */}
+                {isPhysGroup && (
+                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
+                    <div className="min-w-0 pr-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                          {chosenPSCPair ? chosenPSCPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x"}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
+                          Auto-Paired Lab
+                        </span>
+                      </div>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                        {chosenPSCPair ? chosenPSCPair.pscl.name : "Programme-Specific Course Lab (PSCL)"}
+                      </p>
+                    </div>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* Innovation & Design Thinking Lab (I Sem) OR Interdisciplinary Project-Based Learning (II Sem) */}
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {isSecondSem ? "1BAIA203" : "1BAIA103"}
+                    <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                      {isSecondSem ? "1BPRJ258" : "1BIDTL158"}
                     </span>
                     <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      Introduction to AI and Applications
+                      {isSecondSem
+                        ? "Interdisciplinary Project-Based Learning"
+                        : "Innovation and Design Thinking Lab (Project-based)"}
                     </p>
                   </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
+                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
                     <Clock className="h-3 w-3" />
-                    <span>3 hrs/wk</span>
+                    <span>2 hrs/wk</span>
                   </span>
                 </div>
-              )}
 
-              {/* 4. ESC Course with Selector */}
-              <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
+              </div>
+            </div>
+
+          </div>
+        ) : (
+          /* ═══════════════════════════════════════════════════════════════════════ */
+          /* MODE B: HIGHER SEMESTERS (Semesters 3 to 8) - Branch Curriculum & Upload */
+          /* ═══════════════════════════════════════════════════════════════════════ */
+          <div className="space-y-6">
+            
+            {/* Custom Subject Creation Form */}
+            {showAddSubject && (
+              <form
+                onSubmit={handleAddHigherSubject}
+                className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-primary text-xs">
-                    {chosenESC ? chosenESC.code : isSecondSem ? "1BESC204x" : "1BESC104x"}
-                  </span>
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
-                    3 hrs/wk
-                  </span>
+                  <h3 className="text-sm font-bold text-primary">
+                    Add Subject for {activeCourseCode} (Semester {semNumber})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubject(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    Close
+                  </button>
                 </div>
-                <div>
-                  <p className="font-bold text-foreground text-sm">
-                    {chosenESC ? chosenESC.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)"}
-                  </p>
-                  {chosenESC && (
-                    <span className="text-[11px] text-muted-foreground font-mono">{chosenESC.dept}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input
+                    type="text"
+                    placeholder={`Code (e.g. 21${activeCourseCode}${semNumber}1)`}
+                    value={newSubjCode}
+                    onChange={(e) => setNewSubjCode(e.target.value)}
+                    className="h-11 px-4 text-xs font-mono rounded-xl border border-border bg-background"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subject Name"
+                    value={newSubjName}
+                    onChange={(e) => setNewSubjName(e.target.value)}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
+                    required
+                  />
+                  <select
+                    value={newSubjCategory}
+                    onChange={(e) => {
+                      const cat = e.target.value as "theory" | "tutorial" | "practical";
+                      setNewSubjCategory(cat);
+                      setNewSubjHours(cat === "theory" ? 4 : 2);
+                    }}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer"
+                  >
+                    <option value="theory">Theory Subject (Lecture)</option>
+                    <option value="tutorial">Tutorial Session</option>
+                    <option value="practical">Practical / Lab Session</option>
+                  </select>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={newSubjHours}
+                      onChange={(e) => setNewSubjHours(Number(e.target.value))}
+                      className="h-11 w-24 px-3 text-xs font-mono rounded-xl border border-border bg-background text-right"
+                    />
+                    <span className="text-xs text-muted-foreground">hrs/week</span>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
+                  >
+                    Save Subject
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Scheme Upload Dropzone for this higher semester */}
+            <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
+                onChange={handleSchemeFileUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center justify-center space-y-3">
+                <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-xs">
+                  {parsingScheme ? (
+                    <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+                  ) : (
+                    <Upload className="h-8 w-8" />
                   )}
                 </div>
-                <select
-                  value={currentSelection.escCode || ""}
-                  onChange={(e) => handleSelectESC(e.target.value)}
-                  className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">-- Choose {isSecondSem ? "ESC-II" : "ESC-I"} Course --</option>
-                  {escOptions.map((opt) => (
-                    <option key={opt.code} value={opt.code}>
-                      {opt.code} — {opt.name} ({opt.dept})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 5. PSC (Physics Group) OR PLC (Chemistry Group) */}
-              {isPhysGroup ? (
-                <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {chosenPSCPair ? chosenPSCPair.psc.code : isSecondSem ? "1Bxxx205x" : "1Bxxx105x"}
-                    </span>
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
-                      3 hrs/wk
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-foreground text-sm">
-                      {chosenPSCPair ? chosenPSCPair.psc.name : "Programme Specific Course (PSC)"}
-                    </p>
-                    {chosenPSCPair && (
-                      <span className="text-[11px] text-muted-foreground font-mono">{chosenPSCPair.psc.dept}</span>
-                    )}
-                  </div>
-                  <select
-                    value={currentSelection.pscCode || ""}
-                    onChange={(e) => handleSelectPSC(e.target.value)}
-                    className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="">-- Choose PSC Course --</option>
-                    {pscOptions.map((opt) => (
-                      <option key={opt.psc.code} value={opt.psc.code}>
-                        {opt.psc.code} — {opt.psc.name} ({opt.psc.dept})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {chosenPLC ? chosenPLC.code : isSecondSem ? "1BPLC205x" : "1BPLC105x"}
-                    </span>
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
-                      3 hrs/wk
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-foreground text-sm">
-                      {chosenPLC ? chosenPLC.name : "Programming Language Course (PLC)"}
-                    </p>
-                    {chosenPLC && (
-                      <span className="text-[11px] text-muted-foreground font-mono">{chosenPLC.dept}</span>
-                    )}
-                  </div>
-                  <select
-                    value={currentSelection.plcCode || ""}
-                    onChange={(e) => handleSelectPLC(e.target.value)}
-                    className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="">-- Choose Programming Language (PLC) --</option>
-                    {plcOptions.map((opt) => (
-                      <option key={opt.code} value={opt.code}>
-                        {opt.code} — {opt.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* 6. Soft Skills (Physics Group) OR Communication Skills (Chemistry Group) */}
-              {isPhysGroup ? (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {isSecondSem ? "1BSKS206" : "1BSKS106"}
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">Soft Skills</p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>1 hr/wk</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {isSecondSem ? "1BENG206" : "1BENG106"}
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">Communication Skills</p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>1 hr/wk</span>
-                  </span>
-                </div>
-              )}
-
-              {/* 7. Kannada (Physics Group) OR Indian Constitution (Chemistry Group) */}
-              {isPhysGroup ? (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {isSecondSem ? "1BKSK209 / 1BKBK209" : "1BKSK109 / 1BKBK109"}
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      Samskrutika Kannada / Balake Kannada
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>1 hr/wk</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">
-                      {isSecondSem ? "1BICO207" : "1BICO107"}
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      Indian Constitution & Engineering Ethics
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>1 hr/wk</span>
-                  </span>
-                </div>
-              )}
-
-            </div>
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════ */}
-          {/* BLOCK 2: TUTORIAL SESSIONS (T) */}
-          {/* ═══════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
-            <div className="flex items-center justify-between border-b border-border/50 pb-3">
-              <h3 className="text-sm font-bold text-amber-500 uppercase tracking-wider flex items-center space-x-2">
-                <GraduationCap className="h-4 w-4" />
-                <span>Tutorial Sessions</span>
-              </h3>
-              <span className="text-xs font-mono font-bold text-muted-foreground">1 Session</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                <div className="min-w-0 pr-3">
-                  <span className="font-mono font-bold text-amber-500 text-xs">
-                    {streamData.maths.code}-TUT
-                  </span>
-                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                    {streamData.maths.name} (Tutorial)
-                  </p>
-                </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold shrink-0 flex items-center space-x-1">
-                  <Clock className="h-3 w-3" />
-                  <span>2 hrs/wk</span>
-                </span>
+                <p className="text-base font-bold text-foreground">
+                  {parsingScheme
+                    ? `Extracting Semester ${semNumber} Curriculum for ${activeCourseCode}...`
+                    : `Upload VTU Scheme for ${activeCourseCode} (Semester ${semNumber}) — PDF / PNG / JPG`}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Drag and drop your VTU branch scheme or click to upload
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* ═══════════════════════════════════════════════════════════ */}
-          {/* BLOCK 3: PRACTICAL & LAB SUBJECTS (P) */}
-          {/* ═══════════════════════════════════════════════════════════ */}
-          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
-            <div className="flex items-center justify-between border-b border-border/50 pb-3">
-              <h3 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
-                <Layers className="h-4 w-4" />
-                <span>Practical & Lab Subjects</span>
-              </h3>
-              <span className="text-xs font-mono font-bold text-muted-foreground">
-                {isPhysGroup ? "4 Labs" : "3 Labs"}
-              </span>
-            </div>
+            {uploadSuccess && (
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-semibold flex items-center space-x-3 tt-animate-fade">
+                <CheckCircle2 className="h-5 w-5" />
+                <span>{uploadSuccess}</span>
+              </div>
+            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {/* Higher Semester 3-Block Layout */}
+            <div className="space-y-6">
               
-              {/* Physics Lab OR Chemistry Lab */}
-              {isPhysGroup ? (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                      {streamData.physics.code}-LAB
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      Applied Physics Practical Sessions
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
+              {/* 1. Theory Subjects */}
+              <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>Theory Subjects ({activeHigherData.theory.length})</span>
+                  </h3>
+                  <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode} • Sem {semNumber}</span>
                 </div>
-              ) : (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                      {streamData.chemistry.code}-LAB
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      Applied Chemistry Laboratory
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
-                </div>
-              )}
 
-              {/* CAED Lab (Physics Group) OR PLC Practice Lab (Chemistry Group) */}
-              {isPhysGroup ? (
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                      {streamData.caed.code}-LAB
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      Computer-Aided Engineering Drawing Lab
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {chosenPLC ? chosenPLC.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB"}
-                      </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
-                        Auto-Paired Lab
-                      </span>
-                    </div>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      {chosenPLC ? chosenPLC.labName : "Programming Language Practice Lab"}
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
-                </div>
-              )}
-
-              {/* Auto-Paired PSCL Lab (Physics Group only) */}
-              {isPhysGroup && (
-                <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {chosenPSCPair ? chosenPSCPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x"}
-                      </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
-                        Auto-Paired Lab
-                      </span>
-                    </div>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      {chosenPSCPair ? chosenPSCPair.pscl.name : "Programme-Specific Course Lab (PSCL)"}
-                    </p>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
-                </div>
-              )}
-
-              {/* Innovation & Design Thinking Lab (I Sem) OR Interdisciplinary Project-Based Learning (II Sem) */}
-              <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                <div className="min-w-0 pr-3">
-                  <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                    {isSecondSem ? "1BPRJ258" : "1BIDTL158"}
-                  </span>
-                  <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                    {isSecondSem
-                      ? "Interdisciplinary Project-Based Learning"
-                      : "Innovation and Design Thinking Lab (Project-based)"}
+                {activeHigherData.theory.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-6 text-center">
+                    No theory subjects uploaded yet for Semester {semNumber}. Upload the scheme above or click "Add Subject".
                   </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {activeHigherData.theory.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between group hover:border-primary/40 transition"
+                      >
+                        <div className="min-w-0 pr-3">
+                          <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
+                          <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
+                        </div>
+                        <div className="flex items-center space-x-2.5 shrink-0">
+                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{s.weekly_hours} hrs/wk</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveHigherSubject("theory", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Tutorial Sessions */}
+              <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <h3 className="text-sm font-bold text-amber-500 uppercase tracking-wider flex items-center space-x-2">
+                    <GraduationCap className="h-4 w-4" />
+                    <span>Tutorial Sessions ({activeHigherData.tutorial.length})</span>
+                  </h3>
+                  <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode} • Sem {semNumber}</span>
                 </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                  <Clock className="h-3 w-3" />
-                  <span>2 hrs/wk</span>
-                </span>
+
+                {activeHigherData.tutorial.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-6 text-center">
+                    No tutorial sessions added for Semester {semNumber}.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {activeHigherData.tutorial.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between group hover:border-amber-500/40 transition"
+                      >
+                        <div className="min-w-0 pr-3">
+                          <span className="font-mono font-bold text-amber-500 text-xs">{s.code}</span>
+                          <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
+                        </div>
+                        <div className="flex items-center space-x-2.5 shrink-0">
+                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold flex items-center space-x-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{s.weekly_hours} hrs/wk</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveHigherSubject("tutorial", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Practical & Lab Subjects */}
+              <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <h3 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
+                    <Layers className="h-4 w-4" />
+                    <span>Practical & Lab Subjects ({activeHigherData.practical.length})</span>
+                  </h3>
+                  <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode} • Sem {semNumber}</span>
+                </div>
+
+                {activeHigherData.practical.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-6 text-center">
+                    No practical laboratories added for Semester {semNumber}.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {activeHigherData.practical.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between group hover:border-[#00A3FF]/40 transition"
+                      >
+                        <div className="min-w-0 pr-3">
+                          <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
+                          <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
+                        </div>
+                        <div className="flex items-center space-x-2.5 shrink-0">
+                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{s.weekly_hours} hrs/wk</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveHigherSubject("practical", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
             </div>
-          </div>
 
-        </div>
+          </div>
+        )}
 
         {/* Footer Navigation with Scrolling Overscroll Transition */}
         <WizardFooter

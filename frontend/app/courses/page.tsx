@@ -8,9 +8,12 @@ import {
   RefreshCw,
   Plus,
   Search,
+  Zap,
+  FlaskConical,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
+import { cn } from "@/lib/utils";
 
 interface VTUCourse {
   code: string;
@@ -18,6 +21,7 @@ interface VTUCourse {
   is_vtu_standard: boolean;
   selected: boolean;
   studentCount: number;
+  cycle?: "physics" | "chemistry";
 }
 
 export default function CoursesPage() {
@@ -30,8 +34,18 @@ export default function CoursesPage() {
   const [newCourseCode, setNewCourseCode] = useState("");
   const [newCourseName, setNewCourseName] = useState("");
   const [showAddCustom, setShowAddCustom] = useState(false);
+  const [isFirstYear, setIsFirstYear] = useState(true);
 
   useEffect(() => {
+    try {
+      const savedSetup = localStorage.getItem("vtu_academic_setup");
+      if (savedSetup) {
+        const parsed = JSON.parse(savedSetup);
+        setIsFirstYear(parsed.selectedYear === "1" || !parsed.selectedYear);
+      }
+    } catch (e) {
+      console.error(e);
+    }
     fetchCourses();
   }, []);
 
@@ -48,9 +62,14 @@ export default function CoursesPage() {
     try {
       const saved = localStorage.getItem("vtu_college_offered_courses");
       if (saved) {
-        const parsed = JSON.parse(saved);
-        setCourses(parsed);
-        const selectedOne = parsed.find((c: any) => c.selected);
+        const parsed: VTUCourse[] = JSON.parse(saved);
+        // Ensure default cycle if missing
+        const withCycles = parsed.map((c, idx) => ({
+          ...c,
+          cycle: c.cycle || (idx % 2 === 0 ? "physics" : "chemistry"),
+        }));
+        setCourses(withCycles);
+        const selectedOne = withCycles.find((c) => c.selected);
         if (selectedOne) setActiveCourseCode(selectedOne.code);
         setLoading(false);
         return;
@@ -59,10 +78,11 @@ export default function CoursesPage() {
       const res = await fetch("http://127.0.0.1:8000/vtu/courses");
       if (res.ok) {
         const data = await res.json();
-        const initial = data.map((c: any) => ({
+        const initial = data.map((c: any, idx: number) => ({
           ...c,
           selected: c.code === "CSE" || c.code === "ECE" || c.code === "ME" || c.code === "ISE",
           studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
+          cycle: idx % 2 === 0 ? "physics" : "chemistry",
         }));
         setCourses(initial);
         saveCoursesToStorage(initial);
@@ -90,6 +110,14 @@ export default function CoursesPage() {
     });
   };
 
+  const handleUpdateCycle = (code: string, cycle: "physics" | "chemistry") => {
+    setCourses((prev) => {
+      const updated = prev.map((c) => (c.code === code ? { ...c, cycle } : c));
+      saveCoursesToStorage(updated);
+      return updated;
+    });
+  };
+
   const handleAddCustomCourse = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCourseCode || !newCourseName) return;
@@ -99,6 +127,7 @@ export default function CoursesPage() {
       is_vtu_standard: false,
       selected: true,
       studentCount: 60,
+      cycle: "physics",
     };
     setCourses((prev) => {
       const updated = [newCourse, ...prev];
@@ -123,7 +152,7 @@ export default function CoursesPage() {
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header (No suggestions/subtitles) */}
+        {/* Page Hero Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
             VTU B.E. Degree Courses & Student Intake
@@ -211,7 +240,8 @@ export default function CoursesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCourses.map((c) => {
-              const isActiveTarget = activeCourseCode === c.code;
+              const currentCycle = c.cycle || "physics";
+
               return (
                 <div
                   key={c.code}
@@ -252,20 +282,55 @@ export default function CoursesPage() {
                   </div>
 
                   {c.selected && (
-                    <div
-                      className="pt-3 border-t border-border/50 flex items-center justify-between"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span className="text-xs font-medium text-muted-foreground">Students Admitted:</span>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="number"
-                          value={c.studentCount}
-                          onChange={(e) => handleUpdateStudentCount(c.code, Number(e.target.value))}
-                          className="w-20 h-9 px-3 text-xs font-mono font-bold rounded-lg border border-border bg-background text-right focus:ring-1 focus:ring-primary outline-none"
-                        />
-                        <span className="text-[11px] text-muted-foreground">std</span>
+                    <div className="space-y-3 pt-3 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+                      {/* Students Admitted Intake */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">Students Admitted:</span>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={c.studentCount}
+                            onChange={(e) => handleUpdateStudentCount(c.code, Number(e.target.value))}
+                            className="w-20 h-9 px-3 text-xs font-mono font-bold rounded-lg border border-border bg-background text-right focus:ring-1 focus:ring-primary outline-none"
+                          />
+                          <span className="text-[11px] text-muted-foreground">std</span>
+                        </div>
                       </div>
+
+                      {/* 1st Year Cycle Selection Option */}
+                      {isFirstYear && (
+                        <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                          <span className="text-xs font-medium text-muted-foreground">Cycle:</span>
+                          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-background/80 border border-border/60">
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateCycle(c.code, "physics")}
+                              className={cn(
+                                "px-2.5 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center space-x-1",
+                                currentCycle === "physics"
+                                  ? "bg-primary text-primary-foreground shadow-xs"
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              <Zap className="h-3 w-3" />
+                              <span>Physics</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateCycle(c.code, "chemistry")}
+                              className={cn(
+                                "px-2.5 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center space-x-1",
+                                currentCycle === "chemistry"
+                                  ? "bg-[#00A3FF] text-white shadow-xs"
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              <FlaskConical className="h-3 w-3" />
+                              <span>Chemistry</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -618,7 +618,7 @@ export default function TimetablePage() {
 
   const handleExportWord = () => {
     const header = "<html><head><meta charset='utf-8'><title>Timetable Export</title></head><body>";
-    const title = `<h2>TIMETT Institutional Schedule - ${versionTag}</h2><p>Export Date: ${new Date().toLocaleDateString()}</p>`;
+    const title = `<h2>Tempus Institutional Schedule - ${versionTag}</h2><p>Export Date: ${new Date().toLocaleDateString()}</p>`;
     const tableHtml = document.getElementById("timetable-export-grid")?.outerHTML || "<p>Timetable data</p>";
     const footer = "</body></html>";
     const blob = new Blob([header + title + tableHtml + footer], { type: "application/msword" });

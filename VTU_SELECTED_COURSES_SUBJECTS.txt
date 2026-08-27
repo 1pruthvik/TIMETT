@@ -1,0 +1,828 @@
+===============================================================================================
+VTU CURRICULUM SUBJECT DIRECTORY - SELECTED COURSES
+COURSES: CSE, CSE-AIML, ECE, ME, ISE (SEMESTERS 1 TO 8)
+FORMAT: SUBJECT CODE | SUBJECT TITLE | TEACHING DEPARTMENT
+===============================================================================================
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 1 (I SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATS101        | Calculus and Linear Algebra: CSE Stream            | Maths Dept
+1BPHYS102        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BCEDS103        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BESC104E        | Essentials of Information Technology (ESC-I)       | CSE/IT Dept
+1BEIT105         | Programming in C (PSC)                             | CSE Dept
+1BSKS106         | Soft Skills                                        | Humanities Dept
+1BKSK109         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATS101-TUT    | Calculus and Linear Algebra Tutorial               | Maths Dept
+1BPHYS102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDS103-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BPOPL107        | C Programming Lab (PSCL)                           | CSE Dept
+1BIDTL158        | Innovation and Design Thinking Lab                 | Any Dept
+1BCHES102        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BAIA103         | Introduction to AI and Applications                | Any Dept
+1BESC104B        | Introduction to Electrical Engineering (ESC-I)     | EEE Dept
+1BPLC105B        | Python Programming (PLC)                           | CSE Dept
+1BENG106         | Communication Skills                               | Humanities Dept
+1BICO107         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHES102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC105B-LAB    | Python Programming Laboratory                      | CSE Dept
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATS101        | Calculus and Linear Algebra: CSE Stream            | Maths Dept
+1BPHYS102        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BCEDS103        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BESC104E        | Essentials of Information Technology (ESC-I)       | CSE/IT Dept
+1BEIT105         | Programming in C (PSC)                             | CSE Dept
+1BSKS106         | Soft Skills                                        | Humanities Dept
+1BKSK109         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATS101-TUT    | Calculus and Linear Algebra Tutorial               | Maths Dept
+1BPHYS102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDS103-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BPOPL107        | C Programming Lab (PSCL)                           | CSE Dept
+1BIDTL158        | Innovation and Design Thinking Lab                 | Any Dept
+1BCHES102        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BAIA103         | Introduction to AI and Applications                | Any Dept
+1BESC104B        | Introduction to Electrical Engineering (ESC-I)     | EEE Dept
+1BPLC105B        | Python Programming (PLC)                           | CSE Dept
+1BENG106         | Communication Skills                               | Humanities Dept
+1BICO107         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHES102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC105B-LAB    | Python Programming Laboratory                      | CSE Dept
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATE101        | Differential Calculus and Linear Algebra: EEE/ECE Stream | Maths Dept
+1BPHEC102        | Quantum Physics and Electronics Sensors (ECE stream) | Physics Dept
+1BCEDEC103       | Computer-Aided Engineering Drawing for ECE stream  | ME Dept
+1BESC104C        | Introduction to Electronics and Communication Engineering (ESC-I) | ECE Dept
+1BECE105         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept
+1BSKS106         | Soft Skills                                        | Humanities Dept
+1BKSK109         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATE101-TUT    | Differential Calculus and Linear Algebra Tutorial  | Maths Dept
+1BPHEC102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDEC103-LAB   | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BECEL107        | Fundamentals of Electronics Lab (PSCL)             | ECE Dept
+1BIDTL158        | Innovation and Design Thinking Lab                 | Any Dept
+1BCHEE102        | Applied Chemistry for Emerging Electronics and Futuristic Devices | Chemistry Dept
+1BAIA103         | Introduction to AI and Applications                | Any Dept
+1BPLC105E        | Introduction to C Programming (PLC)                | Non-IT Engg Dept
+1BENG106         | Communication Skills                               | Humanities Dept
+1BICO107         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHEE102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC105E-LAB    | C Programming Laboratory                           | Non-IT Engg Dept
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATM101        | Differential Calculus and Linear Algebra: ME Stream | Maths Dept
+1BPHYM102        | Physics of Materials (Mech stream)                 | Physics Dept
+1BCEDM103        | Computer-Aided Engineering Drawing for ME stream   | ME Dept
+1BESC104D        | Introduction to Mechanical Engineering (ESC-I)     | ME Dept
+1BEME105         | Elements of Mechanical Engineering (PSC)           | ME Dept
+1BSKS106         | Soft Skills                                        | Humanities Dept
+1BKSK109         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATM101-TUT    | Differential Calculus and Linear Algebra Tutorial  | Maths Dept
+1BPHYM102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDM103-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BEMEL107        | Elements of Mechanical Engineering Lab (PSCL)      | ME Dept
+1BIDTL158        | Innovation and Design Thinking Lab                 | Any Dept
+1BCHEM102        | Applied Chemistry for Advanced Metal Protection and Energy Systems | Chemistry Dept
+1BAIA103         | Introduction to AI and Applications                | Any Dept
+1BPLC105E        | Introduction to C Programming (PLC)                | Non-IT Engg Dept
+1BENG106         | Communication Skills                               | Humanities Dept
+1BICO107         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHEM102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC105E-LAB    | C Programming Laboratory                           | Non-IT Engg Dept
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATS101        | Calculus and Linear Algebra: CSE Stream            | Maths Dept
+1BPHYS102        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BCEDS103        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BESC104E        | Essentials of Information Technology (ESC-I)       | CSE/IT Dept
+1BEIT105         | Programming in C (PSC)                             | CSE Dept
+1BSKS106         | Soft Skills                                        | Humanities Dept
+1BKSK109         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATS101-TUT    | Calculus and Linear Algebra Tutorial               | Maths Dept
+1BPHYS102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDS103-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BPOPL107        | C Programming Lab (PSCL)                           | CSE Dept
+1BIDTL158        | Innovation and Design Thinking Lab                 | Any Dept
+1BCHES102        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BAIA103         | Introduction to AI and Applications                | Any Dept
+1BESC104B        | Introduction to Electrical Engineering (ESC-I)     | EEE Dept
+1BPLC105B        | Python Programming (PLC)                           | CSE Dept
+1BENG106         | Communication Skills                               | Humanities Dept
+1BICO107         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHES102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC105B-LAB    | Python Programming Laboratory                      | CSE Dept
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 2 (II SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATS201        | Numerical Methods: CSE Stream                      | Maths Dept
+1BPHYS202        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BCEDS203        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BESC204E        | Essentials of Information Technology (ESC-II)      | CSE/IT Dept
+1BEIT205         | Programming in C (PSC)                             | CSE Dept
+1BSKS206         | Soft Skills                                        | Humanities Dept
+1BKSK209         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATS201-TUT    | Numerical Methods Tutorial                         | Maths Dept
+1BPHYS202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDS203-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BPOPL207        | C Programming Lab (PSCL)                           | CSE Dept
+1BPRJ258         | Interdisciplinary Project-Based Learning           | Multiple Depts
+1BCHES202        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BAIA203         | Introduction to AI and Applications                | Any Dept
+1BESC204B        | Introduction to Electrical Engineering (ESC-II)    | EEE Dept
+1BPLC205B        | Python Programming (PLC)                           | CSE Dept
+1BENG206         | Communication Skills                               | Humanities Dept
+1BICO207         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHES202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC205B-LAB    | Python Programming Laboratory                      | CSE Dept
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATS201        | Numerical Methods: CSE Stream                      | Maths Dept
+1BPHYS202        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BCEDS203        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BESC204E        | Essentials of Information Technology (ESC-II)      | CSE/IT Dept
+1BEIT205         | Programming in C (PSC)                             | CSE Dept
+1BSKS206         | Soft Skills                                        | Humanities Dept
+1BKSK209         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATS201-TUT    | Numerical Methods Tutorial                         | Maths Dept
+1BPHYS202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDS203-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BPOPL207        | C Programming Lab (PSCL)                           | CSE Dept
+1BPRJ258         | Interdisciplinary Project-Based Learning           | Multiple Depts
+1BCHES202        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BAIA203         | Introduction to AI and Applications                | Any Dept
+1BESC204B        | Introduction to Electrical Engineering (ESC-II)    | EEE Dept
+1BPLC205B        | Python Programming (PLC)                           | CSE Dept
+1BENG206         | Communication Skills                               | Humanities Dept
+1BICO207         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHES202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC205B-LAB    | Python Programming Laboratory                      | CSE Dept
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATE201        | Calculus, Laplace Transform and Numerical Techniques: EEE/ECE | Maths Dept
+1BPHEC202        | Quantum Physics and Electronic Sensors (ECE stream) | Physics Dept
+1BCEDEC203       | Computer-Aided Engineering Drawing for ECE stream  | ME Dept
+1BESC204C        | Introduction to Electronics & Communication Engineering (ESC-II) | ECE Dept
+1BECE205         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept
+1BSKS206         | Soft Skills                                        | Humanities Dept
+1BKSK209         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATE201-TUT    | Calculus and Laplace Transform Tutorial            | Maths Dept
+1BPHEC202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDEC203-LAB   | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BECEL207        | Fundamentals of Electronics Lab (PSCL)             | ECE Dept
+1BPRJ258         | Interdisciplinary Project-Based Learning           | Multiple Depts
+1BCHEE202        | Applied Chemistry for Emerging Electronics and Futuristic Devices | Chemistry Dept
+1BAIA203         | Introduction to AI and Applications                | Any Dept
+1BPLC205E        | Introduction to C Programming (PLC)                | Non-IT Engg Dept
+1BENG206         | Communication Skills                               | Humanities Dept
+1BICO207         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHEE202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC205E-LAB    | C Programming Laboratory                           | Non-IT Engg Dept
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATM201        | Multivariable Calculus and Numerical Methods: ME Stream | Maths Dept
+1BPHYM202        | Physics of Materials (Mech stream)                 | Physics Dept
+1BCEDM203        | Computer-Aided Engineering Drawing for ME stream   | ME Dept
+1BESC204D        | Introduction to Mechanical Engineering (ESC-II)    | ME Dept
+1BEME205         | Elements of Mechanical Engineering (PSC)           | ME Dept
+1BSKS206         | Soft Skills                                        | Humanities Dept
+1BKSK209         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATM201-TUT    | Multivariable Calculus Tutorial                    | Maths Dept
+1BPHYM202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDM203-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BEMEL207        | Elements of Mechanical Engineering Lab (PSCL)      | ME Dept
+1BPRJ258         | Interdisciplinary Project-Based Learning           | Multiple Depts
+1BCHEM202        | Applied Chemistry for Advanced Metal Protection and Energy Systems | Chemistry Dept
+1BAIA203         | Introduction to AI and Applications                | Any Dept
+1BPLC205E        | Introduction to C Programming (PLC)                | Non-IT Engg Dept
+1BENG206         | Communication Skills                               | Humanities Dept
+1BICO207         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHEM202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC205E-LAB    | C Programming Laboratory                           | Non-IT Engg Dept
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATS201        | Numerical Methods: CSE Stream                      | Maths Dept
+1BPHYS202        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BCEDS203        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BESC204E        | Essentials of Information Technology (ESC-II)      | CSE/IT Dept
+1BEIT205         | Programming in C (PSC)                             | CSE Dept
+1BSKS206         | Soft Skills                                        | Humanities Dept
+1BKSK209         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATS201-TUT    | Numerical Methods Tutorial                         | Maths Dept
+1BPHYS202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BCEDS203-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BPOPL207        | C Programming Lab (PSCL)                           | CSE Dept
+1BPRJ258         | Interdisciplinary Project-Based Learning           | Multiple Depts
+1BCHES202        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BAIA203         | Introduction to AI and Applications                | Any Dept
+1BESC204B        | Introduction to Electrical Engineering (ESC-II)    | EEE Dept
+1BPLC205B        | Python Programming (PLC)                           | CSE Dept
+1BENG206         | Communication Skills                               | Humanities Dept
+1BICO207         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BCHES202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BPLC205B-LAB    | Python Programming Laboratory                      | CSE Dept
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 3 (III SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics          | Maths Dept
+1BCS302          | Object Oriented Programming with Java              | CSE Dept
+1BCS303          | Digital Design and Computer Organization           | CSE Dept
+1BCS304          | Operating Systems                                  | CSE Dept
+1BCS305          | Data Structures and Applications                   | CSE Dept
+1BMATDIP310      | Mathematics course for Lateral Entry Students      | Maths Dept
+1BCSL306         | Data Structures Laboratory                         | CSE Dept
+1BCSL307A        | Project Management (with Git)                      | Humanities Dept
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics          | Maths Dept
+1BCS302          | Object Oriented Programming with Java              | CSE Dept
+1BCS303          | Digital Design and Computer Organization           | CSE Dept
+1BCS304          | Operating Systems                                  | CSE Dept
+1BCS305          | Data Structures and Applications                   | CSE Dept
+1BMATDIP310      | Mathematics course for Lateral Entry Students      | Maths Dept
+1BCSL306         | Data Structures Laboratory                         | CSE Dept
+1BXXL307x        | Ability Enhancement Course                         | AI/ML Dept
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATEC301       | Transform Techniques and Optimization Theory       | Maths Dept
+1BEC302          | Digital System Design Using Verilog                | ECE Dept
+1BEC303          | Network Analysis                                   | ECE Dept
+1BEC304          | Analog Electronics and Linear Integrated Circuits  | ECE Dept
+1BEC305          | Python Programming                                 | ECE Dept
+1BMATDIP310      | Mathematics course for Lateral Entry Students      | Maths Dept
+1BECL306         | Analog Electronics and Linear Integrated Circuits Lab | ECE Dept
+1BECL307x        | Ability Enhancement Course Laboratory              | ECE Dept
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATM301        | Transforms and Statistics                          | Maths Dept
+1BME302          | Materials Science and Metallurgy                   | ME Dept
+1BME303          | Basic Thermodynamics                               | ME Dept
+1BME304          | Mechanics of Materials                             | ME Dept
+1BME305          | Manufacturing Technology - I                       | ME Dept
+1BMATDIP310      | Mathematics course for Lateral Entry Students      | Maths Dept
+1BMEL306         | Computer Aided Machine Drawing Lab                 | ME Dept
+1BMEL307x        | Ability Enhancement Course Laboratory              | ME Dept
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics          | Maths Dept
+1BCS302          | Object Oriented Programming with Java              | CSE Dept
+1BCS303          | Digital Design and Computer Organization           | CSE Dept
+1BCS304          | Operating Systems                                  | CSE Dept
+1BCS305          | Data Structures and Applications                   | CSE Dept
+1BMATDIP310      | Mathematics course for Lateral Entry Students      | Maths Dept
+1BCSL306         | Data Structures Laboratory                         | CSE Dept
+1BCSL307A        | Project Management (with Git)                      | Humanities Dept
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 4 (IV SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS401          | Discrete Mathematics and Graph Theory              | Maths Dept
+1BCS402          | Database Management Systems                        | Humanities Dept
+1BCS403          | Computer Networks                                  | CSE Dept
+1BCS404          | Design and Analysis of Algorithms                  | CSE Dept
+1BCS407          | Biology for Computer Engineers                     | CSE Dept
+1BCSL405         | Algorithms Laboratory                              | CSE Dept
+1BXXL406x        | Ability Enhancement Course                         | CSE Dept
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BAI401          | Discrete Mathematics and Optimization Techniques   | Maths Dept
+1BAI402          | Design and Analysis of Algorithms                  | CSE Dept
+1BAI403          | Database Management Systems                        | Humanities Dept
+1BAI404          | Machine Learning                                   | AI/ML Dept
+1BCS407          | Biology for Computer Engineers                     | CSE Dept
+1BAIL405         | Machine Learning Laboratory                        | AI/ML Dept
+1BXXL406x        | Ability Enhancement Course                         | AI/ML Dept
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATEC401       | Mathematics for Machine Learning                   | Maths Dept
+1BEC402          | Applied Computer Organization and Microcontroller  | ECE Dept
+1BEC403          | Control Systems                                    | ECE Dept
+1BEC404          | Signals and Systems                                | ECE Dept
+1BEC407          | Biology for Electrical and Electronics Engineers   | ECE Dept
+1BEC409          | Introduction to Analog Communication Systems       | ECE Dept
+1BECL405         | Signals and Analog Communications Lab              | ECE Dept
+1BECL406         | Ability Enhancement Course Laboratory              | ECE Dept
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BMATM401        | Complex Analysis and Probability Distributions     | Maths Dept
+1BME402          | Manufacturing Technology - II                      | ME Dept
+1BME403          | Applied Thermodynamics                             | ME Dept
+1BME404          | Fluid Mechanics                                    | ME Dept
+1BME407          | Biology for Engineers                              | ME Dept
+1BME409          | Kinematics of Machines                             | ME Dept
+1BMEL405         | Mechanical Measurements and Metrology Lab          | ME Dept
+1BMEL406x        | Ability Enhancement Course Laboratory              | ME Dept
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS401          | Discrete Mathematics and Graph Theory              | Maths Dept
+1BCS402          | Database Management Systems                        | Humanities Dept
+1BCS403          | Computer Networks                                  | CSE Dept
+1BCS404          | Design and Analysis of Algorithms                  | CSE Dept
+1BCS407          | Biology for Computer Engineers                     | CSE Dept
+1BCSL405         | Algorithms Laboratory                              | CSE Dept
+1BXXL406x        | Ability Enhancement Course                         | ISE Dept
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 5 (V SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management        | CS Allied
+1BCS502          | Machine Learning                                   | CS Allied
+1BCS503          | Theory of Computation                              | CS Allied
+1BCS504          | Computer Vision                                    | CS Allied
+1BXX505x         | Professional Elective Course-I                     | CS Allied
+1BCSL507         | Web Technology Laboratory                          | CS Allied
+1BCS502L         | Machine Learning Laboratory                        | CS Allied
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management        | CS Allied
+1BAI502          | Artificial Intelligence                            | CS Allied
+1BCS503          | Theory of Computation                              | CS Allied
+1BAI504          | Computer Networks                                  | CS Allied
+1BXX505x         | Professional Elective Course-I                     | CS Allied
+1BAIL507         | Data Visualization Laboratory                      | CS Allied
+1BAI502L         | Artificial Intelligence Laboratory                 | CS Allied
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BEC501           | Technological Innovation and Management Entrepreneurship | ECE/ETE
+BEC502           | Digital Signal Processing                          | ECE/ETE
+BEC503           | Digital Communication                              | ECE/ETE
+BEC515x          | Professional Elective Course                       | ECE/ETE
+BRMK557          | Research Methodology and IPR                       | Humanities/Any
+BESK508          | Environmental Studies                              | Humanities/Any
+BECL504          | Digital Communication Lab                          | ECE/ETE
+BEC502L          | Digital Signal Processing Laboratory               | ECE/ETE
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BME501           | Industrial Management & Entrepreneurship           | ME
+BME502           | Turbo machines                                     | ME
+BME503           | Theory of Machines                                 | ME
+BME515x          | Professional Elective - I                          | ME
+BRMK557          | Research Methodology and IPR                       | Humanities/Any
+BESK508          | Environmental Studies                              | Humanities/Any
+BME504L          | CNC Programming and 3-D Printing lab               | ME
+BME502L          | Turbo machines Laboratory                          | ME
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management        | CS Allied
+1BCS502          | Machine Learning                                   | CS Allied
+1BCS503          | Theory of Computation                              | CS Allied
+1BIS504          | Full Stack Development                             | CS Allied
+1BXX505x         | Professional Elective Course-I                     | CS Allied
+1BISL507         | Full Stack Development Laboratory                  | CS Allied
+1BCS502L         | Machine Learning Laboratory                        | CS Allied
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 6 (VI SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS601          | Advanced Java Programming                          | CS Allied
+1BCS602          | Cryptography and Network Security                  | CS Allied
+1BCS603          | High Performance Computing                         | CS Allied
+1BCS604          | Internet of Things                                 | CS Allied
+1BXX605x         | Professional Elective Courses-II                   | CS Allied
+1BCSL606         | IoT laboratory                                     | CS Allied
+1BXXL607x        | Ability Enhancement Course Laboratory              | CS Allied
+1BCS601L         | Advanced Java Programming Laboratory               | CS Allied
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS601          | Advanced Java Programming                          | CS Allied
+1BIS602          | Information and Network Security                   | CS Allied
+1BCI603          | High Performance Computing in Artificial Intelligence | CS Allied
+1BCS604          | Internet of Things                                 | CS Allied
+1BXX605x         | Professional Elective Courses-II                   | CS Allied
+1BCSL606         | IoT Laboratory                                     | CS Allied
+1BXXL607x        | Ability Enhancement Course Laboratory              | CS Allied
+1BCS601L         | Advanced Java Programming Laboratory               | CS Allied
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BEC601           | Embedded System Design                             | ECE/ETE
+BEC602           | VLSI Design and Testing                            | ECE/ETE
+BEC613x          | Professional Elective Course                       | ECE/ETE
+BEC654x          | Open Elective Course                               | ECE/ETE
+BECL606          | VLSI Design and Testing Lab                        | ECE/ETE
+BEC657x          | Ability Enhancement Course/Skill Development Course V | ECE/ETE
+BEC601L          | Embedded System Design Laboratory                  | ECE/ETE
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BME601           | Heat Transfer                                      | ME
+BME602           | Machine Design                                     | ME
+BME613x          | Professional Elective - II                         | ME
+BME654x          | Open Elective - I                                  | ME
+BMEL606L         | Design lab                                         | ME
+BME657x          | Ability Enhancement Course/Skill Development Course V | ME
+BME601L          | Heat Transfer Laboratory                           | ME
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BIS601          | Big Data analytics                                 | CS Allied
+1BIS602          | Information and Network Security                   | CS Allied
+1BIS603          | Data Science and Visualization                     | CS Allied
+1BIS604          | Cloud Computing and Applications                   | CS Allied
+1BXX605x         | Professional Elective Courses-II                   | CS Allied
+1BISL606         | Data Science and Visualization Laboratory          | CS Allied
+1BXXL607x        | Ability Enhancement Course Laboratory              | CS Allied
+1BIS601L         | Big Data Analytics Laboratory                      | CS Allied
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 7 (VII SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS701          | Big Data Analytics                                 | Computer Science & Engineering
+1BCS702          | Professional Elective Course - III                 | Computer Science & Engineering
+1BCS703          | Professional Elective Course - IV                  | Computer Science & Engineering
+1BCS704          | Open Elective Course - I                           | Computer Science & Engineering
+1BCSL701         | Big Data Analytics Laboratory                      | Computer Science & Engineering
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCD701          | Deep Learning                                      | Artificial Intelligence & Machine Learning
+1BAI702          | Professional Elective Course - III                 | Artificial Intelligence & Machine Learning
+1BAI703          | Professional Elective Course - IV                  | Artificial Intelligence & Machine Learning
+1BAI704          | Open Elective Course - I                           | Artificial Intelligence & Machine Learning
+1BCDL701         | Deep Learning Laboratory                           | Artificial Intelligence & Machine Learning
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BEC701           | Microwave Engineering and Antenna Theory           | Electronics & Communication Engineering
+BEC702           | Computer Networks and Protocols                    | Electronics & Communication Engineering
+BEC703           | Wireless Communication Systems                     | Electronics & Communication Engineering
+BEC714           | Professional Elective Course                       | Electronics & Communication Engineering
+BEC755           | Open Elective Course                               | Electronics & Communication Engineering
+BECL701          | Microwave Engineering & Antenna Laboratory         | Electronics & Communication Engineering
+BECL702          | Computer Networks & Protocols Laboratory           | Electronics & Communication Engineering
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BME701           | Finite Element Methods                             | Mechanical Engineering
+BME702           | Hydraulics and Pneumatics                          | Mechanical Engineering
+BME703           | Control Engineering                                | Mechanical Engineering
+BME714           | Professional Elective - III                        | Mechanical Engineering
+BME755           | Open Elective - II                                 | Mechanical Engineering
+BMEL701          | Finite Element Methods Laboratory                  | Mechanical Engineering
+BMEL702          | Hydraulics & Pneumatics Laboratory                 | Mechanical Engineering
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BIS701          | High Performance Computing                         | Information Science & Engineering
+1BIS702          | Professional Elective Course - III                 | Information Science & Engineering
+1BIS703          | Professional Elective Course - IV                  | Information Science & Engineering
+1BIS704          | Open Elective Course - I                           | Information Science & Engineering
+1BISL701         | High Performance Computing Laboratory              | Information Science & Engineering
+
+-----------------------------------------------------------------------------------------------
+SEMESTER 8 (VIII SEMESTER)
+-----------------------------------------------------------------------------------------------
+
+>>> COURSE: CSE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BCS801          | Professional Elective-V (NPTEL/VTU Online Course)  | Computer Science & Engineering
+1BCS802          | Open Elective-II (NPTEL/VTU Online Course)         | Computer Science & Engineering
+
+>>> COURSE: CSE-AIML
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BAI801          | Professional Elective-V (NPTEL/VTU Online Course)  | Artificial Intelligence & Machine Learning
+1BAI802          | Open Elective-II (NPTEL/VTU Online Course)         | Artificial Intelligence & Machine Learning
+
+>>> COURSE: ECE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BEC801           | Professional Elective (Online Courses)             | Electronics & Communication Engineering
+BEC802           | Open Elective (Online Courses)                     | Electronics & Communication Engineering
+
+>>> COURSE: ME
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+BME811           | Professional Elective -IV (Online Courses)         | Mechanical Engineering
+BME852           | Open Elective - III (Online Courses)               | Mechanical Engineering
+
+>>> COURSE: ISE
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BIS801          | Professional Elective-V (NPTEL/VTU Online Course)  | Information Science & Engineering
+1BIS802          | Open Elective-II (NPTEL/VTU Online Course)         | Information Science & Engineering
+
+===============================================================================================
+MASTER ALPHABETICAL SUBJECT INDEX (CSE, CSE-AIML, ECE, ME, ISE)
+===============================================================================================
+CODE             | SUBJECT TITLE                                      | TEACHING DEPARTMENT
+-----------------------------------------------------------------------------------------------
+1BAI401          | Discrete Mathematics and Optimization Techniques   | Maths Dept
+1BAI402          | Design and Analysis of Algorithms                  | CSE Dept
+1BAI403          | Database Management Systems                        | Humanities Dept
+1BAI404          | Machine Learning                                   | AI/ML Dept
+1BAI502          | Artificial Intelligence                            | CS Allied
+1BAI502L         | Artificial Intelligence Laboratory                 | CS Allied
+1BAI504          | Computer Networks                                  | CS Allied
+1BAI702          | Professional Elective Course - III                 | Artificial Intelligence & Machine Learning
+1BAI703          | Professional Elective Course - IV                  | Artificial Intelligence & Machine Learning
+1BAI704          | Open Elective Course - I                           | Artificial Intelligence & Machine Learning
+1BAI801          | Professional Elective-V (NPTEL/VTU Online Course)  | Artificial Intelligence & Machine Learning
+1BAI802          | Open Elective-II (NPTEL/VTU Online Course)         | Artificial Intelligence & Machine Learning
+1BAIA103         | Introduction to AI and Applications                | Any Dept
+1BAIA203         | Introduction to AI and Applications                | Any Dept
+1BAIL405         | Machine Learning Laboratory                        | AI/ML Dept
+1BAIL507         | Data Visualization Laboratory                      | CS Allied
+1BCD701          | Deep Learning                                      | Artificial Intelligence & Machine Learning
+1BCDL701         | Deep Learning Laboratory                           | Artificial Intelligence & Machine Learning
+1BCEDEC103       | Computer-Aided Engineering Drawing for ECE stream  | ME Dept
+1BCEDEC103-LAB   | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BCEDEC203       | Computer-Aided Engineering Drawing for ECE stream  | ME Dept
+1BCEDEC203-LAB   | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BCEDM103        | Computer-Aided Engineering Drawing for ME stream   | ME Dept
+1BCEDM103-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BCEDM203        | Computer-Aided Engineering Drawing for ME stream   | ME Dept
+1BCEDM203-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BCEDS103        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BCEDS103-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BCEDS203        | Computer-Aided Engineering Drawing for CSE stream  | ME Dept
+1BCEDS203-LAB    | Computer-Aided Engineering Drawing Lab             | ME Dept
+1BCHEE102        | Applied Chemistry for Emerging Electronics and Futuristic Devices | Chemistry Dept
+1BCHEE102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BCHEE202        | Applied Chemistry for Emerging Electronics and Futuristic Devices | Chemistry Dept
+1BCHEE202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BCHEM102        | Applied Chemistry for Advanced Metal Protection and Energy Systems | Chemistry Dept
+1BCHEM102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BCHEM202        | Applied Chemistry for Advanced Metal Protection and Energy Systems | Chemistry Dept
+1BCHEM202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BCHES102        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BCHES102-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BCHES202        | Applied Chemistry for Smart Systems (CSE)          | Chemistry Dept
+1BCHES202-LAB    | Applied Chemistry Laboratory                       | Chemistry Dept
+1BCI603          | High Performance Computing in Artificial Intelligence | CS Allied
+1BCS302          | Object Oriented Programming with Java              | CSE Dept
+1BCS303          | Digital Design and Computer Organization           | CSE Dept
+1BCS304          | Operating Systems                                  | CSE Dept
+1BCS305          | Data Structures and Applications                   | CSE Dept
+1BCS401          | Discrete Mathematics and Graph Theory              | Maths Dept
+1BCS402          | Database Management Systems                        | Humanities Dept
+1BCS403          | Computer Networks                                  | CSE Dept
+1BCS404          | Design and Analysis of Algorithms                  | CSE Dept
+1BCS407          | Biology for Computer Engineers                     | CSE Dept
+1BCS501          | Software Engineering and Project Management        | CS Allied
+1BCS502          | Machine Learning                                   | CS Allied
+1BCS502L         | Machine Learning Laboratory                        | CS Allied
+1BCS503          | Theory of Computation                              | CS Allied
+1BCS504          | Computer Vision                                    | CS Allied
+1BCS601          | Advanced Java Programming                          | CS Allied
+1BCS601L         | Advanced Java Programming Laboratory               | CS Allied
+1BCS602          | Cryptography and Network Security                  | CS Allied
+1BCS603          | High Performance Computing                         | CS Allied
+1BCS604          | Internet of Things                                 | CS Allied
+1BCS701          | Big Data Analytics                                 | Computer Science & Engineering
+1BCS702          | Professional Elective Course - III                 | Computer Science & Engineering
+1BCS703          | Professional Elective Course - IV                  | Computer Science & Engineering
+1BCS704          | Open Elective Course - I                           | Computer Science & Engineering
+1BCS801          | Professional Elective-V (NPTEL/VTU Online Course)  | Computer Science & Engineering
+1BCS802          | Open Elective-II (NPTEL/VTU Online Course)         | Computer Science & Engineering
+1BCSL306         | Data Structures Laboratory                         | CSE Dept
+1BCSL307A        | Project Management (with Git)                      | Humanities Dept
+1BCSL405         | Algorithms Laboratory                              | CSE Dept
+1BCSL507         | Web Technology Laboratory                          | CS Allied
+1BCSL606         | IoT laboratory                                     | CS Allied
+1BCSL701         | Big Data Analytics Laboratory                      | Computer Science & Engineering
+1BEC302          | Digital System Design Using Verilog                | ECE Dept
+1BEC303          | Network Analysis                                   | ECE Dept
+1BEC304          | Analog Electronics and Linear Integrated Circuits  | ECE Dept
+1BEC305          | Python Programming                                 | ECE Dept
+1BEC402          | Applied Computer Organization and Microcontroller  | ECE Dept
+1BEC403          | Control Systems                                    | ECE Dept
+1BEC404          | Signals and Systems                                | ECE Dept
+1BEC407          | Biology for Electrical and Electronics Engineers   | ECE Dept
+1BEC409          | Introduction to Analog Communication Systems       | ECE Dept
+1BECE105         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept
+1BECE205         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept
+1BECEL107        | Fundamentals of Electronics Lab (PSCL)             | ECE Dept
+1BECEL207        | Fundamentals of Electronics Lab (PSCL)             | ECE Dept
+1BECL306         | Analog Electronics and Linear Integrated Circuits Lab | ECE Dept
+1BECL307x        | Ability Enhancement Course Laboratory              | ECE Dept
+1BECL405         | Signals and Analog Communications Lab              | ECE Dept
+1BECL406         | Ability Enhancement Course Laboratory              | ECE Dept
+1BEIT105         | Programming in C (PSC)                             | CSE Dept
+1BEIT205         | Programming in C (PSC)                             | CSE Dept
+1BEME105         | Elements of Mechanical Engineering (PSC)           | ME Dept
+1BEME205         | Elements of Mechanical Engineering (PSC)           | ME Dept
+1BEMEL107        | Elements of Mechanical Engineering Lab (PSCL)      | ME Dept
+1BEMEL207        | Elements of Mechanical Engineering Lab (PSCL)      | ME Dept
+1BENG106         | Communication Skills                               | Humanities Dept
+1BENG206         | Communication Skills                               | Humanities Dept
+1BESC104B        | Introduction to Electrical Engineering (ESC-I)     | EEE Dept
+1BESC104C        | Introduction to Electronics and Communication Engineering (ESC-I) | ECE Dept
+1BESC104D        | Introduction to Mechanical Engineering (ESC-I)     | ME Dept
+1BESC104E        | Essentials of Information Technology (ESC-I)       | CSE/IT Dept
+1BESC204B        | Introduction to Electrical Engineering (ESC-II)    | EEE Dept
+1BESC204C        | Introduction to Electronics & Communication Engineering (ESC-II) | ECE Dept
+1BESC204D        | Introduction to Mechanical Engineering (ESC-II)    | ME Dept
+1BESC204E        | Essentials of Information Technology (ESC-II)      | CSE/IT Dept
+1BICO107         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BICO207         | Indian Constitution & Engineering Ethics           | Humanities Dept
+1BIDTL158        | Innovation and Design Thinking Lab                 | Any Dept
+1BIS504          | Full Stack Development                             | CS Allied
+1BIS601          | Big Data analytics                                 | CS Allied
+1BIS601L         | Big Data Analytics Laboratory                      | CS Allied
+1BIS602          | Information and Network Security                   | CS Allied
+1BIS603          | Data Science and Visualization                     | CS Allied
+1BIS604          | Cloud Computing and Applications                   | CS Allied
+1BIS701          | High Performance Computing                         | Information Science & Engineering
+1BIS702          | Professional Elective Course - III                 | Information Science & Engineering
+1BIS703          | Professional Elective Course - IV                  | Information Science & Engineering
+1BIS704          | Open Elective Course - I                           | Information Science & Engineering
+1BIS801          | Professional Elective-V (NPTEL/VTU Online Course)  | Information Science & Engineering
+1BIS802          | Open Elective-II (NPTEL/VTU Online Course)         | Information Science & Engineering
+1BISL507         | Full Stack Development Laboratory                  | CS Allied
+1BISL606         | Data Science and Visualization Laboratory          | CS Allied
+1BISL701         | High Performance Computing Laboratory              | Information Science & Engineering
+1BKSK109         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BKSK209         | Samskrutika Kannada / Balake Kannada               | Humanities Dept
+1BMATCS301       | Probability, Distributions and Statistics          | Maths Dept
+1BMATDIP310      | Mathematics course for Lateral Entry Students      | Maths Dept
+1BMATE101        | Differential Calculus and Linear Algebra: EEE/ECE Stream | Maths Dept
+1BMATE101-TUT    | Differential Calculus and Linear Algebra Tutorial  | Maths Dept
+1BMATE201        | Calculus, Laplace Transform and Numerical Techniques: EEE/ECE | Maths Dept
+1BMATE201-TUT    | Calculus and Laplace Transform Tutorial            | Maths Dept
+1BMATEC301       | Transform Techniques and Optimization Theory       | Maths Dept
+1BMATEC401       | Mathematics for Machine Learning                   | Maths Dept
+1BMATM101        | Differential Calculus and Linear Algebra: ME Stream | Maths Dept
+1BMATM101-TUT    | Differential Calculus and Linear Algebra Tutorial  | Maths Dept
+1BMATM201        | Multivariable Calculus and Numerical Methods: ME Stream | Maths Dept
+1BMATM201-TUT    | Multivariable Calculus Tutorial                    | Maths Dept
+1BMATM301        | Transforms and Statistics                          | Maths Dept
+1BMATM401        | Complex Analysis and Probability Distributions     | Maths Dept
+1BMATS101        | Calculus and Linear Algebra: CSE Stream            | Maths Dept
+1BMATS101-TUT    | Calculus and Linear Algebra Tutorial               | Maths Dept
+1BMATS201        | Numerical Methods: CSE Stream                      | Maths Dept
+1BMATS201-TUT    | Numerical Methods Tutorial                         | Maths Dept
+1BME302          | Materials Science and Metallurgy                   | ME Dept
+1BME303          | Basic Thermodynamics                               | ME Dept
+1BME304          | Mechanics of Materials                             | ME Dept
+1BME305          | Manufacturing Technology - I                       | ME Dept
+1BME402          | Manufacturing Technology - II                      | ME Dept
+1BME403          | Applied Thermodynamics                             | ME Dept
+1BME404          | Fluid Mechanics                                    | ME Dept
+1BME407          | Biology for Engineers                              | ME Dept
+1BME409          | Kinematics of Machines                             | ME Dept
+1BMEL306         | Computer Aided Machine Drawing Lab                 | ME Dept
+1BMEL307x        | Ability Enhancement Course Laboratory              | ME Dept
+1BMEL405         | Mechanical Measurements and Metrology Lab          | ME Dept
+1BMEL406x        | Ability Enhancement Course Laboratory              | ME Dept
+1BPHEC102        | Quantum Physics and Electronics Sensors (ECE stream) | Physics Dept
+1BPHEC102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BPHEC202        | Quantum Physics and Electronic Sensors (ECE stream) | Physics Dept
+1BPHEC202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BPHYM102        | Physics of Materials (Mech stream)                 | Physics Dept
+1BPHYM102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BPHYM202        | Physics of Materials (Mech stream)                 | Physics Dept
+1BPHYM202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BPHYS102        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BPHYS102-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BPHYS202        | Quantum Physics and Applications (CSE stream)      | Physics Dept
+1BPHYS202-LAB    | Applied Physics Practical Sessions                 | Physics Dept
+1BPLC105B        | Python Programming (PLC)                           | CSE Dept
+1BPLC105B-LAB    | Python Programming Laboratory                      | CSE Dept
+1BPLC105E        | Introduction to C Programming (PLC)                | Non-IT Engg Dept
+1BPLC105E-LAB    | C Programming Laboratory                           | Non-IT Engg Dept
+1BPLC205B        | Python Programming (PLC)                           | CSE Dept
+1BPLC205B-LAB    | Python Programming Laboratory                      | CSE Dept
+1BPLC205E        | Introduction to C Programming (PLC)                | Non-IT Engg Dept
+1BPLC205E-LAB    | C Programming Laboratory                           | Non-IT Engg Dept
+1BPOPL107        | C Programming Lab (PSCL)                           | CSE Dept
+1BPOPL207        | C Programming Lab (PSCL)                           | CSE Dept
+1BPRJ258         | Interdisciplinary Project-Based Learning           | Multiple Depts
+1BSKS106         | Soft Skills                                        | Humanities Dept
+1BSKS206         | Soft Skills                                        | Humanities Dept
+1BXX505x         | Professional Elective Course-I                     | CS Allied
+1BXX605x         | Professional Elective Courses-II                   | CS Allied
+1BXXL307x        | Ability Enhancement Course                         | AI/ML Dept
+1BXXL406x        | Ability Enhancement Course                         | CSE Dept
+1BXXL607x        | Ability Enhancement Course Laboratory              | CS Allied
+BEC501           | Technological Innovation and Management Entrepreneurship | ECE/ETE
+BEC502           | Digital Signal Processing                          | ECE/ETE
+BEC502L          | Digital Signal Processing Laboratory               | ECE/ETE
+BEC503           | Digital Communication                              | ECE/ETE
+BEC515x          | Professional Elective Course                       | ECE/ETE
+BEC601           | Embedded System Design                             | ECE/ETE
+BEC601L          | Embedded System Design Laboratory                  | ECE/ETE
+BEC602           | VLSI Design and Testing                            | ECE/ETE
+BEC613x          | Professional Elective Course                       | ECE/ETE
+BEC654x          | Open Elective Course                               | ECE/ETE
+BEC657x          | Ability Enhancement Course/Skill Development Course V | ECE/ETE
+BEC701           | Microwave Engineering and Antenna Theory           | Electronics & Communication Engineering
+BEC702           | Computer Networks and Protocols                    | Electronics & Communication Engineering
+BEC703           | Wireless Communication Systems                     | Electronics & Communication Engineering
+BEC714           | Professional Elective Course                       | Electronics & Communication Engineering
+BEC755           | Open Elective Course                               | Electronics & Communication Engineering
+BEC801           | Professional Elective (Online Courses)             | Electronics & Communication Engineering
+BEC802           | Open Elective (Online Courses)                     | Electronics & Communication Engineering
+BECL504          | Digital Communication Lab                          | ECE/ETE
+BECL606          | VLSI Design and Testing Lab                        | ECE/ETE
+BECL701          | Microwave Engineering & Antenna Laboratory         | Electronics & Communication Engineering
+BECL702          | Computer Networks & Protocols Laboratory           | Electronics & Communication Engineering
+BESK508          | Environmental Studies                              | Humanities/Any
+BME501           | Industrial Management & Entrepreneurship           | ME
+BME502           | Turbo machines                                     | ME
+BME502L          | Turbo machines Laboratory                          | ME
+BME503           | Theory of Machines                                 | ME
+BME504L          | CNC Programming and 3-D Printing lab               | ME
+BME515x          | Professional Elective - I                          | ME
+BME601           | Heat Transfer                                      | ME
+BME601L          | Heat Transfer Laboratory                           | ME
+BME602           | Machine Design                                     | ME
+BME613x          | Professional Elective - II                         | ME
+BME654x          | Open Elective - I                                  | ME
+BME657x          | Ability Enhancement Course/Skill Development Course V | ME
+BME701           | Finite Element Methods                             | Mechanical Engineering
+BME702           | Hydraulics and Pneumatics                          | Mechanical Engineering
+BME703           | Control Engineering                                | Mechanical Engineering
+BME714           | Professional Elective - III                        | Mechanical Engineering
+BME755           | Open Elective - II                                 | Mechanical Engineering
+BME811           | Professional Elective -IV (Online Courses)         | Mechanical Engineering
+BME852           | Open Elective - III (Online Courses)               | Mechanical Engineering
+BMEL606L         | Design lab                                         | ME
+BMEL701          | Finite Element Methods Laboratory                  | Mechanical Engineering
+BMEL702          | Hydraulics & Pneumatics Laboratory                 | Mechanical Engineering
+BRMK557          | Research Methodology and IPR                       | Humanities/Any
+
+===============================================================================================
+TOTAL UNIQUE SUBJECTS ACROSS SELECTED COURSES: 234
+===============================================================================================

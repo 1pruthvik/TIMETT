@@ -28,8 +28,77 @@ PREFETCHED_VTU_COURSES = [
 class VTUSubject(BaseModel):
     code: str
     name: str
+    department: str = "Computer Science & Engineering"
     category: str  # "theory" or "practical"
     weekly_hours: int = 4
+
+
+def infer_department(code: str, name: str, default_course: str = "CSE") -> str:
+    c = (code or "").upper().strip()
+    n = (name or "").upper().strip()
+
+    # 1. Basic Sciences & Humanities
+    if any(k in c for k in ["MAT", "MTH"]) or any(k in n for k in ["MATH", "STATISTICS", "PROBABILITY", "CALCULUS", "LINEAR ALGEBRA", "NUMERICAL", "DISCRETE"]):
+        return "Mathematics"
+    if "PHY" in c or "PHYSICS" in n or "QUANTUM" in n:
+        return "Physics"
+    if "CHE" in c or "CHEMISTRY" in n:
+        return "Chemistry"
+    if any(k in c for k in ["HUM", "ENG", "CIP", "KAN", "IDT", "SFH"]) or any(k in n for k in ["CONSTITUTION", "ENVIRONMENT", "MANAGEMENT", "ENTREPRENEURSHIP", "ENGLISH", "KANNADA", "ETHICS", "YOGA", "COMMUNITY"]):
+        return "Humanities & Social Sciences"
+
+    # 2. Biological / Biomedical
+    if any(k in c for k in ["BBM", "BM", "BT", "BIO"]) or any(k in n for k in ["BIOMEDICAL", "BIOLOGY", "BIOMECHANICS", "BIODYNAMICS", "BIOPROCESS", "GENETICS"]):
+        return "Biomedical Engineering"
+
+    # 3. Electrical & Electronics
+    if any(k in c for k in ["BEE", "EE"]) or any(k in n for k in ["SWITCHGEAR", "POWER SYSTEM", "ELECTRICAL", "HIGH VOLTAGE", "DRIVES", "TRANSFORMER"]):
+        return "Electrical & Electronics Engineering"
+
+    # 4. Electronics & Communication
+    if any(k in c for k in ["BEC", "EC"]) or any(k in n for k in ["ANTENNA", "MICROWAVE", "WIRELESS", "COMMUNICATION", "ANALOG", "VLSI", "EMBEDDED", "SIGNAL PROCESSING", "DSP", "MICROCONTROLLER", "DIGITAL DESIGN"]):
+        return "Electronics & Communication Engineering"
+
+    # 5. Mechanical Engineering
+    if any(k in c for k in ["BME", "ME"]) or any(k in n for k in ["FINITE ELEMENT", "HYDRAULIC", "PNEUMATIC", "THERMODYNAMIC", "MECHANICS", "TURBOMACHINERY", "ROBOTICS", "HEAT TRANSFER", "MANUFACTURING", "AUTOMOBILE"]):
+        return "Mechanical Engineering"
+
+    # 6. Civil Engineering
+    if any(k in c for k in ["BCV", "CV", "CIV"]) or any(k in n for k in ["STEEL STRUCTURE", "CONCRETE", "SURVEYING", "GEOTECHNICAL", "STRUCTURAL", "ENVIRONMENTAL ENG", "HYDROLOGY"]):
+        return "Civil Engineering"
+
+    # 7. Chemical Engineering
+    if any(k in c for k in ["BCH", "CH"]) or any(k in n for k in ["PROCESS MODELING", "PROCESS CONTROL", "HEAT TRANSFER", "MASS TRANSFER", "REACTION ENG"]):
+        return "Chemical Engineering"
+
+    # 8. AI & Data Science
+    if any(k in c for k in ["BAI", "BCD", "BDS", "BAD", "AD"]) or any(k in n for k in ["DEEP LEARNING", "ARTIFICIAL INTELLIGENCE", "MACHINE LEARNING", "NEURAL NETWORK", "NATURAL LANGUAGE", "COMPUTER VISION"]):
+        return "Artificial Intelligence & Machine Learning"
+
+    # 9. Information Science
+    if any(k in c for k in ["BIS", "IS"]) or "INFORMATION SCIENCE" in n:
+        return "Information Science & Engineering"
+
+    # 10. Computer Science
+    if any(k in c for k in ["BCS", "CS", "CSE"]) or any(k in n for k in ["DATA STRUCTURE", "ALGORITHM", "OPERATING SYSTEM", "DATABASE", "JAVA", "PYTHON", "C++", "COMPILER", "CLOUD", "SOFTWARE", "CYBER", "WEB", "NETWORK"]):
+        return "Computer Science & Engineering"
+
+    # Course-code fallback mapping
+    course_dept_map = {
+        "CSE": "Computer Science & Engineering",
+        "CSE-AIML": "Artificial Intelligence & Machine Learning",
+        "CSE-DS": "Artificial Intelligence & Machine Learning",
+        "ISE": "Information Science & Engineering",
+        "AI&DS": "Artificial Intelligence & Data Science",
+        "ECE": "Electronics & Communication Engineering",
+        "EEE": "Electrical & Electronics Engineering",
+        "ME": "Mechanical Engineering",
+        "CIV": "Civil Engineering",
+        "CH": "Chemical Engineering",
+        "BME": "Biomedical Engineering",
+    }
+
+    return course_dept_map.get(default_course, "Computer Science & Engineering")
 
 
 class ParsedSchemeResponse(BaseModel):
@@ -38,8 +107,15 @@ class ParsedSchemeResponse(BaseModel):
     practical_subjects: list[VTUSubject]
 
 
+class FacultyItemModel(BaseModel):
+    name: str
+    department: str
+    designation: str = "Assistant Professor"
+    proficient_subjects: list[str] = []
+
+
 class ParsedFacultyResponse(BaseModel):
-    faculties: list[dict[str, str]]
+    faculties: list[FacultyItemModel]
 
 
 @router.get("/courses")
@@ -112,19 +188,10 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
         except Exception:
             extracted_text = str(content)
 
-
-
     theory_list: list[VTUSubject] = []
     practical_list: list[VTUSubject] = []
 
-    # Comprehensive regex matching all VTU Scheme subject codes:
-    # 2025 Scheme: 1BMATCS301, 1BCS302, 1BCS303, 1BCS304, 1BCS305, 1BCSL306, 1BXXL307x
-    # 2021/2022 Scheme: 21CS32, 21CSL35, 22CS32, 22CSL35, 18CS32
     lines = extracted_text.splitlines()
-    code_pattern = re.compile(
-        r"\b(1[A-Z0-9]{2,8}[0-9]{2,3}[xX]?|[0-9]{2}[A-Z]{2-[5]}[L]?[0-9]{2,3})\b", re.IGNORECASE
-    )
-    # Simple fallback regex for 2025/2021 VTU scheme codes
     vtu_code_regex = re.compile(r"\b(1[B]?[A-Z0-9]{2,8}[0-9]{2,3}[a-zA-Z]?|[0-9]{2}[A-Z]{2,6}[L]?[0-9]{2,3})\b")
 
     for line in lines:
@@ -140,7 +207,6 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
             if code in ["SEMESTER", "TEACHING", "QUESTION", "OUTCOME", "EXAMINATION"]:
                 continue
 
-            # Extract subject title by removing code and table noise
             name_part = re.sub(r"^\d+\s+", "", line_clean)
             name_part = re.sub(r"\b" + re.escape(match.group(1)) + r"\b", "", name_part, flags=re.IGNORECASE)
             name_part = re.sub(r"\b(ASC|IPCC|PCC|PCCL|AEC|SDC|NCMC|TD\s*/?\s*PSB:[^\|]*)\b", "", name_part, flags=re.IGNORECASE)
@@ -148,7 +214,6 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
             name_part = " ".join(name_part.split()).strip()
 
             if not name_part or len(name_part) < 3:
-                # Map known 2025/2021 VTU scheme code titles if OCR text stripped name
                 code_titles = {
                     "1BMATCS301": "Probability, Distributions and Statistics",
                     "1BCS302": "Object Oriented Programming with Java",
@@ -166,8 +231,6 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
                 }
                 name_part = code_titles.get(code, f"Subject {code}")
 
-            # Segregation rule: Code has 'L' in prefix/suffix (e.g. 1BCSL306, 21CSL35, 1BXXL307x, PCCL)
-            # or name contains Laboratory/Lab/Practical
             is_lab = (
                 "L" in code[3:]
                 or "PCCL" in line_clean.upper()
@@ -179,8 +242,9 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
 
             category = "practical" if is_lab else "theory"
             hours = 3 if category == "practical" else 4
+            dept = infer_department(code, name_part)
 
-            subj = VTUSubject(code=code, name=name_part, category=category, weekly_hours=hours)
+            subj = VTUSubject(code=code, name=name_part, department=dept, category=category, weekly_hours=hours)
 
             if category == "practical":
                 if not any(s.code == code for s in practical_list):
@@ -196,17 +260,71 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
     )
 
 
-
-
 @router.post("/parse-faculty", response_model=ParsedFacultyResponse)
 async def parse_vtu_faculty(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
     content = await file.read()
-    extracted_text = ""
-
     ext = file.filename.lower().split(".")[-1]
+
+    # 1. Excel / CSV Parsing
+    if ext in ["xlsx", "xls", "csv"]:
+        try:
+            import pandas as pd
+            if ext == "csv":
+                df = pd.read_csv(io.BytesIO(content))
+            else:
+                df = pd.read_excel(io.BytesIO(content))
+
+            faculties_list: list[FacultyItemModel] = []
+            for _, row in df.iterrows():
+                row_str = " ".join([str(val) for val in row.values if pd.notna(val)])
+                if not row_str.strip():
+                    continue
+
+                col_keys = [str(c).lower() for c in df.columns]
+                val_name = ""
+                val_dept = "Computer Science & Engineering"
+                val_desg = "Assistant Professor"
+                subjs: list[str] = []
+
+                for col in df.columns:
+                    col_l = str(col).lower()
+                    val = str(row[col]).strip() if pd.notna(row[col]) else ""
+                    if not val:
+                        continue
+                    if "name" in col_l or "faculty" in col_l or "teacher" in col_l or "professor" in col_l:
+                        val_name = val
+                    elif "dept" in col_l or "department" in col_l or "branch" in col_l:
+                        val_dept = val
+                    elif "desig" in col_l or "role" in col_l or "post" in col_l or "title" in col_l:
+                        val_desg = val
+                    elif "subj" in col_l or "course" in col_l or "teach" in col_l or "proficien" in col_l:
+                        subjs = [s.strip() for s in re.split(r"[,;/|]", val) if s.strip()]
+
+                if not val_name:
+                    for v in row.values:
+                        if pd.notna(v) and (re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", str(v), re.I) or len(str(v).split()) <= 4):
+                            val_name = str(v).strip()
+                            break
+
+                if not val_name:
+                    continue
+
+                faculties_list.append(FacultyItemModel(
+                    name=val_name,
+                    department=val_dept,
+                    designation=val_desg,
+                    proficient_subjects=subjs
+                ))
+            if faculties_list:
+                return ParsedFacultyResponse(faculties=faculties_list)
+        except Exception as err:
+            print("Excel/CSV parse fallback:", err)
+
+    # 2. Text/PDF/Image Parsing Fallback
+    extracted_text = ""
 
     if ext == "pdf":
         try:
@@ -231,8 +349,7 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
     else:
         extracted_text = content.decode("utf-8", errors="ignore")
 
-
-    faculties: list[dict[str, str]] = []
+    faculties: list[FacultyItemModel] = []
     lines = extracted_text.splitlines()
 
     for line in lines:
@@ -240,19 +357,28 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
         if not line_clean or len(line_clean) < 3:
             continue
 
-        # Look for titles (Dr., Prof., Mr., Mrs., Ms.) or names
-        if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or len(line_clean.split()) <= 4:
+        if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or len(line_clean.split()) <= 6:
             parts = line_clean.split(",")
             name = parts[0].strip()
             dept = parts[1].strip() if len(parts) > 1 else "Computer Science & Engineering"
-            faculties.append({"name": name, "department": dept})
+            subjs_raw = parts[2].strip() if len(parts) > 2 else ""
+            subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip()]
+            
+            desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
+
+            faculties.append(FacultyItemModel(
+                name=name,
+                department=dept,
+                designation=desg,
+                proficient_subjects=subjs
+            ))
 
     if not faculties:
         faculties = [
-            {"name": "Dr. Pranav Bhat", "department": "Computer Science & Engineering"},
-            {"name": "Prof. Ujwal Amar", "department": "Computer Science & Engineering"},
-            {"name": "Prof. Pruthvik K", "department": "Computer Science & Engineering"},
-            {"name": "Dr. Nivish Gowda", "department": "Electronics & Communication Engineering"},
+            FacultyItemModel(name="Dr. Pranav Bhat", department="Computer Science & Engineering", designation="Professor", proficient_subjects=["1BCS601", "1BCS502"]),
+            FacultyItemModel(name="Prof. Ujwal Amar", department="Computer Science & Engineering", designation="Associate Professor", proficient_subjects=["1BCS603", "1BCS604"]),
+            FacultyItemModel(name="Prof. Pruthvik K", department="Computer Science & Engineering", designation="Assistant Professor", proficient_subjects=["1BCSL606", "1BIS601"]),
+            FacultyItemModel(name="Dr. Nivish Gowda", department="Electronics & Communication Engineering", designation="Professor", proficient_subjects=["BEC601", "BEC602"]),
         ]
 
     return ParsedFacultyResponse(faculties=faculties)

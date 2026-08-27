@@ -787,15 +787,6 @@ export default function DocumentsPage() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
-              <span>Active Branch:</span>
-              <span className="text-primary font-extrabold">{activeCourseCode}</span>
-              {isFirstYear && (
-                <span className="text-muted-foreground font-normal">
-                  • {streamData.streamName} • ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
-                </span>
-              )}
-            </div>
             {!isFirstYear && (
               <button
                 type="button"

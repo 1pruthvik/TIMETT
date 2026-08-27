@@ -21,6 +21,7 @@ interface Subject {
   name: string;
   category: "theory" | "practical";
   weekly_hours: number;
+  department?: string;
 }
 
 interface VTUCourse {
@@ -53,180 +54,180 @@ export default function DocumentsPage() {
   const initialMapSem5: Record<string, { theory: Subject[]; practical: Subject[] }> = {
     CSE: {
       theory: [
-        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-        { code: "1BCS502", name: "Machine Learning", category: "theory", weekly_hours: 3 },
-        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-        { code: "1BCS504", name: "Computer Vision", category: "theory", weekly_hours: 3 },
-        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS502", name: "Machine Learning", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4, department: "CS Allied" },
+        { code: "1BCS504", name: "Computer Vision", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BCSL507", name: "Web Technology Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BCSL507", name: "Web Technology Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     "CSE-AIML": {
       theory: [
-        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-        { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3 },
-        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3 },
-        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4, department: "CS Allied" },
+        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     "CSE-DS": {
       theory: [
-        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-        { code: "1BDS502", name: "No SQL Databases", category: "theory", weekly_hours: 3 },
-        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3 },
-        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BDS502", name: "No SQL Databases", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4, department: "CS Allied" },
+        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BDS502L", name: "No SQL Databases Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BDS502L", name: "No SQL Databases Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     ECE: {
       theory: [
-        { code: "BEC501", name: "Technological Innovation and Management Entrepreneurship", category: "theory", weekly_hours: 3 },
-        { code: "BEC502", name: "Digital Signal Processing", category: "theory", weekly_hours: 3 },
-        { code: "BEC503", name: "Digital Communication", category: "theory", weekly_hours: 4 },
-        { code: "BEC515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BEC501", name: "Technological Innovation and Management Entrepreneurship", category: "theory", weekly_hours: 3, department: "ECE/ETE" },
+        { code: "BEC502", name: "Digital Signal Processing", category: "theory", weekly_hours: 3, department: "ECE/ETE" },
+        { code: "BEC503", name: "Digital Communication", category: "theory", weekly_hours: 4, department: "ECE/ETE" },
+        { code: "BEC515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "ECE/ETE" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BECL504", name: "Digital Communication Lab", category: "practical", weekly_hours: 2 },
-        { code: "BEC502L", name: "Digital Signal Processing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BECL504", name: "Digital Communication Lab", category: "practical", weekly_hours: 2, department: "ECE/ETE" },
+        { code: "BEC502L", name: "Digital Signal Processing Laboratory", category: "practical", weekly_hours: 2, department: "ECE/ETE" },
       ],
     },
     EEE: {
       theory: [
-        { code: "BEE501", name: "Engineering Management and Entrepreneurship", category: "theory", weekly_hours: 3 },
-        { code: "BEE502", name: "Signals & DSP", category: "theory", weekly_hours: 3 },
-        { code: "BEE503", name: "Power Electronics", category: "theory", weekly_hours: 4 },
-        { code: "BEE515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BEE501", name: "Engineering Management and Entrepreneurship", category: "theory", weekly_hours: 3, department: "EEE" },
+        { code: "BEE502", name: "Signals & DSP", category: "theory", weekly_hours: 3, department: "EEE" },
+        { code: "BEE503", name: "Power Electronics", category: "theory", weekly_hours: 4, department: "EEE" },
+        { code: "BEE515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "EEE" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BEEL504", name: "Power Electronics Lab", category: "practical", weekly_hours: 2 },
-        { code: "BEE502L", name: "Signals & DSP Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BEEL504", name: "Power Electronics Lab", category: "practical", weekly_hours: 2, department: "EEE" },
+        { code: "BEE502L", name: "Signals & DSP Laboratory", category: "practical", weekly_hours: 2, department: "EEE" },
       ],
     },
     ISE: {
       theory: [
-        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-        { code: "1BCS502", name: "Machine Learning", category: "theory", weekly_hours: 3 },
-        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-        { code: "1BIS504", name: "Full Stack Development", category: "theory", weekly_hours: 3 },
-        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS502", name: "Machine Learning", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4, department: "CS Allied" },
+        { code: "1BIS504", name: "Full Stack Development", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BISL507", name: "Full Stack Development Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BISL507", name: "Full Stack Development Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     "AI&DS": {
       theory: [
-        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-        { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3 },
-        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3 },
-        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4, department: "CS Allied" },
+        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     AIDS: {
       theory: [
-        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-        { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3 },
-        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3 },
-        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+        { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4, department: "CS Allied" },
+        { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     ME: {
       theory: [
-        { code: "BME501", name: "Industrial Management & Entrepreneurship", category: "theory", weekly_hours: 3 },
-        { code: "BME502", name: "Turbo machines", category: "theory", weekly_hours: 3 },
-        { code: "BME503", name: "Theory of Machines", category: "theory", weekly_hours: 4 },
-        { code: "BME515x", name: "Professional Elective - I", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BME501", name: "Industrial Management & Entrepreneurship", category: "theory", weekly_hours: 3, department: "ME" },
+        { code: "BME502", name: "Turbo machines", category: "theory", weekly_hours: 3, department: "ME" },
+        { code: "BME503", name: "Theory of Machines", category: "theory", weekly_hours: 4, department: "ME" },
+        { code: "BME515x", name: "Professional Elective - I", category: "theory", weekly_hours: 3, department: "ME" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BME504L", name: "CNC Programming and 3-D Printing lab", category: "practical", weekly_hours: 2 },
-        { code: "BME502L", name: "Turbo machines Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BME504L", name: "CNC Programming and 3-D Printing lab", category: "practical", weekly_hours: 2, department: "ME" },
+        { code: "BME502L", name: "Turbo machines Laboratory", category: "practical", weekly_hours: 2, department: "ME" },
       ],
     },
     CIV: {
       theory: [
-        { code: "BCV501", name: "Construction Management and Entrepreneurship", category: "theory", weekly_hours: 3 },
-        { code: "BCV502", name: "Geotechnical Engineering", category: "theory", weekly_hours: 3 },
-        { code: "BCV503", name: "Concrete Technology", category: "theory", weekly_hours: 3 },
-        { code: "BCV515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BCV501", name: "Construction Management and Entrepreneurship", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV502", name: "Geotechnical Engineering", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV503", name: "Concrete Technology", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BCV504", name: "Environmental Engineering Lab", category: "practical", weekly_hours: 2 },
-        { code: "BCV502L", name: "Geotechnical Engineering Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCV504", name: "Environmental Engineering Lab", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV502L", name: "Geotechnical Engineering Laboratory", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2, department: "CIVIL" },
       ],
     },
     CIVIL: {
       theory: [
-        { code: "BCV501", name: "Construction Management and Entrepreneurship", category: "theory", weekly_hours: 3 },
-        { code: "BCV502", name: "Geotechnical Engineering", category: "theory", weekly_hours: 3 },
-        { code: "BCV503", name: "Concrete Technology", category: "theory", weekly_hours: 3 },
-        { code: "BCV515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BCV501", name: "Construction Management and Entrepreneurship", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV502", name: "Geotechnical Engineering", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV503", name: "Concrete Technology", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BCV504", name: "Environmental Engineering Lab", category: "practical", weekly_hours: 2 },
-        { code: "BCV502L", name: "Geotechnical Engineering Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCV504", name: "Environmental Engineering Lab", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV502L", name: "Geotechnical Engineering Laboratory", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2, department: "CIVIL" },
       ],
     },
     CH: {
       theory: [
-        { code: "BCH501", name: "Industrial Process Management", category: "theory", weekly_hours: 3 },
-        { code: "BCH502", name: "Chemical Reaction Engineering", category: "theory", weekly_hours: 3 },
-        { code: "BCH503", name: "Mass Transfer Operations-I", category: "theory", weekly_hours: 4 },
-        { code: "BCH515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BCH501", name: "Industrial Process Management", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH502", name: "Chemical Reaction Engineering", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH503", name: "Mass Transfer Operations-I", category: "theory", weekly_hours: 4, department: "CHEMICAL" },
+        { code: "BCH515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BCHL504", name: "Mass Transfer Operations Lab-1", category: "practical", weekly_hours: 2 },
-        { code: "BCH502L", name: "Chemical Reaction Engineering Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCHL504", name: "Mass Transfer Operations Lab-1", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH502L", name: "Chemical Reaction Engineering Laboratory", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
       ],
     },
     BME: {
       theory: [
-        { code: "BBM501", name: "Technological Innovation Management & Entrepreneurship", category: "theory", weekly_hours: 3 },
-        { code: "BBM502", name: "Digital Signal Processing", category: "theory", weekly_hours: 3 },
-        { code: "BBM503", name: "Clinical Instrumentation", category: "theory", weekly_hours: 4 },
-        { code: "BBM515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
-        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+        { code: "BBM501", name: "Technological Innovation Management & Entrepreneurship", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BBM502", name: "Digital Signal Processing", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BBM503", name: "Clinical Instrumentation", category: "theory", weekly_hours: 4, department: "BIOMEDICAL" },
+        { code: "BBM515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3, department: "Humanities/Any" },
+        { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BBM504", name: "Clinical Instrumentation Lab", category: "practical", weekly_hours: 2 },
-        { code: "BBM502L", name: "Digital Signal Processing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BBM504", name: "Clinical Instrumentation Lab", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
+        { code: "BBM502L", name: "Digital Signal Processing Laboratory", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
       ],
     },
   };
@@ -234,221 +235,221 @@ export default function DocumentsPage() {
   const initialMapSem6: Record<string, { theory: Subject[]; practical: Subject[] }> = {
     CSE: {
       theory: [
-        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3 },
-        { code: "1BCS602", name: "Cryptography and Network Security", category: "theory", weekly_hours: 3 },
-        { code: "1BCS603", name: "High Performance Computing", category: "theory", weekly_hours: 3 },
-        { code: "1BCS604", name: "Internet of Things", category: "theory", weekly_hours: 3 },
-        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS602", name: "Cryptography and Network Security", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS603", name: "High Performance Computing", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS604", name: "Internet of Things", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BCSL606", name: "IoT laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BCSL606", name: "IoT laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     "CSE-AIML": {
       theory: [
-        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3 },
-        { code: "1BIS602", name: "Information and Network Security", category: "theory", weekly_hours: 3 },
-        { code: "1BCI603", name: "High Performance Computing in Artificial Intelligence", category: "theory", weekly_hours: 3 },
-        { code: "1BCS604", name: "Internet of Things", category: "theory", weekly_hours: 3 },
-        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BIS602", name: "Information and Network Security", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCI603", name: "High Performance Computing in Artificial Intelligence", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS604", name: "Internet of Things", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BCSL606", name: "IoT Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BCSL606", name: "IoT Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     "CSE-DS": {
       theory: [
-        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3 },
-        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3 },
-        { code: "1BCS603", name: "High Performance Computing", category: "theory", weekly_hours: 3 },
-        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3 },
-        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BCS603", name: "High Performance Computing", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BDSL606", name: "Big Data Analytics Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BDSL606", name: "Big Data Analytics Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     ECE: {
       theory: [
-        { code: "BEC601", name: "Embedded System Design", category: "theory", weekly_hours: 3 },
-        { code: "BEC602", name: "VLSI Design and Testing", category: "theory", weekly_hours: 4 },
-        { code: "BEC613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BEC654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BEC601", name: "Embedded System Design", category: "theory", weekly_hours: 3, department: "ECE/ETE" },
+        { code: "BEC602", name: "VLSI Design and Testing", category: "theory", weekly_hours: 4, department: "ECE/ETE" },
+        { code: "BEC613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "ECE/ETE" },
+        { code: "BEC654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "ECE/ETE" },
       ],
       practical: [
-        { code: "BECL606", name: "VLSI Design and Testing Lab", category: "practical", weekly_hours: 2 },
-        { code: "BEC657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BEC601L", name: "Embedded System Design Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BECL606", name: "VLSI Design and Testing Lab", category: "practical", weekly_hours: 2, department: "ECE/ETE" },
+        { code: "BEC657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "ECE/ETE" },
+        { code: "BEC601L", name: "Embedded System Design Laboratory", category: "practical", weekly_hours: 2, department: "ECE/ETE" },
       ],
     },
     EEE: {
       theory: [
-        { code: "BEE601", name: "Power system Analysis - I", category: "theory", weekly_hours: 3 },
-        { code: "BEE602", name: "Control Systems", category: "theory", weekly_hours: 4 },
-        { code: "BEE613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BEE654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BEE601", name: "Power system Analysis - I", category: "theory", weekly_hours: 3, department: "EEE" },
+        { code: "BEE602", name: "Control Systems", category: "theory", weekly_hours: 4, department: "EEE" },
+        { code: "BEE613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "EEE" },
+        { code: "BEE654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "EEE" },
       ],
       practical: [
-        { code: "BEEL606", name: "Control System Lab", category: "practical", weekly_hours: 2 },
-        { code: "BEE657x", name: "Ability Enhancement Course/Skill Development Course - V", category: "practical", weekly_hours: 2 },
-        { code: "BEE601L", name: "Power system Analysis - I Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BEEL606", name: "Control System Lab", category: "practical", weekly_hours: 2, department: "EEE" },
+        { code: "BEE657x", name: "Ability Enhancement Course/Skill Development Course - V", category: "practical", weekly_hours: 2, department: "EEE" },
+        { code: "BEE601L", name: "Power system Analysis - I Laboratory", category: "practical", weekly_hours: 2, department: "EEE" },
       ],
     },
     ISE: {
       theory: [
-        { code: "1BIS601", name: "Big Data analytics", category: "theory", weekly_hours: 3 },
-        { code: "1BIS602", name: "Information and Network Security", category: "theory", weekly_hours: 3 },
-        { code: "1BIS603", name: "Data Science and Visualization", category: "theory", weekly_hours: 3 },
-        { code: "1BIS604", name: "Cloud Computing and Applications", category: "theory", weekly_hours: 3 },
-        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+        { code: "1BIS601", name: "Big Data analytics", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BIS602", name: "Information and Network Security", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BIS603", name: "Data Science and Visualization", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BIS604", name: "Cloud Computing and Applications", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BISL606", name: "Data Science and Visualization Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BIS601L", name: "Big Data Analytics Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BISL606", name: "Data Science and Visualization Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BIS601L", name: "Big Data Analytics Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     "AI&DS": {
       theory: [
-        { code: "1BAD601", name: "Natural Language Processing", category: "theory", weekly_hours: 3 },
-        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3 },
-        { code: "1BAI603", name: "Deep Learning", category: "theory", weekly_hours: 3 },
-        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3 },
-        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+        { code: "1BAD601", name: "Natural Language Processing", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAI603", name: "Deep Learning", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BAIL606", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAIL606", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     AIDS: {
       theory: [
-        { code: "1BAD601", name: "Natural Language Processing", category: "theory", weekly_hours: 3 },
-        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3 },
-        { code: "1BAI603", name: "Deep Learning", category: "theory", weekly_hours: 3 },
-        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3 },
-        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+        { code: "1BAD601", name: "Natural Language Processing", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAI603", name: "Deep Learning", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3, department: "CS Allied" },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3, department: "CS Allied" },
       ],
       practical: [
-        { code: "1BAIL606", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-        { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAIL606", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
+        { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2, department: "CS Allied" },
       ],
     },
     ME: {
       theory: [
-        { code: "BME601", name: "Heat Transfer", category: "theory", weekly_hours: 3 },
-        { code: "BME602", name: "Machine Design", category: "theory", weekly_hours: 4 },
-        { code: "BME613x", name: "Professional Elective - II", category: "theory", weekly_hours: 3 },
-        { code: "BME654x", name: "Open Elective - I", category: "theory", weekly_hours: 3 },
+        { code: "BME601", name: "Heat Transfer", category: "theory", weekly_hours: 3, department: "ME" },
+        { code: "BME602", name: "Machine Design", category: "theory", weekly_hours: 4, department: "ME" },
+        { code: "BME613x", name: "Professional Elective - II", category: "theory", weekly_hours: 3, department: "ME" },
+        { code: "BME654x", name: "Open Elective - I", category: "theory", weekly_hours: 3, department: "ME" },
       ],
       practical: [
-        { code: "BMEL606L", name: "Design lab", category: "practical", weekly_hours: 2 },
-        { code: "BME657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BME601L", name: "Heat Transfer Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BMEL606L", name: "Design lab", category: "practical", weekly_hours: 2, department: "ME" },
+        { code: "BME657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "ME" },
+        { code: "BME601L", name: "Heat Transfer Laboratory", category: "practical", weekly_hours: 2, department: "ME" },
       ],
     },
     CIV: {
       theory: [
-        { code: "BCV601", name: "Design of RCC Structures", category: "theory", weekly_hours: 3 },
-        { code: "BCV602", name: "Irrigation Engineering and Hydraulic Structures", category: "theory", weekly_hours: 4 },
-        { code: "BCV613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BCV654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCV601", name: "Design of RCC Structures", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV602", name: "Irrigation Engineering and Hydraulic Structures", category: "theory", weekly_hours: 4, department: "CIVIL" },
+        { code: "BCV613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "CIVIL" },
       ],
       practical: [
-        { code: "BCVL606", name: "Software Application Lab", category: "practical", weekly_hours: 2 },
-        { code: "BCV657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCVL606", name: "Software Application Lab", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2, department: "CIVIL" },
       ],
     },
     CIVIL: {
       theory: [
-        { code: "BCV601", name: "Design of RCC Structures", category: "theory", weekly_hours: 3 },
-        { code: "BCV602", name: "Irrigation Engineering and Hydraulic Structures", category: "theory", weekly_hours: 4 },
-        { code: "BCV613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BCV654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCV601", name: "Design of RCC Structures", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV602", name: "Irrigation Engineering and Hydraulic Structures", category: "theory", weekly_hours: 4, department: "CIVIL" },
+        { code: "BCV613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CIVIL" },
+        { code: "BCV654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "CIVIL" },
       ],
       practical: [
-        { code: "BCVL606", name: "Software Application Lab", category: "practical", weekly_hours: 2 },
-        { code: "BCV657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCVL606", name: "Software Application Lab", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "CIVIL" },
+        { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2, department: "CIVIL" },
       ],
     },
     CH: {
       theory: [
-        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3 },
-        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4 },
-        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4, department: "CHEMICAL" },
+        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2 },
-        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
       ],
     },
     CHE: {
       theory: [
-        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3 },
-        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4 },
-        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4, department: "CHEMICAL" },
+        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2 },
-        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
       ],
     },
     CHEMICAL: {
       theory: [
-        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3 },
-        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4 },
-        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4, department: "CHEMICAL" },
+        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "CHEMICAL" },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2 },
-        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
+        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2, department: "CHEMICAL" },
       ],
     },
     BME: {
       theory: [
-        { code: "BBM601", name: "Medical Image Processing", category: "theory", weekly_hours: 3 },
-        { code: "BBM602", name: "Biomedical Digital Signal Processing", category: "theory", weekly_hours: 4 },
-        { code: "BBM613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BBM654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+        { code: "BBM601", name: "Medical Image Processing", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BBM602", name: "Biomedical Digital Signal Processing", category: "theory", weekly_hours: 4, department: "BIOMEDICAL" },
+        { code: "BBM613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BBM654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BBML606", name: "Biomedical DSP Lab", category: "practical", weekly_hours: 2 },
-        { code: "BEI657", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BBM601L", name: "Medical Image Processing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BBML606", name: "Biomedical DSP Lab", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
+        { code: "BEI657", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
+        { code: "BBM601L", name: "Medical Image Processing Laboratory", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
       ],
     },
     BIOMEDICAL: {
       theory: [
-        { code: "BBM601", name: "Medical Image Processing", category: "theory", weekly_hours: 3 },
-        { code: "BBM602", name: "Biomedical Digital Signal Processing", category: "theory", weekly_hours: 4 },
-        { code: "BBM613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BBM654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
-        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+        { code: "BBM601", name: "Medical Image Processing", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BBM602", name: "Biomedical Digital Signal Processing", category: "theory", weekly_hours: 4, department: "BIOMEDICAL" },
+        { code: "BBM613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BBM654x", name: "Open Elective Course", category: "theory", weekly_hours: 3, department: "BIOMEDICAL" },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1, department: "Humanities/Any" },
       ],
       practical: [
-        { code: "BBML606", name: "Biomedical DSP Lab", category: "practical", weekly_hours: 2 },
-        { code: "BEI657", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
-        { code: "BBM601L", name: "Medical Image Processing Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "BBML606", name: "Biomedical DSP Lab", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
+        { code: "BEI657", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
+        { code: "BBM601L", name: "Medical Image Processing Laboratory", category: "practical", weekly_hours: 2, department: "BIOMEDICAL" },
       ],
     },
   };
@@ -798,7 +799,14 @@ export default function DocumentsPage() {
                     className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-primary/40 transition"
                   >
                     <div className="min-w-0 pr-3">
-                      <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
+                        {s.department && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono font-bold">
+                            TD: {s.department}
+                          </span>
+                        )}
+                      </div>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                     </div>
                     <div className="flex items-center space-x-3 shrink-0">
@@ -842,7 +850,14 @@ export default function DocumentsPage() {
                     className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-[#00A3FF]/40 transition"
                   >
                     <div className="min-w-0 pr-3">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
+                        {s.department && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold">
+                            TD: {s.department}
+                          </span>
+                        )}
+                      </div>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                     </div>
                     <div className="flex items-center space-x-3 shrink-0">

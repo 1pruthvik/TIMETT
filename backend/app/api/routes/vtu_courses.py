@@ -30,6 +30,7 @@ class VTUSubject(BaseModel):
     name: str
     category: str  # "theory" or "practical"
     weekly_hours: int = 4
+    department: str | None = None
 
 
 class ParsedSchemeResponse(BaseModel):

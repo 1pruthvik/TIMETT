@@ -7,12 +7,7 @@ import {
   BookOpen,
   Layers,
   GraduationCap,
-  Sparkles,
   Clock,
-  CheckCircle2,
-  ChevronDown,
-  Building2,
-  Plus,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -25,8 +20,8 @@ interface VTUCourse {
   cycle?: "physics" | "chemistry";
 }
 
-// ── Official VTU 1st Year (Physics Group & Chemistry Group) ESC-I Offerings ──
-const VTU_ESC_OPTIONS = [
+// ── Official VTU 100-Series ESC-I Offerings (I Sem) ──
+const VTU_ESC_100_OPTIONS = [
   { code: "1BESC104A", name: "Building Sciences & Mechanics", dept: "Civil Dept", weekly_hours: 3 },
   { code: "1BESC104B", name: "Introduction to Electrical Engineering", dept: "EEE Dept", weekly_hours: 3 },
   { code: "1BESC104C", name: "Introduction to Electronics and Communication Engineering", dept: "ECE Dept", weekly_hours: 3 },
@@ -34,8 +29,17 @@ const VTU_ESC_OPTIONS = [
   { code: "1BESC104E", name: "Essentials of Information Technology", dept: "CSE/IT Dept", weekly_hours: 3 },
 ];
 
-// ── Official VTU Physics Cycle PSC <-> PSCL Pairs ──
-const VTU_PSC_OPTIONS = [
+// ── Official VTU 200-Series ESC-II Offerings (II Sem) ──
+const VTU_ESC_200_OPTIONS = [
+  { code: "1BESC204A", name: "Building Sciences & Mechanics", dept: "Civil Dept", weekly_hours: 3 },
+  { code: "1BESC204B", name: "Introduction to Electrical Engineering", dept: "EEE Dept", weekly_hours: 3 },
+  { code: "1BESC204C", name: "Introduction to Electronics & Communication Engineering", dept: "ECE Dept", weekly_hours: 3 },
+  { code: "1BESC204D", name: "Introduction to Mechanical Engineering", dept: "ME Dept", weekly_hours: 3 },
+  { code: "1BESC204E", name: "Essentials of Information Technology", dept: "CSE/IT Dept", weekly_hours: 3 },
+];
+
+// ── Official VTU Physics Cycle PSC <-> PSCL Pairs (100 Series) ──
+const VTU_PSC_100_OPTIONS = [
   {
     psc: { code: "1BCIV105", name: "Engineering Mechanics", dept: "Civil Dept", weekly_hours: 3 },
     pscl: { code: "1BMEML107", name: "Mechanics and Materials Lab", dept: "Civil Dept", weekly_hours: 2 },
@@ -78,8 +82,8 @@ const VTU_PSC_OPTIONS = [
   },
 ];
 
-// ── Official VTU Chemistry Cycle Programming Language Courses (PLC) ──
-const VTU_PLC_OPTIONS = [
+// ── Official VTU Programming Language Courses (100 Series & 200 Series) ──
+const VTU_PLC_100_OPTIONS = [
   {
     code: "1BPLC105B",
     name: "Python Programming (for CSE and allied programmes)",
@@ -96,10 +100,71 @@ const VTU_PLC_OPTIONS = [
   },
 ];
 
-// Helper to determine stream-specific fixed codes for Physics & Chemistry Cycles
-function getStreamSpecificSubjects(courseCode: string) {
+const VTU_PLC_200_OPTIONS = [
+  {
+    code: "1BPLC205B",
+    name: "Python Programming (For CSE and allied programmes)",
+    labCode: "1BPLC205B-LAB",
+    labName: "Python Programming Laboratory",
+    dept: "CSE Dept",
+  },
+  {
+    code: "1BPLC205E",
+    name: "Introduction to C Programming (for non-IT programmes)",
+    labCode: "1BPLC205E-LAB",
+    labName: "C Programming Laboratory",
+    dept: "Non-IT Engg Dept",
+  },
+];
+
+// Helper to determine stream-specific fixed codes for I Sem and II Sem
+function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
   const upper = courseCode.toUpperCase();
   
+  if (isSecondSem) {
+    // ── II SEMESTER (200 Series) ──
+    if (upper.includes("EC") || upper === "ECE") {
+      return {
+        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform And Numerical Techniques: EEE/ECE stream", l: 3, t: 2 },
+        chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
+        physics: { code: "1BPHEC202", name: "Quantum Physics and Electronics Sensors (ECE stream)", l: 3, p: 2 },
+        caed: { code: "1BCEDEC203", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
+      };
+    }
+    if (upper === "EEE" || upper.includes("EE")) {
+      return {
+        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform And Numerical Techniques: EEE stream", l: 3, t: 2 },
+        chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
+        physics: { code: "1BPHEE202", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
+        caed: { code: "1BCEDE203", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
+      };
+    }
+    if (upper === "ME" || upper.includes("MECH")) {
+      return {
+        maths: { code: "1BMATM201", name: "Multivariable Calculus and Numerical Methods: ME Stream", l: 3, t: 2 },
+        chemistry: { code: "1BCHEM202", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", l: 3, p: 2 },
+        physics: { code: "1BPHYM202", name: "Physics of Materials (Mech stream)", l: 3, p: 2 },
+        caed: { code: "1BCEDM203", name: "Computer-Aided Engineering Drawing for ME stream", l: 2, p: 2 },
+      };
+    }
+    if (upper === "CIV" || upper.includes("CIVIL")) {
+      return {
+        maths: { code: "1BMATC201", name: "Differential Calculus and Numerical Methods: CV Stream", l: 3, t: 2 },
+        chemistry: { code: "1BCHEC202", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", l: 3, p: 2 },
+        physics: { code: "1BPHYC202", name: "Physics for Sustainable Structural Systems (CV stream)", l: 3, p: 2 },
+        caed: { code: "1BCEDC203", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
+      };
+    }
+    // Default: CSE / ISE / AI-ML / DS
+    return {
+      maths: { code: "1BMATS201", name: "Numerical Methods: CSE Stream", l: 3, t: 2 },
+      chemistry: { code: "1BCHES202", name: "Applied Chemistry for Smart Systems (CSE)", l: 3, p: 2 },
+      physics: { code: "1BPHYS202", name: "Quantum Physics and Applications (CSE stream)", l: 3, p: 2 },
+      caed: { code: "1BCEDS203", name: "Computer-Aided Engineering Drawing for CSE stream", l: 2, p: 2 },
+    };
+  }
+
+  // ── I SEMESTER (100 Series) ──
   if (upper.includes("EC") || upper === "ECE") {
     return {
       maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE/ECE Stream", l: 3, t: 2 },
@@ -146,6 +211,8 @@ export default function DocumentsPage() {
 
   const [courses, setCourses] = useState<VTUCourse[]>([]);
   const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
+  const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
+  const [selectedYear, setSelectedYear] = useState<string>("1");
 
   // Selections map: courseCode -> { escCode?: string; pscCode?: string; plcCode?: string }
   const [courseSelections, setCourseSelections] = useState<
@@ -154,6 +221,13 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     try {
+      const savedSetup = localStorage.getItem("vtu_academic_setup");
+      if (savedSetup) {
+        const parsed = JSON.parse(savedSetup);
+        if (parsed.selectedSemType) setSelectedSemType(parsed.selectedSemType);
+        if (parsed.selectedYear) setSelectedYear(parsed.selectedYear);
+      }
+
       const savedCourses = localStorage.getItem("vtu_college_offered_courses");
       if (savedCourses) {
         const parsed: VTUCourse[] = JSON.parse(savedCourses);
@@ -177,6 +251,8 @@ export default function DocumentsPage() {
     }
   }, []);
 
+  const isSecondSem = selectedSemType === "even" || selectedYear === "2";
+
   const saveSelections = (updated: Record<string, { escCode?: string; pscCode?: string; plcCode?: string }>) => {
     try {
       localStorage.setItem("vtu_course_curriculum_selections", JSON.stringify(updated));
@@ -187,7 +263,13 @@ export default function DocumentsPage() {
 
   const selectedCourses = courses.filter((c) => c.selected);
   const activeCourseObj = courses.find((c) => c.code === activeCourseCode);
-  const activeCycle = activeCourseObj?.cycle || "physics";
+  
+  // In Sem 1: physics cycle takes physics group, chemistry cycle takes chemistry group.
+  // In Sem 2: physics cycle (from Sem 1) takes chemistry group, chemistry cycle takes physics group.
+  const isPhysGroup = !isSecondSem
+    ? (activeCourseObj?.cycle || "physics") === "physics"
+    : (activeCourseObj?.cycle || "physics") === "chemistry";
+
   const currentSelection = courseSelections[activeCourseCode] || {};
 
   const handleSelectESC = (escCode: string) => {
@@ -225,25 +307,28 @@ export default function DocumentsPage() {
 
   // Compute active stream subjects
   const streamData = useMemo(() => {
-    return getStreamSpecificSubjects(activeCourseCode);
-  }, [activeCourseCode]);
+    return getStreamSpecificSubjects(activeCourseCode, isSecondSem);
+  }, [activeCourseCode, isSecondSem]);
 
-  const chosenESC = VTU_ESC_OPTIONS.find((e) => e.code === currentSelection.escCode);
-  const chosenPSCPair = VTU_PSC_OPTIONS.find((p) => p.psc.code === currentSelection.pscCode);
-  const chosenPLC = VTU_PLC_OPTIONS.find((p) => p.code === currentSelection.plcCode);
+  const escOptions = isSecondSem ? VTU_ESC_200_OPTIONS : VTU_ESC_100_OPTIONS;
+  const plcOptions = isSecondSem ? VTU_PLC_200_OPTIONS : VTU_PLC_100_OPTIONS;
+
+  const chosenESC = escOptions.find((e) => e.code === currentSelection.escCode);
+  const chosenPSCPair = VTU_PSC_100_OPTIONS.find((p) => p.psc.code === currentSelection.pscCode);
+  const chosenPLC = plcOptions.find((p) => p.code === currentSelection.plcCode);
 
   return (
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header (No Emojis) */}
+        {/* Page Hero Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
           <div>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
               VTU Curriculum & Subject Allocation
             </h1>
             <p className="text-xs font-semibold text-primary uppercase tracking-widest mt-1">
-              1st Year • {activeCycle === "physics" ? "Physics Group (I Semester)" : "Chemistry Group (I Semester)"}
+              {isSecondSem ? "II Semester" : "I Semester"} • {isPhysGroup ? "Physics Group" : "Chemistry Group"}
             </p>
           </div>
 
@@ -252,13 +337,13 @@ export default function DocumentsPage() {
               <span>Active Branch:</span>
               <span className="text-primary font-extrabold">{activeCourseCode}</span>
               <span className="text-muted-foreground font-normal">
-                ({activeCycle === "physics" ? "Physics Cycle" : "Chemistry Cycle"})
+                ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
               </span>
             </div>
           </div>
         </div>
 
-        {/* Course Tabs Selector (No Emojis) */}
+        {/* Course Tabs Selector */}
         <div className="space-y-2">
           <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Select Degree Branch
@@ -310,7 +395,7 @@ export default function DocumentsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               
-              {/* 1. Maths (Common to both cycles) */}
+              {/* 1. Mathematics */}
               <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                 <div className="min-w-0 pr-3">
                   <span className="font-mono font-bold text-primary text-xs">{streamData.maths.code}</span>
@@ -323,7 +408,7 @@ export default function DocumentsPage() {
               </div>
 
               {/* 2. Physics OR Chemistry */}
-              {activeCycle === "physics" ? (
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
                     <span className="font-mono font-bold text-primary text-xs">{streamData.physics.code}</span>
@@ -347,8 +432,8 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* 3. CAED (Physics Cycle) OR Intro to AI (Chemistry Cycle) */}
-              {activeCycle === "physics" ? (
+              {/* 3. CAED (Physics Group) OR Intro to AI (Chemistry Group) */}
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
                     <span className="font-mono font-bold text-primary text-xs">{streamData.caed.code}</span>
@@ -362,8 +447,12 @@ export default function DocumentsPage() {
               ) : (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">1BAIA103</span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">Introduction to AI and Applications</p>
+                    <span className="font-mono font-bold text-primary text-xs">
+                      {isSecondSem ? "1BAIA203" : "1BAIA103"}
+                    </span>
+                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
+                      Introduction to AI and Applications
+                    </p>
                   </div>
                   <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
                     <Clock className="h-3 w-3" />
@@ -372,11 +461,11 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* 4. ESC-I with Selector (Common to both cycles) */}
+              {/* 4. ESC Course with Selector */}
               <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="font-mono font-bold text-primary text-xs">
-                    {chosenESC ? chosenESC.code : "1BESC104x"}
+                    {chosenESC ? chosenESC.code : isSecondSem ? "1BESC204x" : "1BESC104x"}
                   </span>
                   <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
                     3 hrs/wk
@@ -384,7 +473,7 @@ export default function DocumentsPage() {
                 </div>
                 <div>
                   <p className="font-bold text-foreground text-sm">
-                    {chosenESC ? chosenESC.name : "Engineering Science Course-I (ESC-I)"}
+                    {chosenESC ? chosenESC.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)"}
                   </p>
                   {chosenESC && (
                     <span className="text-[11px] text-muted-foreground font-mono">{chosenESC.dept}</span>
@@ -395,8 +484,8 @@ export default function DocumentsPage() {
                   onChange={(e) => handleSelectESC(e.target.value)}
                   className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
                 >
-                  <option value="">-- Choose ESC-I Course --</option>
-                  {VTU_ESC_OPTIONS.map((opt) => (
+                  <option value="">-- Choose {isSecondSem ? "ESC-II" : "ESC-I"} Course --</option>
+                  {escOptions.map((opt) => (
                     <option key={opt.code} value={opt.code}>
                       {opt.code} — {opt.name} ({opt.dept})
                     </option>
@@ -404,12 +493,12 @@ export default function DocumentsPage() {
                 </select>
               </div>
 
-              {/* 5. PSC (Physics Cycle) OR PLC (Chemistry Cycle) */}
-              {activeCycle === "physics" ? (
+              {/* 5. PSC (Physics Group) OR PLC (Chemistry Group) */}
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-primary text-xs">
-                      {chosenPSCPair ? chosenPSCPair.psc.code : "1Bxxx105x"}
+                      {chosenPSCPair ? chosenPSCPair.psc.code : isSecondSem ? "1Bxxx205x" : "1Bxxx105x"}
                     </span>
                     <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
                       3 hrs/wk
@@ -429,7 +518,7 @@ export default function DocumentsPage() {
                     className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
                   >
                     <option value="">-- Choose PSC Course --</option>
-                    {VTU_PSC_OPTIONS.map((opt) => (
+                    {VTU_PSC_100_OPTIONS.map((opt) => (
                       <option key={opt.psc.code} value={opt.psc.code}>
                         {opt.psc.code} — {opt.psc.name} ({opt.psc.dept})
                       </option>
@@ -440,7 +529,7 @@ export default function DocumentsPage() {
                 <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex flex-col justify-between space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-primary text-xs">
-                      {chosenPLC ? chosenPLC.code : "1BPLC105x"}
+                      {chosenPLC ? chosenPLC.code : isSecondSem ? "1BPLC205x" : "1BPLC105x"}
                     </span>
                     <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
                       3 hrs/wk
@@ -460,7 +549,7 @@ export default function DocumentsPage() {
                     className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
                   >
                     <option value="">-- Choose Programming Language (PLC) --</option>
-                    {VTU_PLC_OPTIONS.map((opt) => (
+                    {plcOptions.map((opt) => (
                       <option key={opt.code} value={opt.code}>
                         {opt.code} — {opt.name}
                       </option>
@@ -469,11 +558,13 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* 6. Soft Skills (Physics) OR Communication Skills (Chemistry) */}
-              {activeCycle === "physics" ? (
+              {/* 6. Soft Skills (Physics Group) OR Communication Skills (Chemistry Group) */}
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">1BSKS106</span>
+                    <span className="font-mono font-bold text-primary text-xs">
+                      {isSecondSem ? "1BSKS206" : "1BSKS106"}
+                    </span>
                     <p className="font-semibold text-foreground text-sm truncate mt-0.5">Soft Skills</p>
                   </div>
                   <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
@@ -484,7 +575,9 @@ export default function DocumentsPage() {
               ) : (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">1BENG106</span>
+                    <span className="font-mono font-bold text-primary text-xs">
+                      {isSecondSem ? "1BENG206" : "1BENG106"}
+                    </span>
                     <p className="font-semibold text-foreground text-sm truncate mt-0.5">Communication Skills</p>
                   </div>
                   <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
@@ -494,11 +587,13 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* 7. Kannada (Physics) OR Indian Constitution (Chemistry) */}
-              {activeCycle === "physics" ? (
+              {/* 7. Kannada (Physics Group) OR Indian Constitution (Chemistry Group) */}
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">1BKSK109 / 1BKBK109</span>
+                    <span className="font-mono font-bold text-primary text-xs">
+                      {isSecondSem ? "1BKSK209 / 1BKBK209" : "1BKSK109 / 1BKBK109"}
+                    </span>
                     <p className="font-semibold text-foreground text-sm truncate mt-0.5">
                       Samskrutika Kannada / Balake Kannada
                     </p>
@@ -511,7 +606,9 @@ export default function DocumentsPage() {
               ) : (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-primary text-xs">1BICO107</span>
+                    <span className="font-mono font-bold text-primary text-xs">
+                      {isSecondSem ? "1BICO207" : "1BICO107"}
+                    </span>
                     <p className="font-semibold text-foreground text-sm truncate mt-0.5">
                       Indian Constitution & Engineering Ethics
                     </p>
@@ -566,14 +663,14 @@ export default function DocumentsPage() {
                 <span>Practical & Lab Subjects</span>
               </h3>
               <span className="text-xs font-mono font-bold text-muted-foreground">
-                {activeCycle === "physics" ? "4 Labs" : "3 Labs"}
+                {isPhysGroup ? "4 Labs" : "3 Labs"}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               
               {/* Physics Lab OR Chemistry Lab */}
-              {activeCycle === "physics" ? (
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
                     <span className="font-mono font-bold text-[#00A3FF] text-xs">
@@ -605,8 +702,8 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* CAED Lab (Physics) OR PLC Practice Lab (Chemistry) */}
-              {activeCycle === "physics" ? (
+              {/* CAED Lab (Physics Group) OR PLC Practice Lab (Chemistry Group) */}
+              {isPhysGroup ? (
                 <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
                     <span className="font-mono font-bold text-[#00A3FF] text-xs">
@@ -626,7 +723,7 @@ export default function DocumentsPage() {
                   <div className="min-w-0 pr-3">
                     <div className="flex items-center space-x-2">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {chosenPLC ? chosenPLC.labCode : "1BPLC105x-LAB"}
+                        {chosenPLC ? chosenPLC.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB"}
                       </span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
                         Auto-Paired Lab
@@ -643,13 +740,13 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* Auto-Paired PSCL Lab (Physics Cycle only) */}
-              {activeCycle === "physics" && (
+              {/* Auto-Paired PSCL Lab (Physics Group only) */}
+              {isPhysGroup && (
                 <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
                   <div className="min-w-0 pr-3">
                     <div className="flex items-center space-x-2">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {chosenPSCPair ? chosenPSCPair.pscl.code : "1BxxxL107x"}
+                        {chosenPSCPair ? chosenPSCPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x"}
                       </span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
                         Auto-Paired Lab
@@ -666,12 +763,16 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* Innovation & Design Thinking Lab (Common to both cycles) */}
+              {/* Innovation & Design Thinking Lab (I Sem) OR Interdisciplinary Project-Based Learning (II Sem) */}
               <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
                 <div className="min-w-0 pr-3">
-                  <span className="font-mono font-bold text-[#00A3FF] text-xs">1BIDTL158</span>
+                  <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                    {isSecondSem ? "1BPRJ258" : "1BIDTL158"}
+                  </span>
                   <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                    Innovation and Design Thinking Lab (Project-based)
+                    {isSecondSem
+                      ? "Interdisciplinary Project-Based Learning"
+                      : "Innovation and Design Thinking Lab (Project-based)"}
                   </p>
                 </div>
                 <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">

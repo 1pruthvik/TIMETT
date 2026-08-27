@@ -268,6 +268,20 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
                 extracted_text += page.get_text() + "\n"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
+    elif ext == "docx":
+        try:
+            import docx
+            doc = docx.Document(io.BytesIO(content))
+            for p in doc.paragraphs:
+                if p.text.strip():
+                    extracted_text += p.text + "\n"
+            for table in doc.tables:
+                for row in table.rows:
+                    row_txt = ", ".join([cell.text.strip() for cell in row.cells if cell.text.strip()])
+                    if row_txt:
+                        extracted_text += row_txt + "\n"
+        except Exception:
+            extracted_text = content.decode("utf-8", errors="ignore")
     elif ext in ["png", "jpg", "jpeg", "webp", "bmp", "tiff"]:
         try:
             from PIL import Image

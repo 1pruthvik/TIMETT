@@ -50,8 +50,14 @@ export default function SectionsPage() {
       const savedSlot = localStorage.getItem("vtu_slot_duration_config");
       if (savedSlot) {
         const parsed = JSON.parse(savedSlot);
-        if (parsed.theoryMin) setTheoryMin(parsed.theoryMin);
-        if (parsed.labMin) setLabMin(parsed.labMin);
+        if (parsed.theoryMin && parsed.theoryMin > 0) setTheoryMin(parsed.theoryMin);
+        else setTheoryMin(50);
+
+        if (parsed.labMin && parsed.labMin > 0) setLabMin(parsed.labMin);
+        else setLabMin(100);
+      } else {
+        setTheoryMin(50);
+        setLabMin(100);
       }
 
       const savedCourses = localStorage.getItem("vtu_college_offered_courses");

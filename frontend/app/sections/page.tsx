@@ -516,33 +516,7 @@ export default function SectionsPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                  Mandatory Lab Coinciding Rule
-                </label>
-                <div className="p-4 rounded-xl border border-primary/30 bg-primary/10 text-primary text-xs font-bold flex items-center space-x-3 shadow-xs">
-                  <span className="text-xl shrink-0">🔒</span>
-                  <div>
-                    <p className="font-extrabold text-foreground">Synchronous Parallel Lab Execution (Mandate)</p>
-                    <p className="text-[11px] font-normal text-muted-foreground mt-0.5">
-                      100% of students in a section attend physical labs simultaneously (Batch A1 & Batch A2 attend parallel labs at the exact same time and rotate weekly). Zero students remain in classroom.
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                  Coinciding / Shared Lab Facility Name
-                </label>
-                <input
-                  type="text"
-                  value={coincidedLabGroup}
-                  onChange={(e) => setCoincidedLabGroup(e.target.value)}
-                  placeholder="e.g. CS Central Computing Lab"
-                  className="w-full h-12 px-4 text-sm font-medium rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
-                />
-              </div>
             </div>
           </div>
 

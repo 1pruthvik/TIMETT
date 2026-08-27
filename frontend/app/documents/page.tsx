@@ -355,6 +355,32 @@ export default function DocumentsPage() {
         { code: "BME601L", name: "Heat Transfer Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    CIV: {
+      theory: [
+        { code: "BCV601", name: "Design of RCC Structures", category: "theory", weekly_hours: 3 },
+        { code: "BCV602", name: "Irrigation Engineering and Hydraulic Structures", category: "theory", weekly_hours: 4 },
+        { code: "BCV613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCV654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "BCVL606", name: "Software Application Lab", category: "practical", weekly_hours: 2 },
+        { code: "BCV657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
+    CIVIL: {
+      theory: [
+        { code: "BCV601", name: "Design of RCC Structures", category: "theory", weekly_hours: 3 },
+        { code: "BCV602", name: "Irrigation Engineering and Hydraulic Structures", category: "theory", weekly_hours: 4 },
+        { code: "BCV613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCV654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "BCVL606", name: "Software Application Lab", category: "practical", weekly_hours: 2 },
+        { code: "BCV657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

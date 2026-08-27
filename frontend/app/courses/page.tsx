@@ -130,13 +130,14 @@ export default function CoursesPage() {
           </h1>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-sm font-bold">
-              Total Students: {totalStudents}
+            <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
+              <span>Total Students:</span>
+              <span className="text-primary font-extrabold">{totalStudents}</span>
             </div>
             <button
               type="button"
               onClick={() => setShowAddCustom(!showAddCustom)}
-              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
             >
               <Plus className="h-4 w-4" />
               <span>Add Branch</span>

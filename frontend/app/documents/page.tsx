@@ -83,9 +83,13 @@ export default function DocumentsPage() {
       if (savedSubjects) {
         try {
           const parsed = JSON.parse(savedSubjects);
-          setCourseSubjectsMap({ ...initialMap, ...parsed });
+          // Ensure CSE is set to 5th semester subjects
+          const merged = { ...parsed, CSE: initialMap.CSE };
+          setCourseSubjectsMap(merged);
+          localStorage.setItem("vtu_course_subjects_map", JSON.stringify(merged));
         } catch {
           setCourseSubjectsMap(initialMap as any);
+          localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
         }
       } else {
         setCourseSubjectsMap(initialMap as any);

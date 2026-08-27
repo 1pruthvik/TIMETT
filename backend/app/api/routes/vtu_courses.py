@@ -28,8 +28,77 @@ PREFETCHED_VTU_COURSES = [
 class VTUSubject(BaseModel):
     code: str
     name: str
+    department: str = "Computer Science & Engineering"
     category: str  # "theory" or "practical"
     weekly_hours: int = 4
+
+
+def infer_department(code: str, name: str, default_course: str = "CSE") -> str:
+    c = (code or "").upper().strip()
+    n = (name or "").upper().strip()
+
+    # 1. Basic Sciences & Humanities
+    if any(k in c for k in ["MAT", "MTH"]) or any(k in n for k in ["MATH", "STATISTICS", "PROBABILITY", "CALCULUS", "LINEAR ALGEBRA", "NUMERICAL", "DISCRETE"]):
+        return "Mathematics"
+    if "PHY" in c or "PHYSICS" in n or "QUANTUM" in n:
+        return "Physics"
+    if "CHE" in c or "CHEMISTRY" in n:
+        return "Chemistry"
+    if any(k in c for k in ["HUM", "ENG", "CIP", "KAN", "IDT", "SFH"]) or any(k in n for k in ["CONSTITUTION", "ENVIRONMENT", "MANAGEMENT", "ENTREPRENEURSHIP", "ENGLISH", "KANNADA", "ETHICS", "YOGA", "COMMUNITY"]):
+        return "Humanities & Social Sciences"
+
+    # 2. Biological / Biomedical
+    if any(k in c for k in ["BBM", "BM", "BT", "BIO"]) or any(k in n for k in ["BIOMEDICAL", "BIOLOGY", "BIOMECHANICS", "BIODYNAMICS", "BIOPROCESS", "GENETICS"]):
+        return "Biomedical Engineering"
+
+    # 3. Electrical & Electronics
+    if any(k in c for k in ["BEE", "EE"]) or any(k in n for k in ["SWITCHGEAR", "POWER SYSTEM", "ELECTRICAL", "HIGH VOLTAGE", "DRIVES", "TRANSFORMER"]):
+        return "Electrical & Electronics Engineering"
+
+    # 4. Electronics & Communication
+    if any(k in c for k in ["BEC", "EC"]) or any(k in n for k in ["ANTENNA", "MICROWAVE", "WIRELESS", "COMMUNICATION", "ANALOG", "VLSI", "EMBEDDED", "SIGNAL PROCESSING", "DSP", "MICROCONTROLLER", "DIGITAL DESIGN"]):
+        return "Electronics & Communication Engineering"
+
+    # 5. Mechanical Engineering
+    if any(k in c for k in ["BME", "ME"]) or any(k in n for k in ["FINITE ELEMENT", "HYDRAULIC", "PNEUMATIC", "THERMODYNAMIC", "MECHANICS", "TURBOMACHINERY", "ROBOTICS", "HEAT TRANSFER", "MANUFACTURING", "AUTOMOBILE"]):
+        return "Mechanical Engineering"
+
+    # 6. Civil Engineering
+    if any(k in c for k in ["BCV", "CV", "CIV"]) or any(k in n for k in ["STEEL STRUCTURE", "CONCRETE", "SURVEYING", "GEOTECHNICAL", "STRUCTURAL", "ENVIRONMENTAL ENG", "HYDROLOGY"]):
+        return "Civil Engineering"
+
+    # 7. Chemical Engineering
+    if any(k in c for k in ["BCH", "CH"]) or any(k in n for k in ["PROCESS MODELING", "PROCESS CONTROL", "HEAT TRANSFER", "MASS TRANSFER", "REACTION ENG"]):
+        return "Chemical Engineering"
+
+    # 8. AI & Data Science
+    if any(k in c for k in ["BAI", "BCD", "BDS", "BAD", "AD"]) or any(k in n for k in ["DEEP LEARNING", "ARTIFICIAL INTELLIGENCE", "MACHINE LEARNING", "NEURAL NETWORK", "NATURAL LANGUAGE", "COMPUTER VISION"]):
+        return "Artificial Intelligence & Machine Learning"
+
+    # 9. Information Science
+    if any(k in c for k in ["BIS", "IS"]) or "INFORMATION SCIENCE" in n:
+        return "Information Science & Engineering"
+
+    # 10. Computer Science
+    if any(k in c for k in ["BCS", "CS", "CSE"]) or any(k in n for k in ["DATA STRUCTURE", "ALGORITHM", "OPERATING SYSTEM", "DATABASE", "JAVA", "PYTHON", "C++", "COMPILER", "CLOUD", "SOFTWARE", "CYBER", "WEB", "NETWORK"]):
+        return "Computer Science & Engineering"
+
+    # Course-code fallback mapping
+    course_dept_map = {
+        "CSE": "Computer Science & Engineering",
+        "CSE-AIML": "Artificial Intelligence & Machine Learning",
+        "CSE-DS": "Artificial Intelligence & Machine Learning",
+        "ISE": "Information Science & Engineering",
+        "AI&DS": "Artificial Intelligence & Data Science",
+        "ECE": "Electronics & Communication Engineering",
+        "EEE": "Electrical & Electronics Engineering",
+        "ME": "Mechanical Engineering",
+        "CIV": "Civil Engineering",
+        "CH": "Chemical Engineering",
+        "BME": "Biomedical Engineering",
+    }
+
+    return course_dept_map.get(default_course, "Computer Science & Engineering")
 
 
 class ParsedSchemeResponse(BaseModel):
@@ -179,8 +248,9 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
 
             category = "practical" if is_lab else "theory"
             hours = 3 if category == "practical" else 4
+            dept = infer_department(code, name_part)
 
-            subj = VTUSubject(code=code, name=name_part, category=category, weekly_hours=hours)
+            subj = VTUSubject(code=code, name=name_part, department=dept, category=category, weekly_hours=hours)
 
             if category == "practical":
                 if not any(s.code == code for s in practical_list):

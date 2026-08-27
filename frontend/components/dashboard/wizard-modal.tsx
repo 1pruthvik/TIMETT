@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   RefreshCw,
 } from "lucide-react";
+import { inferSubjectDepartment } from "@/app/documents/page";
 
 interface VTUCourse {
   code: string;
@@ -32,6 +33,7 @@ interface VTUCourse {
 interface Subject {
   code: string;
   name: string;
+  department?: string;
   category: "theory" | "practical";
   weekly_hours: number;
 }
@@ -505,12 +507,18 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                       ) : (
                         <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                           {activeData.theory.map((s, idx) => (
-                            <div key={idx} className="p-2 rounded-lg border bg-muted/30 flex items-center justify-between text-xs">
-                              <div>
+                            <div key={idx} className="p-2.5 rounded-lg border bg-muted/30 flex items-center justify-between gap-2 text-xs">
+                              <div className="min-w-0 flex-1">
                                 <span className="font-mono font-bold text-primary">{s.code}</span>
-                                <p className="font-medium text-foreground">{s.name}</p>
+                                <p className="font-medium text-foreground truncate">{s.name}</p>
                               </div>
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">{s.weekly_hours} hrs/wk</span>
+                              <div className="flex items-center space-x-2 shrink-0">
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-secondary border border-border text-foreground font-medium flex items-center space-x-1">
+                                  <Building2 className="h-2.5 w-2.5 text-primary shrink-0" />
+                                  <span className="truncate max-w-[120px]">{s.department || inferSubjectDepartment(s.code, s.name, activeCourseCode)}</span>
+                                </span>
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono font-bold">{s.weekly_hours} hrs/wk</span>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -528,12 +536,18 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                       ) : (
                         <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                           {activeData.practical.map((s, idx) => (
-                            <div key={idx} className="p-2 rounded-lg border bg-muted/30 flex items-center justify-between text-xs">
-                              <div>
+                            <div key={idx} className="p-2.5 rounded-lg border bg-muted/30 flex items-center justify-between gap-2 text-xs">
+                              <div className="min-w-0 flex-1">
                                 <span className="font-mono font-bold text-accent">{s.code}</span>
-                                <p className="font-medium text-foreground">{s.name}</p>
+                                <p className="font-medium text-foreground truncate">{s.name}</p>
                               </div>
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-mono">{s.weekly_hours} hrs/wk</span>
+                              <div className="flex items-center space-x-2 shrink-0">
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-secondary border border-border text-foreground font-medium flex items-center space-x-1">
+                                  <Building2 className="h-2.5 w-2.5 text-accent shrink-0" />
+                                  <span className="truncate max-w-[120px]">{s.department || inferSubjectDepartment(s.code, s.name, activeCourseCode)}</span>
+                                </span>
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-mono font-bold">{s.weekly_hours} hrs/wk</span>
+                              </div>
                             </div>
                           ))}
                         </div>

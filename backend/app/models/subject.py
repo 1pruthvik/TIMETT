@@ -31,5 +31,10 @@ class Subject(Base):
     semester_name: Mapped[str | None] = mapped_column(String(50), nullable=True)  # e.g., "Semester 1", "Semester 3"
 
     # Relationships
+    department = relationship("Department")
     stream = relationship("Stream", back_populates="subjects")
     lab_mappings = relationship("LabSubjectMapping", back_populates="subject", cascade="all, delete-orphan")
+
+    @property
+    def department_name(self) -> str | None:
+        return self.department.name if self.department else None

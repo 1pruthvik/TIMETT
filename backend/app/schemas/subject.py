@@ -12,6 +12,7 @@ class SubjectBase(BaseModel):
     cycle_group: str | None = None
     scheme: str | None = None
     semester_name: str | None = None
+    department_name: str | None = None
 
 
 class SubjectCreate(SubjectBase):
@@ -29,8 +30,10 @@ class SubjectUpdate(BaseModel):
     cycle_group: str | None = None
     scheme: str | None = None
     semester_name: str | None = None
+    department_name: str | None = None
 
 
 class SubjectResponse(SubjectBase):
     id: int
+    department_name: str | None = None
     model_config = ConfigDict(from_attributes=True)

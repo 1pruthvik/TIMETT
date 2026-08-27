@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
+import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
 
 interface Subject {
   code: string;
@@ -36,7 +37,7 @@ export default function DocumentsPage() {
 
   const [courses, setCourses] = useState<VTUCourse[]>([]);
   const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
-  const [activeSem, setActiveSem] = useState<"5" | "6">("5");
+  const [activeSem, setActiveSem] = useState<string>("6");
   const [courseSubjectsMap, setCourseSubjectsMap] = useState<
     Record<string, { theory: Subject[]; practical: Subject[] }>
   >({});
@@ -455,11 +456,49 @@ export default function DocumentsPage() {
     },
   };
 
-  // Helper to load subject map for active semester
-  const loadMapForSem = (sem: "5" | "6") => {
-    const key = sem === "6" ? "vtu_course_subjects_map_sem6" : "vtu_course_subjects_map_sem5";
+  // Helper to load subject map for any active semester (1-8)
+  const getDefaultsForSem = (semStr: string) => {
+    const semNum = Number(semStr) || 6;
+    const tmpl = VTU_HIGHER_SEMESTER_TEMPLATES[semNum];
+    const baseDefaults = semNum % 2 === 1 ? initialMapSem5 : initialMapSem6;
+
+    if (!tmpl) return baseDefaults;
+
+    const result: Record<string, { theory: Subject[]; practical: Subject[] }> = {};
+    
+    Object.keys(tmpl).forEach((bKey) => {
+      const data = tmpl[bKey];
+      result[bKey] = {
+        theory: (data.theory || []).map((s) => ({
+          code: s.code,
+          name: s.name,
+          category: "theory",
+          weekly_hours: s.weekly_hours || 4,
+          department: s.department || (bKey.includes("ECE") ? "ECE/ETE" : bKey.includes("EEE") ? "EEE" : bKey.includes("ME") ? "ME" : bKey.includes("CIV") ? "CIVIL" : bKey.includes("CH") ? "CHEMICAL" : bKey.includes("BM") ? "BIOMEDICAL" : "CS Allied"),
+        })),
+        practical: (data.practical || []).map((s) => ({
+          code: s.code,
+          name: s.name,
+          category: "practical",
+          weekly_hours: s.weekly_hours || 2,
+          department: s.department || (bKey.includes("ECE") ? "ECE/ETE" : bKey.includes("EEE") ? "EEE" : bKey.includes("ME") ? "ME" : bKey.includes("CIV") ? "CIVIL" : bKey.includes("CH") ? "CHEMICAL" : bKey.includes("BM") ? "BIOMEDICAL" : "CS Allied"),
+        })),
+      };
+    });
+
+    Object.keys(baseDefaults).forEach((cCode) => {
+      if (!result[cCode]) {
+        result[cCode] = baseDefaults[cCode];
+      }
+    });
+
+    return result;
+  };
+
+  const loadMapForSem = (semStr: string) => {
+    const key = `vtu_course_subjects_map_sem${semStr}`;
     const saved = localStorage.getItem(key);
-    const defaults = sem === "6" ? initialMapSem6 : initialMapSem5;
+    const defaults = getDefaultsForSem(semStr);
 
     if (saved) {
       try {
@@ -468,15 +507,15 @@ export default function DocumentsPage() {
         Object.keys(defaults).forEach((cCode) => {
           const defCourse = defaults[cCode];
           const savedCourse = parsed[cCode];
-          if (savedCourse) {
+          if (savedCourse && ((savedCourse.theory && savedCourse.theory.length > 0) || (savedCourse.practical && savedCourse.practical.length > 0))) {
             merged[cCode] = {
               theory: (savedCourse.theory || []).map((s: Subject, idx: number) => ({
                 ...s,
-                department: s.department || defCourse?.theory?.[idx]?.department || (cCode === "ECE" ? "ECE" : cCode === "EEE" ? "EEE" : cCode === "ME" ? "ME" : cCode.includes("CIV") ? "CIVIL" : cCode.includes("CH") ? "CHEMICAL" : cCode.includes("BM") ? "BIOMEDICAL" : "CS Allied"),
+                department: s.department || defCourse?.theory?.[idx]?.department || "CS Allied",
               })),
               practical: (savedCourse.practical || []).map((s: Subject, idx: number) => ({
                 ...s,
-                department: s.department || defCourse?.practical?.[idx]?.department || (cCode === "ECE" ? "ECE" : cCode === "EEE" ? "EEE" : cCode === "ME" ? "ME" : cCode.includes("CIV") ? "CIVIL" : cCode.includes("CH") ? "CHEMICAL" : cCode.includes("BM") ? "BIOMEDICAL" : "CS Allied"),
+                department: s.department || defCourse?.practical?.[idx]?.department || "CS Allied",
               })),
             };
           } else {
@@ -510,7 +549,7 @@ export default function DocumentsPage() {
         ]);
       }
 
-      const active = (localStorage.getItem("vtu_active_sem") as "5" | "6") || "6";
+      const active = localStorage.getItem("vtu_active_sem") || "6";
       setActiveSem(active);
       loadMapForSem(active);
     } catch (e) {
@@ -518,15 +557,15 @@ export default function DocumentsPage() {
     }
   }, []);
 
-  const handleSemSwitch = (sem: "5" | "6") => {
-    setActiveSem(sem);
-    localStorage.setItem("vtu_active_sem", sem);
-    loadMapForSem(sem);
+  const handleSemSwitch = (semStr: string) => {
+    setActiveSem(semStr);
+    localStorage.setItem("vtu_active_sem", semStr);
+    loadMapForSem(semStr);
   };
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      const key = activeSem === "6" ? "vtu_course_subjects_map_sem6" : "vtu_course_subjects_map_sem5";
+      const key = `vtu_course_subjects_map_sem${activeSem}`;
       localStorage.setItem(key, JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
@@ -657,30 +696,22 @@ export default function DocumentsPage() {
           </h1>
 
           <div className="flex items-center gap-3 shrink-0">
-            {/* Semester Switcher */}
-            <div className="flex items-center bg-muted p-1 rounded-xl border border-border/60">
-              <button
-                type="button"
-                onClick={() => handleSemSwitch("5")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                  activeSem === "5"
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                5th Semester
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSemSwitch("6")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                  activeSem === "6"
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                6th Semester
-              </button>
+            {/* Semester Switcher (1st through 8th Semesters) */}
+            <div className="flex items-center gap-1 bg-muted/80 p-1 rounded-xl border border-border/60 overflow-x-auto max-w-xs sm:max-w-md">
+              {["1", "2", "3", "4", "5", "6", "7", "8"].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => handleSemSwitch(s)}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                    activeSem === String(s)
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                  }`}
+                >
+                  Sem {s}
+                </button>
+              ))}
             </div>
 
             <button

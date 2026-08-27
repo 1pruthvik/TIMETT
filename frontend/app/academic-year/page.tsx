@@ -49,6 +49,13 @@ export default function AcademicYearPage() {
         selectedSemType,
       };
       localStorage.setItem("vtu_academic_setup", JSON.stringify(config));
+
+      const computedSem = 
+        selectedYear === "1" ? (selectedSemType === "odd" ? "1" : "2") :
+        selectedYear === "2" ? (selectedSemType === "odd" ? "3" : "4") :
+        selectedYear === "3" ? (selectedSemType === "odd" ? "5" : "6") :
+        (selectedSemType === "odd" ? "7" : "8");
+      localStorage.setItem("vtu_active_sem", computedSem);
     } catch (e) {
       console.error(e);
     }

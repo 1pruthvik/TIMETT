@@ -66,8 +66,9 @@ export default function DocumentsPage() {
 
       // Clean up old storage key if present to avoid conflicts
       localStorage.removeItem("vtu_course_subjects_map");
+      localStorage.removeItem("vtu_course_subjects_map_v2");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v2");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v3");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -88,7 +89,20 @@ export default function DocumentsPage() {
                 { code: "1BCSL307A", name: "Project Management (with Git)", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BCS401", name: "Discrete Mathematics and Graph Theory", category: "theory", weekly_hours: 5 },
+                { code: "1BCS402", name: "Database Management Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS403", name: "Computer Networks", category: "theory", weekly_hours: 4 },
+                { code: "1BCS404", name: "Design and Analysis of Algorithms", category: "theory", weekly_hours: 5 },
+                { code: "1BCS407", name: "Biology for Computer Engineers", category: "theory", weekly_hours: 2 },
+              ],
+              practical: [
+                { code: "1BCS402", name: "Database Management Systems Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL405", name: "Algorithms Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL406x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           "CSE-AIML": {
             "3": {
@@ -362,7 +376,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v2", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v3", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -371,7 +385,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v2", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v3", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

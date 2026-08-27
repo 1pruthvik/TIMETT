@@ -67,6 +67,7 @@ export default function DocumentsPage() {
       const isOldData = savedSubjects && (
         savedSubjects.includes("Mathematics for Computer Science") || 
         savedSubjects.includes("L-T-P") ||
+        savedSubjects.includes("1BEE401") ||
         !savedSubjects.includes("CSE-AIML") ||
         !savedSubjects.includes("CSE-DS") ||
         !savedSubjects.includes("1BMATEC301") ||

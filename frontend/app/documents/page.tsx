@@ -185,12 +185,42 @@ export default function DocumentsPage() {
             { code: "BME502L", name: "Turbo machines Laboratory", category: "practical", weekly_hours: 2 },
           ],
         },
+        CIV: {
+          theory: [
+            { code: "BCV501", name: "Construction Management and Entrepreneurship", category: "theory", weekly_hours: 3 },
+            { code: "BCV502", name: "Geotechnical Engineering", category: "theory", weekly_hours: 3 },
+            { code: "BCV503", name: "Concrete Technology", category: "theory", weekly_hours: 3 },
+            { code: "BCV515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+            { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
+            { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+          ],
+          practical: [
+            { code: "BCV504", name: "Environmental Engineering Lab", category: "practical", weekly_hours: 2 },
+            { code: "BCV502L", name: "Geotechnical Engineering Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
+        CIVIL: {
+          theory: [
+            { code: "BCV501", name: "Construction Management and Entrepreneurship", category: "theory", weekly_hours: 3 },
+            { code: "BCV502", name: "Geotechnical Engineering", category: "theory", weekly_hours: 3 },
+            { code: "BCV503", name: "Concrete Technology", category: "theory", weekly_hours: 3 },
+            { code: "BCV515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+            { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
+            { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+          ],
+          practical: [
+            { code: "BCV504", name: "Environmental Engineering Lab", category: "practical", weekly_hours: 2 },
+            { code: "BCV502L", name: "Geotechnical Engineering Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
       };
 
       if (savedSubjects) {
         try {
           const parsed = JSON.parse(savedSubjects);
-          // Ensure CSE, CSE-AIML, CSE-DS, ECE, EEE, ISE, AI&DS, and ME are set to 5th semester subjects
+          // Ensure CSE, CSE-AIML, CSE-DS, ECE, EEE, ISE, AI&DS, ME, and CIV are set to 5th semester subjects
           const merged = {
             ...parsed,
             CSE: initialMap.CSE,
@@ -202,6 +232,9 @@ export default function DocumentsPage() {
             "AI&DS": initialMap["AI&DS"],
             AIDS: initialMap.AIDS,
             ME: initialMap.ME,
+            CIV: initialMap.CIV,
+            CIVIL: initialMap.CIVIL,
+            CV: initialMap.CIV,
           };
           setCourseSubjectsMap(merged);
           localStorage.setItem("vtu_course_subjects_map", JSON.stringify(merged));

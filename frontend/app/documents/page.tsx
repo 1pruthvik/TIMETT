@@ -64,10 +64,30 @@ export default function DocumentsPage() {
       }
 
       const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
+      const initialMap = {
+        CSE: {
+          theory: [
+            { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
+            { code: "1BCS502", name: "Machine Learning", category: "theory", weekly_hours: 3 },
+            { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
+            { code: "1BCS504", name: "Computer Vision", category: "theory", weekly_hours: 3 },
+            { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+          ],
+          practical: [
+            { code: "1BCSL507", name: "Web Technology Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
+      };
+
       if (savedSubjects) {
-        setCourseSubjectsMap(JSON.parse(savedSubjects));
+        try {
+          const parsed = JSON.parse(savedSubjects);
+          setCourseSubjectsMap({ ...initialMap, ...parsed });
+        } catch {
+          setCourseSubjectsMap(initialMap as any);
+        }
       } else {
-        const initialMap = {};
         setCourseSubjectsMap(initialMap as any);
         localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
       }

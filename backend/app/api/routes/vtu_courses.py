@@ -177,8 +177,12 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
                 or "WORKSHOP" in line_clean.upper()
             )
 
+            # Skip online courses completely
+            if "ONLINE" in line_clean.upper() or "ONLINE" in name_part.upper():
+                continue
+
             category = "practical" if is_lab else "theory"
-            hours = 3 if category == "practical" else 4
+            hours = 2 if category == "practical" else 3
 
             subj = VTUSubject(code=code, name=name_part, category=category, weekly_hours=hours)
 

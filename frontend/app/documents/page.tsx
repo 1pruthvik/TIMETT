@@ -145,12 +145,38 @@ export default function DocumentsPage() {
             { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
           ],
         },
+        "AI&DS": {
+          theory: [
+            { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
+            { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3 },
+            { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
+            { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3 },
+            { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+          ],
+          practical: [
+            { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
+        AIDS: {
+          theory: [
+            { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
+            { code: "1BAI502", name: "Artificial Intelligence", category: "theory", weekly_hours: 3 },
+            { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
+            { code: "1BAI504", name: "Computer Networks", category: "theory", weekly_hours: 3 },
+            { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+          ],
+          practical: [
+            { code: "1BAIL507", name: "Data Visualization Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "1BAI502L", name: "Artificial Intelligence Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
       };
 
       if (savedSubjects) {
         try {
           const parsed = JSON.parse(savedSubjects);
-          // Ensure CSE, CSE-AIML, CSE-DS, ECE, EEE, and ISE are set to 5th semester subjects
+          // Ensure CSE, CSE-AIML, CSE-DS, ECE, EEE, ISE, and AI&DS are set to 5th semester subjects
           const merged = {
             ...parsed,
             CSE: initialMap.CSE,
@@ -159,6 +185,8 @@ export default function DocumentsPage() {
             ECE: initialMap.ECE,
             EEE: initialMap.EEE,
             ISE: initialMap.ISE,
+            "AI&DS": initialMap["AI&DS"],
+            AIDS: initialMap.AIDS,
           };
           setCourseSubjectsMap(merged);
           localStorage.setItem("vtu_course_subjects_map", JSON.stringify(merged));

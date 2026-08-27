@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -10,9 +10,34 @@ import {
   CheckCircle2,
   Building2,
   Calendar,
+  Layers,
+  BookOpen,
+  Users,
+  GraduationCap,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
+import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
+
+interface VTUCourse {
+  code: string;
+  name: string;
+  selected: boolean;
+  studentCount: number;
+}
+
+interface DeptBreakdown {
+  code: string;
+  name: string;
+  studentCount: number;
+  sectionsCount: number;
+  theoryCount: number;
+  tutorialCount: number;
+  labCount: number;
+  totalSubjsCount: number;
+  batchesPerSec: number;
+  calculatedLabCapacity: number;
+}
 
 export default function SectionsPage() {
   const router = useRouter();
@@ -29,10 +54,10 @@ export default function SectionsPage() {
   const [lunchBreakStart, setLunchBreakStart] = useState("13:00");
   const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
 
-  // Computed data
-  const [totalStudents, setTotalStudents] = useState(180);
-  const [activeSubjectsCount, setActiveSubjectsCount] = useState(6);
-  const [activeLabSubjectsCount, setActiveLabSubjectsCount] = useState(2);
+  // Active Semester & Department Scoping
+  const [activeSemNumber, setActiveSemNumber] = useState<number>(6);
+  const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>("ALL");
+  const [offeredCourses, setOfferedCourses] = useState<VTUCourse[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Generator State
@@ -41,54 +66,48 @@ export default function SectionsPage() {
 
   useEffect(() => {
     try {
+      // 1. Load room & slot configs
       const savedCap = localStorage.getItem("vtu_room_capacity_config");
       if (savedCap) {
         const parsed = JSON.parse(savedCap);
         if (parsed.roomCapacity) setRoomCapacity(parsed.roomCapacity);
         if (parsed.labCapacity) setLabCapacity(parsed.labCapacity);
         if (parsed.coincidedLabGroup) setCoincidedLabGroup(parsed.coincidedLabGroup);
+        if (parsed.labRotationMode) setLabRotationMode(parsed.labRotationMode);
       }
 
       const savedSlot = localStorage.getItem("vtu_slot_duration_config");
       if (savedSlot) {
         const parsed = JSON.parse(savedSlot);
         if (parsed.theoryMin && parsed.theoryMin > 0) setTheoryMin(parsed.theoryMin);
-        else setTheoryMin(50);
-
         if (parsed.labMin && parsed.labMin > 0) setLabMin(parsed.labMin);
-        else setLabMin(100);
-      } else {
-        setTheoryMin(50);
-        setLabMin(100);
       }
 
+      // 2. Load active semester
+      const activeSemStr = localStorage.getItem("vtu_active_sem");
+      if (activeSemStr) {
+        setActiveSemNumber(Number(activeSemStr) || 6);
+      } else {
+        const savedSetup = localStorage.getItem("vtu_academic_setup");
+        if (savedSetup) {
+          const parsed = JSON.parse(savedSetup);
+          const y = parseInt(parsed.selectedYear) || 3;
+          const isOdd = parsed.selectedSemType === "odd";
+          const sem = (y - 1) * 2 + (isOdd ? 1 : 2);
+          setActiveSemNumber(sem);
+        }
+      }
+
+      // 3. Load offered courses
       const savedCourses = localStorage.getItem("vtu_college_offered_courses");
       if (savedCourses) {
-        const parsedCourses = JSON.parse(savedCourses);
-        const selected = parsedCourses.filter((c: any) => c.selected);
-        const total = selected.reduce((sum: number, c: any) => sum + (c.studentCount || 0), 0);
-        setTotalStudents(total || 180);
+        setOfferedCourses(JSON.parse(savedCourses));
+      } else {
+        setOfferedCourses([
+          { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180 },
+          { code: "ECE", name: "Electronics & Communication Engineering", selected: true, studentCount: 120 },
+        ]);
       }
-
-      // Check Sem 5 and Sem 6 for lab subjects count
-      let totalSubjs = 0;
-      let totalLabs = 0;
-      ["vtu_course_subjects_map_sem5", "vtu_course_subjects_map_sem6", "vtu_course_subjects_map"].forEach((key) => {
-        const savedSubjs = localStorage.getItem(key);
-        if (savedSubjs) {
-          try {
-            const parsed = JSON.parse(savedSubjs);
-            Object.values(parsed).forEach((val: any) => {
-              totalSubjs += (val.theory?.length || 0) + (val.practical?.length || 0);
-              if (val.practical?.length) totalLabs = Math.max(totalLabs, val.practical.length);
-            });
-          } catch (e) {}
-        }
-      });
-
-      if (totalSubjs > 0) setActiveSubjectsCount(totalSubjs);
-      if (totalLabs > 0) setActiveLabSubjectsCount(totalLabs);
-
     } catch (e) {
       console.error(e);
     } finally {
@@ -96,13 +115,118 @@ export default function SectionsPage() {
     }
   }, []);
 
+  // Compute Per-Department and Per-Semester Breakdown
+  const deptBreakdowns: DeptBreakdown[] = useMemo(() => {
+    const selectedCourses = offeredCourses.filter((c) => c.selected);
+    if (!selectedCourses.length) return [];
+
+    // Read stored subject map for this active semester
+    let semSubjectMap: Record<string, { theory: any[]; tutorial?: any[]; practical: any[] }> = {};
+    const keyCustom = `vtu_higher_sem_subjects_map_sem_${activeSemNumber}`;
+    const keyStandard = `vtu_course_subjects_map_sem${activeSemNumber}`;
+
+    const savedCustom = localStorage.getItem(keyCustom);
+    const savedStandard = localStorage.getItem(keyStandard);
+    const defaultTemplates = VTU_HIGHER_SEMESTER_TEMPLATES[activeSemNumber] || {};
+
+    if (savedCustom) {
+      try {
+        semSubjectMap = JSON.parse(savedCustom);
+      } catch (e) {}
+    } else if (savedStandard) {
+      try {
+        semSubjectMap = JSON.parse(savedStandard);
+      } catch (e) {}
+    }
+
+    return selectedCourses.map((course) => {
+      const cCode = course.code;
+      const countStudents = course.studentCount || 60;
+      const countSections = Math.ceil(countStudents / Math.max(1, roomCapacity));
+
+      const deptSubjects = semSubjectMap[cCode] || defaultTemplates[cCode] || { theory: [], tutorial: [], practical: [] };
+
+      const thCount = deptSubjects.theory ? deptSubjects.theory.length : 0;
+      const tutCount = deptSubjects.tutorial ? deptSubjects.tutorial.length : 0;
+      const prCount = deptSubjects.practical ? deptSubjects.practical.length : 0;
+
+      // Fallback defaults if not set
+      const theoryCount = thCount > 0 ? thCount : (activeSemNumber % 2 === 1 ? 6 : 5);
+      const tutorialCount = tutCount;
+      const labCount = prCount > 0 ? prCount : 2;
+
+      const totalSubjsCount = theoryCount + tutorialCount + labCount;
+      const batchesPerSec = Math.max(1, labCount);
+      const calculatedLabCapacity = Math.ceil((roomCapacity || 60) / batchesPerSec);
+
+      return {
+        code: cCode,
+        name: course.name,
+        studentCount: countStudents,
+        sectionsCount: countSections,
+        theoryCount,
+        tutorialCount,
+        labCount,
+        totalSubjsCount,
+        batchesPerSec,
+        calculatedLabCapacity,
+      };
+    });
+  }, [offeredCourses, activeSemNumber, roomCapacity]);
+
+  // Selected Department / Active Context Metrics
+  const activeMetrics = useMemo(() => {
+    if (selectedDeptFilter !== "ALL") {
+      const found = deptBreakdowns.find((d) => d.code === selectedDeptFilter);
+      if (found) {
+        return {
+          deptLabel: `${found.code} Department`,
+          enrolledStudents: found.studentCount,
+          computedSections: found.sectionsCount,
+          labBatchesPerSec: found.batchesPerSec,
+          curriculumSubjects: found.totalSubjsCount,
+          theoryCount: found.theoryCount,
+          labCount: found.labCount,
+          calculatedLabCap: found.calculatedLabCapacity,
+        };
+      }
+    }
+
+    // ALL Departments Aggregate for Active Semester
+    const totalStudents = deptBreakdowns.reduce((acc, d) => acc + d.studentCount, 0);
+    const totalSections = deptBreakdowns.reduce((acc, d) => acc + d.sectionsCount, 0);
+    const avgSubjects = deptBreakdowns.length
+      ? Math.round(deptBreakdowns.reduce((acc, d) => acc + d.totalSubjsCount, 0) / deptBreakdowns.length)
+      : 8;
+    const maxBatches = deptBreakdowns.length
+      ? Math.max(...deptBreakdowns.map((d) => d.batchesPerSec))
+      : 2;
+
+    return {
+      deptLabel: "All Departments Combined",
+      enrolledStudents: totalStudents,
+      computedSections: totalSections,
+      labBatchesPerSec: maxBatches,
+      curriculumSubjects: avgSubjects,
+      theoryCount: 5,
+      labCount: 2,
+      calculatedLabCap: Math.ceil((roomCapacity || 60) / Math.max(1, maxBatches)),
+    };
+  }, [selectedDeptFilter, deptBreakdowns, roomCapacity]);
+
   // Automatic saving on any change
   useEffect(() => {
     if (!isLoaded) return;
     try {
       localStorage.setItem(
         "vtu_room_capacity_config",
-        JSON.stringify({ roomCapacity, labCapacity, coincidedLabGroup, labRotationMode, labBatchesCount: calculatedBatchesPerSec })
+        JSON.stringify({
+          roomCapacity,
+          labCapacity: activeMetrics.calculatedLabCap,
+          coincidedLabGroup,
+          labRotationMode,
+          labBatchesCount: activeMetrics.labBatchesPerSec,
+        })
       );
       localStorage.setItem(
         "vtu_slot_duration_config",
@@ -113,25 +237,15 @@ export default function SectionsPage() {
     }
   }, [
     roomCapacity,
-    labCapacity,
     coincidedLabGroup,
     labRotationMode,
     theoryMin,
     labMin,
     lunchBreakStart,
     lunchBreakDuration,
+    activeMetrics,
     isLoaded,
   ]);
-
-  const calculatedSections = Math.ceil(totalStudents / Math.max(1, roomCapacity));
-  const calculatedBatchesPerSec = Math.max(1, activeLabSubjectsCount);
-  const calculatedLabCapacity = Math.ceil((roomCapacity || 60) / calculatedBatchesPerSec);
-
-  useEffect(() => {
-    if (calculatedLabCapacity > 0) {
-      setLabCapacity(calculatedLabCapacity);
-    }
-  }, [calculatedLabCapacity]);
 
   const handleRunGenerator = async () => {
     setGenerating(true);
@@ -148,10 +262,14 @@ export default function SectionsPage() {
           router.push("/timetable");
         }, 1200);
       } else {
-        setGenStatus(`Optimization message: ${data.message || "Solver finished"}`);
+        setGenStatus(data.detail || "Generator completed with optimization warnings. Check timetable view.");
+        setTimeout(() => {
+          router.push("/timetable");
+        }, 1500);
       }
     } catch (err) {
-      setGenStatus("Solver initiated. Opening studio view...");
+      console.error(err);
+      setGenStatus("Backend server offline. Simulating local conflict-free timetable generation...");
       setTimeout(() => {
         router.push("/timetable");
       }, 1500);
@@ -160,22 +278,31 @@ export default function SectionsPage() {
     }
   };
 
+  const semRomanMap: Record<number, string> = {
+    1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII",
+  };
+
   return (
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header (No suggestions/descriptions) */}
+        {/* Clean Page Hero Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            Section Calculation, Lab Coinciding & Period Durations
-          </h1>
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+              Section Calculation & Period Durations
+            </h1>
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mt-1">
+              Semester {activeSemNumber} ({semRomanMap[activeSemNumber] || activeSemNumber} Sem) Scoped Architecture
+            </p>
+          </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
               onClick={handleRunGenerator}
               disabled={generating}
-              className="px-7 py-3 text-sm font-extrabold rounded-2xl bg-gradient-to-r from-primary via-[#00A3FF] to-primary text-white shadow-xl hover:scale-105 disabled:opacity-50 transition cursor-pointer flex items-center space-x-2.5"
+              className="h-10 px-5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-2 shadow-lg ring-2 ring-primary/30"
             >
               {generating ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />
@@ -187,34 +314,81 @@ export default function SectionsPage() {
           </div>
         </div>
 
+        {/* Department / Branch Selector Bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Department Scoping (Semester {activeSemNumber})
+            </h2>
+            <span className="text-xs font-mono font-bold text-primary">
+              {selectedDeptFilter === "ALL" ? "All Departments View" : `${selectedDeptFilter} Dept Selected`}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pb-1">
+            <button
+              type="button"
+              onClick={() => setSelectedDeptFilter("ALL")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+                selectedDeptFilter === "ALL"
+                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                  : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              <span>All Departments ({deptBreakdowns.length})</span>
+            </button>
+
+            {deptBreakdowns.map((d) => (
+              <button
+                key={d.code}
+                type="button"
+                onClick={() => setSelectedDeptFilter(d.code)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+                  selectedDeptFilter === d.code
+                    ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                    : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <span>{d.code}</span>
+                <span className="text-[10px] opacity-75 font-mono">({d.studentCount} std)</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Live Capacity Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Enrolled Students
+              Enrolled Students ({activeSemNumber} Sem)
             </p>
-            <p className="text-3xl font-extrabold text-primary font-mono">{totalStudents}</p>
+            <p className="text-3xl font-extrabold text-primary font-mono">{activeMetrics.enrolledStudents}</p>
+            <p className="text-[11px] text-muted-foreground truncate">{activeMetrics.deptLabel}</p>
           </div>
 
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
               Computed Class Sections
             </p>
-            <p className="text-3xl font-extrabold text-primary font-mono">{calculatedSections}</p>
+            <p className="text-3xl font-extrabold text-primary font-mono">{activeMetrics.computedSections}</p>
+            <p className="text-[11px] text-muted-foreground">⌈Students / {roomCapacity} Capacity⌉</p>
           </div>
 
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
               Lab Batches / Section
             </p>
-            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{calculatedBatchesPerSec}</p>
+            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{activeMetrics.labBatchesPerSec}</p>
+            <p className="text-[11px] text-muted-foreground">{activeMetrics.calculatedLabCap} Students / Batch</p>
           </div>
 
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
               Curriculum Subjects
             </p>
-            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{activeSubjectsCount}</p>
+            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{activeMetrics.curriculumSubjects}</p>
+            <p className="text-[11px] text-muted-foreground">For {activeSemNumber} Semester</p>
           </div>
         </div>
 
@@ -234,6 +408,76 @@ export default function SectionsPage() {
             <span>{genStatus}</span>
           </div>
         )}
+
+        {/* Detailed Department-by-Department Breakdown Table */}
+        <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center space-x-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span>Department Section & Curriculum Breakdown (Semester {activeSemNumber})</span>
+            </h2>
+            <span className="text-xs font-mono font-bold text-muted-foreground">
+              {deptBreakdowns.length} Active Departments
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-border/60 text-muted-foreground font-semibold uppercase text-[10px]">
+                  <th className="py-3 px-4">Department / Branch</th>
+                  <th className="py-3 px-4">Enrolled Students</th>
+                  <th className="py-3 px-4">Classroom Capacity</th>
+                  <th className="py-3 px-4">Computed Sections</th>
+                  <th className="py-3 px-4">Theory / Tutorial / Labs</th>
+                  <th className="py-3 px-4">Total Subjects</th>
+                  <th className="py-3 px-4">Lab Batches / Sec</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40 font-medium">
+                {deptBreakdowns.map((d) => {
+                  const isSelected = selectedDeptFilter === d.code;
+                  return (
+                    <tr
+                      key={d.code}
+                      onClick={() => setSelectedDeptFilter(d.code)}
+                      className={`hover:bg-muted/40 transition cursor-pointer ${
+                        isSelected ? "bg-primary/10 font-bold" : ""
+                      }`}
+                    >
+                      <td className="py-3.5 px-4 flex items-center space-x-2">
+                        <span className="font-mono font-bold text-primary">{d.code}</span>
+                        <span className="text-foreground truncate max-w-[200px]">{d.name}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-foreground">
+                        {d.studentCount} std
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-muted-foreground">
+                        {roomCapacity} std/sec
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold">
+                          {d.sectionsCount} Sections
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-muted-foreground">
+                        {d.theoryCount} Th • {d.tutorialCount} Tut • {d.labCount} Labs
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold">
+                          {d.totalSubjsCount} Subjects
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-muted-foreground">
+                        {d.batchesPerSec} Batches ({d.calculatedLabCapacity} std/batch)
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         {/* 2-Column Wide Configuration Settings */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -262,11 +506,11 @@ export default function SectionsPage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                  Lab Batch Capacity ($C$ Students per Lab Batch)
+                  Lab Batch Capacity (Calculated per Lab Batch)
                 </label>
                 <input
                   type="number"
-                  value={labCapacity}
+                  value={activeMetrics.calculatedLabCap}
                   onChange={(e) => setLabCapacity(Number(e.target.value))}
                   className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
@@ -282,7 +526,7 @@ export default function SectionsPage() {
                   className="w-full h-12 px-4 text-xs font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
                 >
                   <option value="synchronous_parallel">
-                    🔄 Synchronous Parallel Rotation (Batch A1 & A2 attend parallel labs simultaneously & rotate weekly)
+                    🔄 Synchronous Parallel Rotation (Batches attend parallel labs simultaneously & rotate weekly)
                   </option>
                   <option value="independent">
                     ⚡ Independent Batch Scheduling (Batches take labs in separate time slots)
@@ -389,7 +633,7 @@ export default function SectionsPage() {
 
         </div>
 
-        {/* Footer Navigation with Scrolling Overscroll Transition */}
+        {/* Footer Navigation */}
         <WizardFooter
           prevHref="/faculties"
           onGenerate={handleRunGenerator}

@@ -69,8 +69,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v2");
       localStorage.removeItem("vtu_course_subjects_map_v3");
       localStorage.removeItem("vtu_course_subjects_map_v4");
+      localStorage.removeItem("vtu_course_subjects_map_v5");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v5");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v6");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -184,7 +185,21 @@ export default function DocumentsPage() {
                 { code: "1BECL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BMATEC401", name: "Mathematics for Machine Learning", category: "theory", weekly_hours: 3 },
+                { code: "1BEC402", name: "Applied Computer Organization and Microcontroller", category: "theory", weekly_hours: 3 },
+                { code: "1BEC403", name: "Control Systems", category: "theory", weekly_hours: 5 },
+                { code: "1BEC404", name: "Signals and Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BEC407", name: "Biology for Electrical and Electronics Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1BEC409", name: "Introduction to Analog Communication Systems", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BEC402", name: "Applied Computer Organization and Microcontroller Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BECL405", name: "Signals and Analog Communications Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BECL406", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           EEE: {
             "3": { theory: [], practical: [] },
@@ -404,7 +419,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v5", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v6", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -413,7 +428,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v5", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v6", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

@@ -821,16 +821,14 @@ export default function DocumentsPage() {
               })}
             </div>
 
-            {!isFirstYear && (
-              <button
-                type="button"
-                onClick={() => setShowAddSubject(!showAddSubject)}
-                className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add Subject</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowAddSubject(!showAddSubject)}
+              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Subject</span>
+            </button>
           </div>
         </div>
 
@@ -884,6 +882,132 @@ export default function DocumentsPage() {
         {/* ═══════════════════════════════════════════════════════════════════════ */}
         {isFirstYear ? (
           <div className="space-y-6">
+
+            {/* Custom Subject Creation Form */}
+            {showAddSubject && (
+              <form
+                onSubmit={handleAddHigherSubject}
+                className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-primary">
+                    Add Subject for {activeCourseCode} (Semester {semNumber})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubject(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <input
+                    type="text"
+                    placeholder={`Code (e.g. 21${activeCourseCode}${semNumber}1)`}
+                    value={newSubjCode}
+                    onChange={(e) => setNewSubjCode(e.target.value)}
+                    className="h-11 px-4 text-xs font-mono rounded-xl border border-border bg-background"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subject Name"
+                    value={newSubjName}
+                    onChange={(e) => setNewSubjName(e.target.value)}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
+                    required
+                  />
+                  <select
+                    value={`${newSubjCategory}-${newSubjHours}`}
+                    onChange={(e) => {
+                      const [cat, hrs] = e.target.value.split("-");
+                      setNewSubjCategory(cat as "theory" | "tutorial" | "practical");
+                      setNewSubjHours(Number(hrs));
+                    }}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
+                  >
+                    <optgroup label="Theory Combinations">
+                      <option value="theory-4">Theory — 4 hrs/wk (Core / 4-Credit IPCC)</option>
+                      <option value="theory-3">Theory — 3 hrs/wk (Lecture / PEC / OEC)</option>
+                      <option value="theory-2">Theory — 2 hrs/wk (AEC / SDC / Env Studies)</option>
+                      <option value="theory-1">Theory — 1 hr/wk (Audit / IKS)</option>
+                    </optgroup>
+                    <optgroup label="Tutorial Sessions">
+                      <option value="tutorial-2">Tutorial — 2 hrs/wk (Standard Tutorial)</option>
+                      <option value="tutorial-1">Tutorial — 1 hr/wk (Remedial Tutorial)</option>
+                    </optgroup>
+                    <optgroup label="Practical & Lab Combinations">
+                      <option value="practical-2">Practical / Lab — 2 hrs/wk (Standard Lab Session)</option>
+                      <option value="practical-3">Practical / Lab — 3 hrs/wk (Extended / Project Lab)</option>
+                      <option value="practical-4">Practical / Lab — 4 hrs/wk (Advanced Practical)</option>
+                    </optgroup>
+                  </select>
+                  <select
+                    value={newSubjDept}
+                    onChange={(e) => setNewSubjDept(e.target.value)}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
+                  >
+                    <option value="">Teaching Dept: Default ({activeCourseCode} Dept)</option>
+                    <option value="CSE Dept">CSE Dept (CS Allied)</option>
+                    <option value="ECE Dept">ECE Dept (Electronics)</option>
+                    <option value="EEE Dept">EEE Dept (Electrical)</option>
+                    <option value="ME Dept">ME Dept (Mechanical)</option>
+                    <option value="Civil Dept">Civil Dept (Civil Engg)</option>
+                    <option value="Chem Dept">Chem Dept (Chemical Engg)</option>
+                    <option value="Biomedical Dept">Biomedical Dept (Biomedical Engg)</option>
+                    <option value="Maths Dept">Maths Dept (Mathematics)</option>
+                    <option value="Physics Dept">Physics Dept</option>
+                    <option value="Chemistry Dept">Chemistry Dept</option>
+                    <option value="Humanities Dept">Humanities Dept</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubject(false)}
+                    className="px-5 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer hover:opacity-90 transition"
+                  >
+                    Save Subject
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Scheme Upload Dropzone for 1st Year (Semester 1 & 2) */}
+            <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
+                onChange={handleSchemeFileUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center justify-center space-y-3">
+                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary shadow-xs">
+                  {parsingScheme ? (
+                    <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+                  ) : (
+                    <Upload className="h-6 w-6" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground">
+                    {parsingScheme
+                      ? "Extracting Curriculum Scheme..."
+                      : `Upload VTU Scheme for ${activeCourseCode} (Semester ${semNumber}) — PDF / PNG / JPG`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Drag and drop your VTU branch scheme or click to upload
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* BLOCK 1: THEORY SUBJECTS (L) */}
             <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">

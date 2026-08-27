@@ -43,16 +43,17 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          {/* Prominent Action Buttons from Image 2 */}
+          {/* Prominent Action Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-            <Button
-              onClick={() => setIsWizardOpen(true)}
-              className="h-14 rounded-2xl tt-gradient-btn px-8 text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all"
-            >
-              <Plus className="size-5" />
-              Generate New
-              <ArrowRight className="size-5" />
-            </Button>
+            <Link href="/academic-year">
+              <Button
+                className="h-14 rounded-2xl tt-gradient-btn px-8 text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all"
+              >
+                <Plus className="size-5" />
+                Generate New
+                <ArrowRight className="size-5" />
+              </Button>
+            </Link>
 
             <Link href="/timetable">
               <Button

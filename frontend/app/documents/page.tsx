@@ -287,6 +287,19 @@ export default function DocumentsPage() {
         { code: "BEC601L", name: "Embedded System Design Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    EEE: {
+      theory: [
+        { code: "BEE601", name: "Power system Analysis - I", category: "theory", weekly_hours: 3 },
+        { code: "BEE602", name: "Control Systems", category: "theory", weekly_hours: 4 },
+        { code: "BEE613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BEE654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "BEEL606", name: "Control System Lab", category: "practical", weekly_hours: 2 },
+        { code: "BEE657x", name: "Ability Enhancement Course/Skill Development Course - V", category: "practical", weekly_hours: 2 },
+        { code: "BEE601L", name: "Power system Analysis - I Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

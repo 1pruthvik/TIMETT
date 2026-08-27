@@ -7,13 +7,11 @@ import {
   DoorOpen,
   Layers,
   Sparkles,
-  ArrowRight,
-  ArrowLeft,
   Users,
   Building2,
-  CheckCircle2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 export default function RoomsPage() {
   const router = useRouter();
@@ -73,7 +71,6 @@ export default function RoomsPage() {
 
   const handleNext = () => {
     saveConfig();
-    router.push("/time-slots");
   };
 
   return (
@@ -198,27 +195,13 @@ export default function RoomsPage() {
             </div>
           </div>
 
-          {/* Footer Controls */}
-          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
-            <Link href="/faculty">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Previous: Faculty</span>
-              </button>
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleNext}
-              className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
-            >
-              <span>Next: Time Slots & Generator</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          {/* Footer Navigation with Scrolling Overscroll Transition */}
+          <WizardFooter
+            prevHref="/faculty"
+            nextHref="/time-slots"
+            nextLabel="Next: Time Slots"
+            onNext={handleNext}
+          />
 
         </div>
       </div>

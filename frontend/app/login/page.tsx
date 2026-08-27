@@ -129,13 +129,13 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-md tt-animate-fade">
-        {/* TIMETT Branding */}
+        {/* Tempus Branding */}
         <div className="mb-6 text-center space-y-2">
           <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#0052FF] via-[#0070F3] to-[#38BDF8] text-white shadow-[0_0_30px_-5px_rgba(99,102,241,0.5)]">
             <CalendarDays className="size-7" />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-            Sign in to TIMETT
+            Sign in to Tempus
           </h1>
           <p className="text-xs text-muted-foreground">
             Enter your credentials to access the intelligent timetable workspace

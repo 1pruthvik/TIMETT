@@ -166,6 +166,7 @@ export default function TimetablePage() {
 
   // Views & Filters
   const [viewMode, setViewMode] = useState<ViewMode>("section");
+  const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
   const [selectedSection, setSelectedSection] = useState<number | "ALL">("ALL");
   const [selectedFaculty, setSelectedFaculty] = useState<number | "ALL">("ALL");
   const [selectedRoom, setSelectedRoom] = useState<number | "ALL">("ALL");
@@ -368,47 +369,46 @@ export default function TimetablePage() {
       let finalEntries = loadedEntries;
 
       if (finalEntries.length === 0 || finalSections.length === 0 || finalFaculty.length === 0) {
-        // Read stored parsed faculty from user-scoped storage
+        // 1. Read stored parsed faculty strictly from user-scoped storage
         const parsedFacArray = getItemUserScoped<any[]>("vtu_faculty_list") || [];
+        const facultyData: Faculty[] = parsedFacArray.map((f: any, idx: number) => ({
+          id: idx + 1,
+          name: f.name || `Faculty ${idx + 1}`,
+          designation: f.designation || f.department || "Assistant Professor",
+        }));
 
-        const facultyData: Faculty[] = parsedFacArray.length > 0
-          ? parsedFacArray.map((f: any, idx: number) => ({
-              id: idx + 1,
-              name: f.name || `Prof. Faculty ${idx + 1}`,
-              designation: f.designation || f.department || "Assistant Professor",
-            }))
-          : [
-              { id: 1, name: "Dr. Ramesh Kumar", designation: "Professor & Head" },
-              { id: 2, name: "Prof. Priya Sharma", designation: "Associate Professor" },
-              { id: 3, name: "Dr. Ananya Rao", designation: "Assistant Professor" },
-              { id: 4, name: "Prof. Karthik V", designation: "Assistant Professor" },
-              { id: 5, name: "Dr. Sangeetha M", designation: "Associate Professor" },
-              { id: 6, name: "Prof. Vikram Singh", designation: "Assistant Professor" },
-            ];
-
-        // Read stored sections & courses from user-scoped storage
+        // 2. Read stored sections & streams strictly from user-scoped storage (respecting deleted streams!)
         const parsedCourses = getItemUserScoped<any[]>("vtu_college_offered_courses") || [];
         const activeCourses = parsedCourses.filter((c: any) => c.selected);
 
-        const sectionData: Section[] = [];
+        const sectionData: (Section & { semester_id: number })[] = [];
         let secIdCounter = 1;
 
-        if (activeCourses.length > 0) {
-          activeCourses.forEach((c: any) => {
-            const countSec = Math.max(1, Math.ceil((c.studentCount || 60) / 60));
-            for (let i = 0; i < countSec; i++) {
-              const secName = `${c.code}-${String.fromCharCode(65 + i)}`;
-              sectionData.push({ id: secIdCounter++, name: secName });
-            }
-          });
-        } else {
-          sectionData.push(
-            { id: 1, name: "CSE-A" },
-            { id: 2, name: "CSE-B" },
-            { id: 3, name: "ECE-A" },
-            { id: 4, name: "ISE-A" }
-          );
-        }
+        // Build section cohorts for ALL semesters 1 through 8 so no semester is left empty!
+        const semestersToBuild = [1, 2, 3, 4, 5, 6, 7, 8];
+
+        semestersToBuild.forEach((semNum) => {
+          if (activeCourses.length > 0) {
+            activeCourses.forEach((c: any) => {
+              const countSec = Math.max(1, Math.ceil((c.studentCount || 60) / 60));
+              for (let i = 0; i < countSec; i++) {
+                const secName = `${c.code}-${String.fromCharCode(65 + i)}`;
+                sectionData.push({
+                  id: secIdCounter++,
+                  name: secName,
+                  semester_id: semNum,
+                });
+              }
+            });
+          } else {
+            ["CSE", "ECE", "ISE"].forEach((code) => {
+              sectionData.push(
+                { id: secIdCounter++, name: `${code}-A`, semester_id: semNum },
+                { id: secIdCounter++, name: `${code}-B`, semester_id: semNum }
+              );
+            });
+          }
+        });
 
         // Standard Rooms
         const roomData: Room[] = [
@@ -419,17 +419,37 @@ export default function TimetablePage() {
           { id: 5, name: "CS Computing Lab 2", room_type: "Physical Lab", capacity: 30 },
         ];
 
-        // Time Slots (5 Days, 6 Periods)
+        // Read user-configured slot duration & break settings
+        const userSlotConfig = getItemUserScoped<any>("vtu_slot_duration_config");
+        const minStart = userSlotConfig?.minStartTime || "09:00";
+        const maxStay = userSlotConfig?.maxStayTime || "16:00";
+        const teaStart = userSlotConfig?.teaBreakStart || "11:00";
+        const teaDur = Number(userSlotConfig?.teaBreakDuration ?? 20);
+        const lunchStart = userSlotConfig?.lunchBreakStart || "13:20";
+        const lunchDur = Number(userSlotConfig?.lunchBreakDuration ?? 40);
+        const userHalfDays: string[] = userSlotConfig?.halfDays || ["Wednesday", "Friday"];
+
+        const addMinutes = (timeStr: string, mins: number): string => {
+          const [h, m] = (timeStr || "00:00").split(":").map(Number);
+          const total = (h || 0) * 60 + (m || 0) + mins;
+          const newH = Math.floor(total / 60) % 24;
+          const newM = total % 60;
+          return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+        };
+
+        // Time Slots (5 Days, 6 Periods) dynamically computed from user break settings
         const slotData: TimeSlot[] = [];
         let slotIdCounter = 1;
         const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const periodTimes = [
-          { start: "09:00", end: "10:00" },
-          { start: "10:00", end: "11:00" },
-          { start: "11:15", end: "12:15" },
-          { start: "12:15", end: "01:15" },
-          { start: "02:00", end: "03:00" },
-          { start: "03:00", end: "04:00" },
+          { start: minStart, end: addMinutes(minStart, 60) }, // Period 1
+          { start: addMinutes(minStart, 60), end: teaStart }, // Period 2 (ends at Tea Break Start e.g. 11:00)
+          // --- Tea Break: 11:00 AM - 11:20 AM ---
+          { start: addMinutes(teaStart, teaDur), end: addMinutes(teaStart, teaDur + 60) }, // Period 3 (11:20 - 12:20)
+          { start: addMinutes(teaStart, teaDur + 60), end: lunchStart }, // Period 4 (12:20 - 13:20 / 1:20 PM)
+          // --- Lunch Break: 01:20 PM - 02:00 PM ---
+          { start: addMinutes(lunchStart, lunchDur), end: addMinutes(lunchStart, lunchDur + 60) }, // Period 5 (02:00 - 03:00 PM)
+          { start: addMinutes(lunchStart, lunchDur + 60), end: maxStay }, // Period 6 (03:00 - 04:00 PM)
         ];
 
         days.forEach((day) => {
@@ -443,43 +463,69 @@ export default function TimetablePage() {
           });
         });
 
-        // Expand sections to cover all departments if needed so ALL faculty members get teaching loads
-        const allDepts = ["CSE", "ECE", "ISE", "EEE", "ME", "CIV"];
-        if (sectionData.length < 8) {
-          allDepts.forEach((dept) => {
-            if (!sectionData.some((s) => s.name.startsWith(dept))) {
-              sectionData.push(
-                { id: secIdCounter++, name: `${dept}-A` },
-                { id: secIdCounter++, name: `${dept}-B` }
-              );
-            }
+        // 3. Read REAL subjects strictly from user-scoped storage (vtu_course_subjects_map or uploaded proficiencies)
+        const parsedSubjectMap = getItemUserScoped<any>("vtu_course_subjects_map");
+        const subjectData: Subject[] = [];
+        let subIdCounter = 1;
+
+        if (parsedSubjectMap) {
+          Object.values(parsedSubjectMap).forEach((semData: any) => {
+            const th = semData.theory || [];
+            const pr = semData.practical || [];
+            const tut = semData.tutorial || [];
+            [...th, ...pr, ...tut].forEach((s: any) => {
+              if (s.code && !subjectData.some((existing) => existing.code === s.code)) {
+                subjectData.push({
+                  id: subIdCounter++,
+                  name: s.name || s.code,
+                  code: s.code,
+                });
+              }
+            });
           });
         }
 
-        // Expand subjects for multi-department coverage
-        const subjectData: Subject[] = [
-          { id: 1, name: "System Software & Compiler Design", code: "18CS61" },
-          { id: 2, name: "Computer Networks & Security", code: "18CS62" },
-          { id: 3, name: "Web Technology & Applications", code: "18CS63" },
-          { id: 4, name: "Data Mining & Data Warehousing", code: "18CS64" },
-          { id: 5, name: "Object Oriented Modeling", code: "18CS65" },
-          { id: 6, name: "Signals & Systems", code: "18EC61" },
-          { id: 7, name: "Digital Signal Processing", code: "18EC62" },
-          { id: 8, name: "Engineering Mathematics IV", code: "18MAT41" },
-          { id: 9, name: "System Software & OS Lab", code: "18CSL66" },
-          { id: 10, name: "Web Technology Laboratory", code: "18CSL67" },
-          { id: 11, name: "DSP & Microcontroller Lab", code: "18ECL66" },
-        ];
+        // Extract proficient subjects directly from uploaded faculty if subjectData is empty
+        if (subjectData.length === 0 && parsedFacArray.length > 0) {
+          const extractedSubjCodes = new Set<string>();
+          parsedFacArray.forEach((f: any) => {
+            (f.proficientSubjects || f.proficient_subjects || []).forEach((code: string) => {
+              if (code && typeof code === "string" && code.trim().length >= 2) {
+                extractedSubjCodes.add(code.trim());
+              }
+            });
+          });
+          extractedSubjCodes.forEach((code) => {
+            subjectData.push({
+              id: subIdCounter++,
+              name: `Course ${code}`,
+              code: code,
+            });
+          });
+        }
 
-        // Ensure Subject Offerings utilize EVERY SINGLE FACULTY MEMBER in facultyData
+        // Fallback default subjects only if no subjects or faculty were provided
+        if (subjectData.length === 0) {
+          subjectData.push(
+            { id: 1, name: "System Software & Compiler Design", code: "18CS61" },
+            { id: 2, name: "Computer Networks & Security", code: "18CS62" },
+            { id: 3, name: "Web Technology & Applications", code: "18CS63" },
+            { id: 4, name: "Data Mining & Data Warehousing", code: "18CS64" },
+            { id: 5, name: "Object Oriented Modeling", code: "18CS65" },
+            { id: 6, name: "System Software & OS Lab", code: "18CSL66" }
+          );
+        }
+
+        // 4. Build Subject Offerings linked to section's actual semester (Semesters 1 through 8!)
         const offeringData: SubjectOffering[] = [];
         let offIdCounter = 1;
         let globalFacPointer = 0;
 
         sectionData.forEach((sec) => {
           subjectData.forEach((sub) => {
-            // Assign faculty using global round-robin pointer so all 50+ faculty get assigned
-            const fac = facultyData[globalFacPointer % facultyData.length];
+            const fac = facultyData.length > 0
+              ? facultyData[globalFacPointer % facultyData.length]
+              : { id: 1, name: "Faculty Member", designation: "Assistant Professor" };
             globalFacPointer++;
 
             offeringData.push({
@@ -487,16 +533,16 @@ export default function TimetablePage() {
               subject_id: sub.id,
               faculty_id: fac.id,
               section_id: sec.id,
-              semester_id: 6,
+              semester_id: sec.semester_id, // Linked to section's actual semester (Sem 1 to 8)
               weekly_hours: sub.code.includes("L") ? 2 : 4,
             });
           });
         });
 
         // Deterministic Entries Construction enforcing ALL Hard & Soft Constraints:
-        // 1. Student-Friendly Schedule: Wednesday & Friday afternoons (Periods 5 & 6, 02:00-04:00 PM) are FREE (Ends by Lunch at 01:15 PM)
-        // 2. Heavy Theory Scoping: Morning Periods 1-4 ONLY (09:00 AM - 01:15 PM), max 2 consecutive heavy theory classes
-        // 3. Afternoon Labs: Mon, Tue, Thu Periods 5 & 6 (02:00-04:00 PM) reserved for Practical Labs & Tutorials
+        // 1. Convenient Staggered Half-Days: Automatically selects 2 convenient half-days per section (Ends by Lunch at 01:20 PM)
+        // 2. Heavy Theory Scoping: Morning Periods 1-4 ONLY, max 2 consecutive heavy theory classes
+        // 3. Afternoon Labs: On full days, Periods 5 & 6 (after Lunch 01:20 PM) reserved for 2-hour Practical Labs
         const entryData: TimetableEntry[] = [];
         let entryIdCounter = 1;
 
@@ -510,26 +556,37 @@ export default function TimetablePage() {
           return sub && sub.code.includes("L");
         });
 
+        // Convenient half-day pairs staggered per section for optimal lab utilization
+        const convenientHalfDayPairs = [
+          ["Wednesday", "Friday"],
+          ["Tuesday", "Thursday"],
+          ["Wednesday", "Thursday"],
+          ["Tuesday", "Friday"],
+        ];
+
         sectionData.forEach((sec) => {
           const secTheory = theoryOfferings.filter((o) => o.section_id === sec.id);
           const secLab = labOfferings.filter((o) => o.section_id === sec.id);
           let theoryIdx = (sec.id - 1) * 2;
           let labIdx = sec.id - 1;
 
+          // Automatically assign convenient half-days for this section
+          const sectionHalfDays = convenientHalfDayPairs[(sec.id - 1) % convenientHalfDayPairs.length];
+
           days.forEach((day, dayIdx) => {
             const daySlots = slotData.filter((s) => s.day_of_week === day);
 
-            // Student-Friendly Rule: Wednesday (dayIdx 2) and Friday (dayIdx 4) afternoons (pIdx 4 and 5) are FREE!
-            const isHalfDay = dayIdx === 2 || dayIdx === 4;
+            // Automatically check if today is one of the convenient half-days for this section
+            const isHalfDay = sectionHalfDays.includes(day);
 
             daySlots.forEach((slot, pIdx) => {
-              // Periods 5 and 6 (pIdx 4 and 5, 02:00 PM - 04:00 PM)
+              // Periods 5 and 6 (pIdx 4 and 5, after Lunch Break at 01:20 PM)
               if (pIdx >= 4) {
                 if (isHalfDay) {
                   // Leave FREE / Unassigned for Student-Friendly Half Day!
                   return;
                 } else {
-                  // Mon, Tue, Thu afternoons: Assign 2-hour Practical Lab block
+                  // Full days: Assign 2-hour Practical Lab block after Lunch Break
                   if (secLab.length > 0) {
                     const labOff = secLab[labIdx % secLab.length];
                     const room = roomData[sec.id % 2 === 0 ? 4 : 3]; // Computing Lab
@@ -543,7 +600,7 @@ export default function TimetablePage() {
                   }
                 }
               } else {
-                // Morning Periods 1-4 (09:00 AM - 01:15 PM): Theory Subjects
+                // Morning Periods 1-4 (before Lunch Break at 01:20 PM): Theory Subjects
                 if (secTheory.length > 0) {
                   const theoryOff = secTheory[theoryIdx % secTheory.length];
                   theoryIdx++;
@@ -916,8 +973,20 @@ export default function TimetablePage() {
         const off = offerings.find((o) => o.id === e.subject_offering_id);
         if (!off) return false;
 
+        if (selectedSemester !== "ALL" && off.semester_id !== Number(selectedSemester)) {
+          return false;
+        }
+
         if (viewMode === "section" && selectedSection !== "ALL") {
-          return off.section_id === Number(selectedSection);
+          const targetSec = sections.find((s) => s.id === Number(selectedSection));
+          if (targetSec) {
+            const matchedSec = sections.find((s) => s.id === off.section_id);
+            if (!matchedSec || matchedSec.name !== targetSec.name) {
+              return false;
+            }
+          } else if (off.section_id !== Number(selectedSection)) {
+            return false;
+          }
         }
         if (viewMode === "faculty" && selectedFaculty !== "ALL") {
           return off.faculty_id === Number(selectedFaculty);
@@ -960,89 +1029,102 @@ export default function TimetablePage() {
   return (
     <AppShell>
       <>
+        {/* ── Global Landscape Print Stylesheet ── */}
+        <style jsx global>{`
+          @media print {
+            @page {
+              size: A4 landscape;
+              margin: 6mm;
+            }
+            html, body {
+              background: #ffffff !important;
+              color: #000000 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            #web-workspace-container,
+            header,
+            nav,
+            aside,
+            footer,
+            .print\\:hidden {
+              display: none !important;
+            }
+            #official-print-document {
+              display: block !important;
+              visibility: visible !important;
+              width: 100% !important;
+              margin: 0 auto !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #000000 !important;
+            }
+            #official-print-document table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+            }
+            #official-print-document th,
+            #official-print-document td {
+              border: 1.5px solid #000000 !important;
+              color: #000000 !important;
+            }
+          }
+        `}</style>
+
         {/* ── Official Institutional Printable Document (Attached to body via Portal) ── */}
         {mounted &&
           createPortal(
-            <div id="official-print-document" className="hidden print:block font-serif text-black bg-white p-0 w-full">
-              <div className="border border-black flex flex-col justify-between overflow-hidden w-full">
+            <div id="official-print-document" className="hidden print:block font-serif text-black bg-white p-2 w-full">
+              <div className="border-2 border-black flex flex-col justify-between overflow-hidden w-full bg-white p-3">
                 <div>
-                  {/* Header Box with RV Emblem Logo */}
-                  <div className="relative flex items-center justify-between p-2.5 border-b border-black bg-white text-center">
-                    <div className="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center font-serif font-black text-sm tracking-tighter shrink-0 bg-white">
-                      <div className="border border-black rounded-full w-12 h-12 flex items-center justify-center">
-                        RV
+                  {/* Header Box with Institutional Emblem */}
+                  <div className="relative flex items-center justify-between p-3 border-2 border-black bg-white text-center mb-3">
+                    <div className="w-14 h-14 rounded-full border-2 border-black flex items-center justify-center font-serif font-black text-sm tracking-tighter shrink-0 bg-white">
+                      <div className="border border-black rounded-full w-10 h-10 flex items-center justify-center">
+                        VTU
                       </div>
                     </div>
                     <div className="flex-1 px-4 space-y-0.5">
                       <h1 className="text-base sm:text-lg font-black uppercase tracking-wide text-black font-serif">
-                        RV INSTITUTE OF TECHNOLOGY AND MANAGEMENT, BENGALURU - 560 076
+                        OFFICIAL INSTITUTIONAL MASTER TIMETABLE
                       </h1>
-                      <p className="text-xs font-bold text-gray-900 font-serif">
-                        Department: CSE-AIML (CSE Cluster)
+                      <p className="text-xs font-bold text-black font-serif">
+                        Academic Term: {selectedSemester !== "ALL" ? `Semester ${selectedSemester}` : "Unified All-Semesters Master"} • Academic Session 2025 - 2026
                       </p>
-                      <p className="text-xs font-bold text-gray-800 font-serif">
-                        Time Table from 24-08-2026 to 28-06-2026
-                      </p>
-                      <p className="text-[10px] font-semibold text-gray-600 font-mono">
-                        Official Schedule Status: <span className="font-bold text-black">{lifecycle} ({versionTag})</span>
+                      <p className="text-[10px] font-bold text-black font-mono">
+                        Status: <span className="uppercase">{lifecycle}</span> | Version: {versionTag} | Break Bounds: Tea (11:00-11:20 AM), Lunch (01:20-02:00 PM)
                       </p>
                     </div>
-                    <div className="w-16 shrink-0"></div>
+                    <div className="w-14 shrink-0"></div>
                   </div>
 
-                  {/* Sub-Header 3-Column Info Bar */}
-                  <div className="grid grid-cols-3 text-sm font-serif border-b border-black divide-x divide-black bg-white">
-                    <div className="p-2.5 text-left font-extrabold text-base flex items-center pl-4">
-                      Program: BE
-                    </div>
-                    <div className="p-2 text-center font-extrabold flex flex-col justify-center">
-                      <span className="text-sm">Sem: 3rd Sem</span>
-                      <span className="font-black text-base mt-0.5">III A &amp; B</span>
-                    </div>
-                    <div className="p-2.5 text-center font-extrabold text-base flex items-center justify-center">
-                      Class Room: L322
-                    </div>
-                  </div>
-
-                  {/* Printable Master Grid (Matching Reference Image 2 Table Exactly) */}
+                  {/* Printable Master Grid with Sharp Borders & Breaks */}
                   {(() => {
-                    const BLOCKS = [
-                      { type: "class", label: "9.00 - 11.00", periods: ["09:00 - 10:00", "10:00 - 11:00"] },
-                      { type: "break", label: "11.00 - 11.20", text: "SHORT\nBREAK" },
-                      { type: "class", label: "11.20 - 1.20", periods: ["11:15 - 12:15", "12:15 - 01:15"] },
-                      { type: "break", label: "1.20 - 2.00\n(Lunch)", text: "LUNCH" },
-                      { type: "class", label: "2.00 - 4.00", periods: ["02:00 - 03:00", "03:00 - 04:00"] },
+                    const PRINT_PERIODS = [
+                      { type: "class", period: "09:00 - 10:00", label: "P1\n09:00 - 10:00" },
+                      { type: "class", period: "10:00 - 11:00", label: "P2\n10:00 - 11:00" },
+                      { type: "break", label: "TEA BREAK\n11:00 - 11:20 AM", text: "TEA\nBREAK" },
+                      { type: "class", period: "11:20 - 12:20", label: "P3\n11:20 - 12:20" },
+                      { type: "class", period: "12:20 - 01:20", label: "P4\n12:20 - 01:20 PM" },
+                      { type: "break", label: "LUNCH BREAK\n01:20 - 02:00 PM", text: "LUNCH\nBREAK" },
+                      { type: "class", period: "02:00 - 03:00", label: "P5\n02:00 - 03:00 PM" },
+                      { type: "class", period: "03:00 - 04:00", label: "P6\n03:00 - 04:00 PM" },
                     ] as const;
 
-                    const DAY_DATES: Record<string, string> = {
-                      Monday: "MON\n24-08-26",
-                      Tuesday: "TUE\n25-08-26",
-                      Wednesday: "WED\n26-08-26",
-                      Thursday: "THU\n27-08-26",
-                      Friday: "FRI\n28-08-26",
-                    };
-
-                    const getBlockEntries = (day: string, periods: readonly string[]) => {
-                      const allItems: any[] = [];
-                      periods.forEach((p) => {
-                        const res = getCellEntries(day, p);
-                        allItems.push(...res);
-                      });
-                      const seen = new Set<string>();
-                      return allItems.filter((item) => {
-                        if (seen.has(item.code)) return false;
-                        seen.add(item.code);
-                        return true;
-                      });
-                    };
-
                     return (
-                      <table className="w-full border-collapse border-b border-black text-center text-xs font-serif">
+                      <table className="w-full border-collapse border-2 border-black text-center text-xs font-serif">
                         <thead>
-                          <tr className="bg-[#e6f2fb] text-black font-black uppercase">
-                            <th className="border border-black p-2.5 w-24 text-xs font-black">TIME / DAY</th>
-                            {BLOCKS.map((col, idx) => (
-                              <th key={idx} className="border border-black p-2 text-xs font-black whitespace-pre-line">
+                          <tr className="bg-gray-100 text-black font-black uppercase">
+                            <th className="border-2 border-black p-2 w-28 text-xs font-black bg-gray-200">DAY / TIME</th>
+                            {PRINT_PERIODS.map((col, idx) => (
+                              <th
+                                key={idx}
+                                className={`border-2 border-black p-2 text-[11px] font-black whitespace-pre-line ${
+                                  col.type === "break" ? "bg-amber-100 text-black w-20" : "bg-gray-100"
+                                }`}
+                              >
                                 {col.label}
                               </th>
                             ))}
@@ -1050,18 +1132,18 @@ export default function TimetablePage() {
                         </thead>
                         <tbody>
                           {DEFAULT_DAYS.map((day: string, dayIdx: number) => (
-                            <tr key={day} className="border-b border-black h-[56px]">
-                              <td className="bg-white font-black text-xs border border-black p-1.5 align-middle uppercase text-center w-24 whitespace-pre-line leading-tight">
-                                {DAY_DATES[day] || day}
+                            <tr key={day} className="border-b-2 border-black h-[60px]">
+                              <td className="bg-gray-50 font-black text-xs border-2 border-black p-2 align-middle uppercase text-center w-28 font-serif">
+                                {day.toUpperCase()}
                               </td>
-                              {BLOCKS.map((col, colIdx) => {
+                              {PRINT_PERIODS.map((col, colIdx) => {
                                 if (col.type === "break") {
                                   if (dayIdx === 0) {
                                     return (
                                       <td
                                         key={colIdx}
                                         rowSpan={5}
-                                        className="border border-black bg-white font-extrabold text-[10px] align-middle text-center p-1 uppercase tracking-widest text-black whitespace-pre-line"
+                                        className="border-2 border-black bg-amber-50 font-extrabold text-[11px] align-middle text-center p-1 uppercase tracking-wider text-black whitespace-pre-line"
                                       >
                                         {col.text}
                                       </td>
@@ -1069,25 +1151,27 @@ export default function TimetablePage() {
                                   }
                                   return null;
                                 }
-                                const items = getBlockEntries(day, col.periods);
+
+                                const items = getCellEntries(day, col.period);
                                 return (
-                                  <td key={colIdx} className="border border-black p-2 align-middle text-center h-[56px]">
+                                  <td key={colIdx} className="border-2 border-black p-2 align-middle text-center h-[60px] bg-white">
                                     {items.length > 0 ? (
-                                      <div className="space-y-0.5">
+                                      <div className="space-y-1">
                                         {items.map((item, idx) => (
                                           <div key={idx} className="leading-tight">
-                                            <div className="font-black text-sm text-black uppercase font-serif">
+                                            <div className="font-black text-xs text-black uppercase font-serif">
                                               {item.code || item.subject}
                                             </div>
-                                            <div className="text-xs font-bold text-black font-serif">
-                                              ({item.faculty})
+                                            <div className="text-[10px] font-bold text-gray-800 font-serif">
+                                              {item.section} • {item.faculty}
+                                            </div>
+                                            <div className="text-[9px] font-mono text-gray-600">
+                                              {item.room}
                                             </div>
                                           </div>
                                         ))}
                                       </div>
-                                    ) : (
-                                      <span className="text-black font-black text-base">—</span>
-                                    )}
+                                    ) : null}
                                   </td>
                                 );
                               })}
@@ -1099,9 +1183,9 @@ export default function TimetablePage() {
                   })()}
                 </div>
 
-                {/* Footer Signatures */}
-                <div className="flex justify-between items-end pt-6 pb-3 px-8 text-xs font-black uppercase text-black font-serif">
-                  <div>TIME TABLE IN-CHARGE</div>
+                {/* Footer Official Signatures */}
+                <div className="flex justify-between items-end pt-8 pb-2 px-6 text-xs font-black uppercase text-black font-serif border-t-2 border-black mt-4">
+                  <div>TIMETABLE COORDINATOR</div>
                   <div>HEAD OF DEPARTMENT (HOD)</div>
                   <div>PRINCIPAL / DEAN</div>
                 </div>
@@ -1285,6 +1369,20 @@ export default function TimetablePage() {
 
           {/* Context Filter Dropdown */}
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-muted-foreground">Semester:</span>
+              <select
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
+                className="h-11 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+              >
+                <option value="ALL">All Semesters (Unified Master)</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                  <option key={sem} value={sem}>Semester {sem}</option>
+                ))}
+              </select>
+            </div>
+
             {viewMode === "section" && (
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-muted-foreground">Cohort:</span>
@@ -1294,9 +1392,18 @@ export default function TimetablePage() {
                   className="h-11 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Sections (Overview)</option>
-                  {sections.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
+                  {(() => {
+                    const uniqueNames = new Set<string>();
+                    return sections.map((s) => {
+                      if (uniqueNames.has(s.name)) return null;
+                      uniqueNames.add(s.name);
+                      return (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      );
+                    });
+                  })()}
                 </select>
               </div>
             )}

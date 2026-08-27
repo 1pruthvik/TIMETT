@@ -56,10 +56,11 @@ export default function SectionsPage() {
   const [maxStayTime, setMaxStayTime] = useState("16:00");
 
   // Tea-Break & Lunch break
-  const [teaBreakStart, setTeaBreakStart] = useState("10:40");
-  const [teaBreakDuration, setTeaBreakDuration] = useState(15);
-  const [lunchBreakStart, setLunchBreakStart] = useState("13:00");
-  const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
+  const [teaBreakStart, setTeaBreakStart] = useState("11:00");
+  const [teaBreakDuration, setTeaBreakDuration] = useState(20);
+  const [lunchBreakStart, setLunchBreakStart] = useState("13:20");
+  const [lunchBreakDuration, setLunchBreakDuration] = useState(40);
+  const [halfDays, setHalfDays] = useState<string[]>(["Wednesday", "Friday"]);
 
   // Active Semester & Department Scoping
   const [activeSemNumber, setActiveSemNumber] = useState<number>(6);
@@ -92,6 +93,7 @@ export default function SectionsPage() {
         if (savedSlot.teaBreakDuration !== undefined) setTeaBreakDuration(savedSlot.teaBreakDuration);
         if (savedSlot.lunchBreakStart) setLunchBreakStart(savedSlot.lunchBreakStart);
         if (savedSlot.lunchBreakDuration !== undefined) setLunchBreakDuration(savedSlot.lunchBreakDuration);
+        if (savedSlot.halfDays && Array.isArray(savedSlot.halfDays)) setHalfDays(savedSlot.halfDays);
       }
 
       // 2. Load active semester
@@ -228,30 +230,25 @@ export default function SectionsPage() {
   useEffect(() => {
     if (!isLoaded) return;
     try {
-      localStorage.setItem(
-        "vtu_room_capacity_config",
-        JSON.stringify({
-          roomCapacity,
-          labCapacity: activeMetrics.calculatedLabCap,
-          coincidedLabGroup,
-          labRotationMode,
-          labBatchesCount: activeMetrics.labBatchesPerSec,
-        })
-      );
-      localStorage.setItem(
-        "vtu_slot_duration_config",
-        JSON.stringify({
-          theoryMin,
-          labMin,
-          minStartTime,
-          maxStayTime,
-          teaBreakStart,
-          teaBreakDuration,
-          lunchBreakStart,
-          lunchBreakDuration,
-          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        })
-      );
+      setItemUserScoped("vtu_room_capacity_config", {
+        roomCapacity,
+        labCapacity: activeMetrics.calculatedLabCap,
+        coincidedLabGroup,
+        labRotationMode,
+        labBatchesCount: activeMetrics.labBatchesPerSec,
+      });
+      setItemUserScoped("vtu_slot_duration_config", {
+        theoryMin,
+        labMin,
+        minStartTime,
+        maxStayTime,
+        teaBreakStart,
+        teaBreakDuration,
+        lunchBreakStart,
+        lunchBreakDuration,
+        workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        halfDays,
+      });
     } catch (e) {
       console.error(e);
     }
@@ -267,6 +264,7 @@ export default function SectionsPage() {
     teaBreakDuration,
     lunchBreakStart,
     lunchBreakDuration,
+    halfDays,
     activeMetrics,
     isLoaded,
   ]);

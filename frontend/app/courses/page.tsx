@@ -129,16 +129,8 @@ export default function CoursesPage() {
         {/* Page Hero Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
           <div className="space-y-1.5">
-            <div className="flex items-center space-x-2.5">
-              <span className="px-3 py-1 text-xs font-mono font-bold rounded-full bg-primary/10 text-primary border border-primary/20">
-                Step 2 of 5
-              </span>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                VTU Institutional Flow
-              </span>
-            </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              Pre-Fetched VTU B.E. Degree Courses & Student Intake
+              VTU B.E. Degree Courses & Student Intake
             </h1>
             <p className="text-sm text-muted-foreground max-w-3xl">
               Choose the degree branches offered by your institution, enter the admitted student intake count for each program, and choose your active target course.

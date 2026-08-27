@@ -21,6 +21,7 @@ interface VTUCourse {
   name: string;
   selected: boolean;
   studentCount: number;
+  cycle?: "physics" | "chemistry";
 }
 
 // ── Official VTU 1st Year (Physics Group) ESC-I Offerings ──
@@ -235,6 +236,17 @@ export default function DocumentsPage() {
               >
                 <span>{c.code}</span>
                 <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
+                {c.cycle && (
+                  <span
+                    className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-bold ${
+                      c.cycle === "physics"
+                        ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                        : "bg-cyan-400/20 text-cyan-300 border border-cyan-400/30"
+                    }`}
+                  >
+                    {c.cycle === "physics" ? "⚡ Physics" : "🧪 Chem"}
+                  </span>
+                )}
               </button>
             ))}
           </div>

@@ -381,6 +381,48 @@ export default function DocumentsPage() {
         { code: "BCV601L", name: "Design of RCC Structures Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    CH: {
+      theory: [
+        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3 },
+        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4 },
+        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+      ],
+      practical: [
+        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2 },
+        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
+    CHE: {
+      theory: [
+        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3 },
+        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4 },
+        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+      ],
+      practical: [
+        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2 },
+        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
+    CHEMICAL: {
+      theory: [
+        { code: "BCH601", name: "Process Equipment Design and Drawing", category: "theory", weekly_hours: 3 },
+        { code: "BCH602", name: "Mass Transfer Operations-II", category: "theory", weekly_hours: 4 },
+        { code: "BCH613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BCH654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+      ],
+      practical: [
+        { code: "BCHL606", name: "Mass Transfer Operations lab-2", category: "practical", weekly_hours: 2 },
+        { code: "BCH657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

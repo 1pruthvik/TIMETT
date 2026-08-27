@@ -498,8 +498,16 @@ export default function SectionsPage() {
                 </label>
                 <input
                   type="number"
-                  value={roomCapacity}
-                  onChange={(e) => setRoomCapacity(Number(e.target.value))}
+                  min="1"
+                  value={roomCapacity === 0 || (roomCapacity as any) === "" ? "" : roomCapacity}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") setRoomCapacity("" as any);
+                    else setRoomCapacity(Math.max(0, parseInt(val, 10) || 0));
+                  }}
+                  onBlur={() => {
+                    if (!roomCapacity || Number(roomCapacity) <= 0) setRoomCapacity(60);
+                  }}
                   className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
@@ -510,12 +518,16 @@ export default function SectionsPage() {
                 </label>
                 <input
                   type="number"
-                  value={activeMetrics.calculatedLabCap}
-                  onChange={(e) => setLabCapacity(Number(e.target.value))}
+                  min="1"
+                  value={activeMetrics.calculatedLabCap || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") setLabCapacity("" as any);
+                    else setLabCapacity(Math.max(0, parseInt(val, 10) || 0));
+                  }}
                   className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
-
 
             </div>
           </div>
@@ -538,11 +550,19 @@ export default function SectionsPage() {
                   <div className="relative">
                     <input
                       type="number"
-                      value={theoryMin}
-                      onChange={(e) => setTheoryMin(Number(e.target.value))}
-                      className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                      min="0"
+                      value={theoryMin === 0 || (theoryMin as any) === "" ? "" : theoryMin}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") setTheoryMin("" as any);
+                        else setTheoryMin(Math.max(0, parseInt(val, 10) || 0));
+                      }}
+                      onBlur={() => {
+                        if (!theoryMin || Number(theoryMin) < 0) setTheoryMin(50);
+                      }}
+                      className="w-full h-12 pl-4 pr-12 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
                       min
                     </span>
                   </div>
@@ -555,11 +575,19 @@ export default function SectionsPage() {
                   <div className="relative">
                     <input
                       type="number"
-                      value={labMin}
-                      onChange={(e) => setLabMin(Number(e.target.value))}
-                      className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                      min="0"
+                      value={labMin === 0 || (labMin as any) === "" ? "" : labMin}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") setLabMin("" as any);
+                        else setLabMin(Math.max(0, parseInt(val, 10) || 0));
+                      }}
+                      onBlur={() => {
+                        if (!labMin || Number(labMin) < 0) setLabMin(100);
+                      }}
+                      className="w-full h-12 pl-4 pr-12 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
                       min
                     </span>
                   </div>

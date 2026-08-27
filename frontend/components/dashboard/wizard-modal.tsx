@@ -665,8 +665,16 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <label className="text-xs font-medium text-muted-foreground">Classroom Room Capacity</label>
                   <input
                     type="number"
-                    value={roomCapacity}
-                    onChange={(e) => setRoomCapacity(Number(e.target.value))}
+                    min="1"
+                    value={roomCapacity === 0 || (roomCapacity as any) === "" ? "" : roomCapacity}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") setRoomCapacity("" as any);
+                      else setRoomCapacity(Math.max(0, parseInt(val, 10) || 0));
+                    }}
+                    onBlur={() => {
+                      if (!roomCapacity || Number(roomCapacity) <= 0) setRoomCapacity(60);
+                    }}
                     className="w-full px-3 py-2 text-sm rounded-lg border bg-background font-mono focus:ring-2 focus:ring-primary/40"
                   />
                   <span className="text-[10px] text-muted-foreground">Default: 60 students per section</span>
@@ -676,8 +684,16 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <label className="text-xs font-medium text-muted-foreground">Lab Capacity ($C$)</label>
                   <input
                     type="number"
-                    value={labCapacity}
-                    onChange={(e) => setLabCapacity(Number(e.target.value))}
+                    min="1"
+                    value={labCapacity === 0 || (labCapacity as any) === "" ? "" : labCapacity}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") setLabCapacity("" as any);
+                      else setLabCapacity(Math.max(0, parseInt(val, 10) || 0));
+                    }}
+                    onBlur={() => {
+                      if (!labCapacity || Number(labCapacity) <= 0) setLabCapacity(30);
+                    }}
                     className="w-full px-3 py-2 text-sm rounded-lg border bg-background font-mono focus:ring-2 focus:ring-primary/40"
                   />
                   <span className="text-[10px] text-muted-foreground">Default: 30 students per lab batch</span>
@@ -700,8 +716,16 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <label className="text-xs font-medium text-muted-foreground">Theory Slot Duration (minutes)</label>
                   <input
                     type="number"
-                    value={theoryMin}
-                    onChange={(e) => setTheoryMin(Number(e.target.value))}
+                    min="0"
+                    value={theoryMin === 0 || (theoryMin as any) === "" ? "" : theoryMin}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") setTheoryMin("" as any);
+                      else setTheoryMin(Math.max(0, parseInt(val, 10) || 0));
+                    }}
+                    onBlur={() => {
+                      if (!theoryMin || Number(theoryMin) < 0) setTheoryMin(50);
+                    }}
                     className="w-full px-3 py-2 text-sm rounded-lg border bg-background font-mono focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -709,8 +733,16 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   <label className="text-xs font-medium text-muted-foreground">Lab Slot Duration (minutes)</label>
                   <input
                     type="number"
-                    value={labMin}
-                    onChange={(e) => setLabMin(Number(e.target.value))}
+                    min="0"
+                    value={labMin === 0 || (labMin as any) === "" ? "" : labMin}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") setLabMin("" as any);
+                      else setLabMin(Math.max(0, parseInt(val, 10) || 0));
+                    }}
+                    onBlur={() => {
+                      if (!labMin || Number(labMin) < 0) setLabMin(100);
+                    }}
                     className="w-full px-3 py-2 text-sm rounded-lg border bg-background font-mono focus:ring-2 focus:ring-primary/40"
                   />
                 </div>

@@ -151,8 +151,9 @@ export default function StreamsPage() {
             <label className="block text-xs font-medium text-muted-foreground mb-1">Semester 1 ID</label>
             <input
               type="number"
+              min="0"
               value={jointSem1}
-              onChange={(e) => setJointSem1(e.target.value)}
+              onChange={(e) => setJointSem1(e.target.value === "" ? "" : String(Math.max(0, parseInt(e.target.value, 10) || 0)))}
               className="w-full px-3 py-2 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -160,8 +161,9 @@ export default function StreamsPage() {
             <label className="block text-xs font-medium text-muted-foreground mb-1">Semester 2 ID</label>
             <input
               type="number"
+              min="0"
               value={jointSem2}
-              onChange={(e) => setJointSem2(e.target.value)}
+              onChange={(e) => setJointSem2(e.target.value === "" ? "" : String(Math.max(0, parseInt(e.target.value, 10) || 0)))}
               className="w-full px-3 py-2 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>

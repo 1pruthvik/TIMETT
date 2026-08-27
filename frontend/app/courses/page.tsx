@@ -289,8 +289,12 @@ export default function CoursesPage() {
                         <div className="flex items-center space-x-2">
                           <input
                             type="number"
-                            value={c.studentCount}
-                            onChange={(e) => handleUpdateStudentCount(c.code, Number(e.target.value))}
+                            min="0"
+                            value={c.studentCount === 0 ? "" : c.studentCount}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              handleUpdateStudentCount(c.code, val === "" ? 0 : Math.max(0, parseInt(val, 10) || 0));
+                            }}
                             className="w-20 h-9 px-3 text-xs font-mono font-bold rounded-lg border border-border bg-background text-right focus:ring-1 focus:ring-primary outline-none"
                           />
                           <span className="text-[11px] text-muted-foreground">std</span>

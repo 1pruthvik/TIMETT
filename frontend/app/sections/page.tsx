@@ -518,20 +518,17 @@ export default function SectionsPage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                  Lab Batch Coinciding / Scheduling Strategy
+                  Mandatory Lab Coinciding Rule
                 </label>
-                <select
-                  value={labRotationMode}
-                  onChange={(e) => setLabRotationMode(e.target.value as "synchronous_parallel" | "independent")}
-                  className="w-full h-12 px-4 text-xs font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                >
-                  <option value="synchronous_parallel">
-                    🔄 Synchronous Parallel Rotation (Batches attend parallel labs simultaneously & rotate weekly)
-                  </option>
-                  <option value="independent">
-                    ⚡ Independent Batch Scheduling (Batches take labs in separate time slots)
-                  </option>
-                </select>
+                <div className="p-4 rounded-xl border border-primary/30 bg-primary/10 text-primary text-xs font-bold flex items-center space-x-3 shadow-xs">
+                  <span className="text-xl shrink-0">🔒</span>
+                  <div>
+                    <p className="font-extrabold text-foreground">Synchronous Parallel Lab Execution (Mandate)</p>
+                    <p className="text-[11px] font-normal text-muted-foreground mt-0.5">
+                      100% of students in a section attend physical labs simultaneously (Batch A1 & Batch A2 attend parallel labs at the exact same time and rotate weekly). Zero students remain in classroom.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

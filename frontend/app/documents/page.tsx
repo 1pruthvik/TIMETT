@@ -161,46 +161,108 @@ const VTU_PLC_200_OPTIONS = [
   },
 ];
 
+// Stream mapping resolver according to official VTU guidelines
+export function resolveStreamType(courseCode: string): "CSE" | "ECE" | "EEE" | "ME" | "CV" {
+  const upper = (courseCode || "").toUpperCase().trim();
+  
+  // 1. Civil Engineering Stream
+  if (upper === "CV" || upper === "CIV" || upper.includes("CIVIL")) {
+    return "CV";
+  }
+
+  // 2. Chemical Engineering -> Mechanical Engineering Stream
+  if (upper === "CHE" || upper === "CH" || upper.includes("CHEM") || upper.includes("CHEMICAL")) {
+    return "ME";
+  }
+
+  // 3. Mechanical Engineering Stream (Mechanical, Aeronautical, Automobile, etc.)
+  if (
+    upper === "ME" || upper === "MECH" || upper.includes("MECHANICAL") ||
+    upper.includes("AERO") || upper.includes("AUTO") || upper.includes("MANUFACT") || upper.includes("ROBOT")
+  ) {
+    return "ME";
+  }
+
+  // 4. Biomedical Engineering -> Electrical & Electronics Engineering Stream
+  if (
+    upper === "BME" || upper === "BM" || upper === "BTE" ||
+    upper.includes("BIOMED") || upper.includes("MEDICAL") || upper.includes("BIOMEDICAL")
+  ) {
+    return "EEE";
+  }
+
+  // 5. Electronics & Communication Stream
+  if (
+    upper === "ECE" || upper.includes("ELECTRONIC") || upper.includes("COMMUNICATION") ||
+    upper === "TC" || upper === "ETE" || upper === "EI" || upper.includes("INSTRUMENT")
+  ) {
+    return "ECE";
+  }
+
+  // 6. Electrical & Electronics Stream
+  if (upper === "EEE" || upper.includes("ELECTRICAL") || upper === "EE") {
+    return "EEE";
+  }
+
+  // 7. Information Science, AI & DS, CSE & Allied -> Computer Science Engineering Stream
+  if (
+    upper === "ISE" || upper === "IS" || upper.includes("INFO") || upper.includes("INFORMATION") ||
+    upper === "AIDS" || upper === "AI-DS" || upper === "AI_DS" || upper === "AIML" || upper === "AI" || upper === "DS" ||
+    upper.includes("ARTIFICIAL") || upper.includes("DATA") || upper.includes("CYBER") || upper.includes("IOT") ||
+    upper === "CSE" || upper === "CS" || upper.includes("COMPUTER") || upper.includes("SOFTWARE")
+  ) {
+    return "CSE";
+  }
+
+  // Default fallback: Computer Science Stream
+  return "CSE";
+}
+
 // Helper to determine stream-specific fixed codes for I Sem and II Sem
 function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
-  const upper = courseCode.toUpperCase();
-  
+  const stream = resolveStreamType(courseCode);
+
   if (isSecondSem) {
     // ── II SEMESTER (200 Series) ──
-    if (upper.includes("EC") || upper === "ECE") {
+    if (stream === "ECE") {
       return {
+        streamName: "ECE Stream",
         maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE/ECE stream", l: 3, t: 2 },
         chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
         physics: { code: "1BPHEC202", name: "Quantum Physics and Electronic Sensors (ECE stream)", l: 3, p: 2 },
         caed: { code: "1BCEDEC203", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
       };
     }
-    if (upper === "EEE" || upper.includes("EE")) {
+    if (stream === "EEE") {
       return {
+        streamName: "EEE Stream",
         maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE stream", l: 3, t: 2 },
         chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
         physics: { code: "1BPHEE202", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
         caed: { code: "1BCEDE203", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
       };
     }
-    if (upper === "ME" || upper.includes("MECH")) {
+    if (stream === "ME") {
       return {
+        streamName: "ME Stream",
         maths: { code: "1BMATM201", name: "Multivariable Calculus and Numerical Methods: ME Stream", l: 3, t: 2 },
         chemistry: { code: "1BCHEM202", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", l: 3, p: 2 },
         physics: { code: "1BPHYM202", name: "Physics of Materials (Mech stream)", l: 3, p: 2 },
         caed: { code: "1BCEDM203", name: "Computer-Aided Engineering Drawing for ME stream", l: 2, p: 2 },
       };
     }
-    if (upper === "CIV" || upper.includes("CIVIL")) {
+    if (stream === "CV") {
       return {
+        streamName: "CV Stream",
         maths: { code: "1BMATC201", name: "Differential Calculus and Numerical Methods: CV Stream", l: 3, t: 2 },
         chemistry: { code: "1BCHEC202", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", l: 3, p: 2 },
         physics: { code: "1BPHYC202", name: "Physics for Sustainable Structural Systems (CV stream)", l: 3, p: 2 },
         caed: { code: "1BCEDC203", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
       };
     }
-    // Default: CSE / ISE / AI-ML / DS
+    // Default: CSE Stream (CSE, ISE, AIDS, AIML)
     return {
+      streamName: "CSE Stream",
       maths: { code: "1BMATS201", name: "Numerical Methods: CSE Stream", l: 3, t: 2 },
       chemistry: { code: "1BCHES202", name: "Applied Chemistry for Smart Systems (CSE)", l: 3, p: 2 },
       physics: { code: "1BPHYS202", name: "Quantum Physics and Applications (CSE stream)", l: 3, p: 2 },
@@ -209,40 +271,45 @@ function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
   }
 
   // ── I SEMESTER (100 Series) ──
-  if (upper.includes("EC") || upper === "ECE") {
+  if (stream === "ECE") {
     return {
+      streamName: "ECE Stream",
       maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE/ECE Stream", l: 3, t: 2 },
       physics: { code: "1BPHEC102", name: "Quantum Physics and Electronics Sensors (ECE stream)", l: 3, p: 2 },
       chemistry: { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
       caed: { code: "1BCEDEC103", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
     };
   }
-  if (upper === "EEE" || upper.includes("EE")) {
+  if (stream === "EEE") {
     return {
+      streamName: "EEE Stream",
       maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE Stream", l: 3, t: 2 },
       physics: { code: "1BPHEE102", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
       chemistry: { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
       caed: { code: "1BCEDE103", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
     };
   }
-  if (upper === "ME" || upper.includes("MECH")) {
+  if (stream === "ME") {
     return {
+      streamName: "ME Stream",
       maths: { code: "1BMATM101", name: "Differential Calculus and Linear Algebra: ME Stream", l: 3, t: 2 },
       physics: { code: "1BPHYM102", name: "Physics of Materials (Mech stream)", l: 3, p: 2 },
       chemistry: { code: "1BCHEM102", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", l: 3, p: 2 },
       caed: { code: "1BCEDM103", name: "Computer-Aided Engineering Drawing for ME stream", l: 2, p: 2 },
     };
   }
-  if (upper === "CIV" || upper.includes("CIVIL")) {
+  if (stream === "CV") {
     return {
+      streamName: "CV Stream",
       maths: { code: "1BMATC101", name: "Differential Calculus and Linear Algebra: CV Stream", l: 3, t: 2 },
       physics: { code: "1BPHYC102", name: "Physics for Sustainable Structural Systems (CV stream)", l: 3, p: 2 },
       chemistry: { code: "1BCHEC102", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", l: 3, p: 2 },
       caed: { code: "1BCEDC103", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
     };
   }
-  // Default: CSE / ISE / AI-ML / DS
+  // Default: CSE Stream (CSE, ISE, AIDS, AIML)
   return {
+    streamName: "CSE Stream",
     maths: { code: "1BMATS101", name: "Calculus and Linear Algebra: CSE Stream", l: 3, t: 2 },
     physics: { code: "1BPHYS102", name: "Quantum Physics and Applications (CSE stream)", l: 3, p: 2 },
     chemistry: { code: "1BCHES102", name: "Applied Chemistry for Smart Systems (CSE)", l: 3, p: 2 },
@@ -495,7 +562,7 @@ export default function DocumentsPage() {
               <span>Active Branch:</span>
               <span className="text-primary font-extrabold">{activeCourseCode}</span>
               <span className="text-muted-foreground font-normal">
-                ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
+                • {streamData.streamName} • ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
               </span>
             </div>
           </div>
@@ -507,32 +574,38 @@ export default function DocumentsPage() {
             Select Degree Branch
           </h2>
           <div className="flex flex-wrap gap-2.5 pb-2">
-            {selectedCourses.map((c) => (
-              <button
-                key={c.code}
-                type="button"
-                onClick={() => setActiveCourseCode(c.code)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
-                  activeCourseCode === c.code
-                    ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30"
-                    : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                <span>{c.code}</span>
-                <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
-                {c.cycle && (
-                  <span
-                    className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-bold ${
-                      c.cycle === "physics"
-                        ? "bg-primary/20 text-primary-foreground border border-primary/30"
-                        : "bg-[#00A3FF]/20 text-[#00A3FF] border border-[#00A3FF]/30"
-                    }`}
-                  >
-                    {c.cycle === "physics" ? "Physics" : "Chemistry"}
+            {selectedCourses.map((c) => {
+              const stream = resolveStreamType(c.code);
+              return (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={() => setActiveCourseCode(c.code)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+                    activeCourseCode === c.code
+                      ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30"
+                      : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span>{c.code}</span>
+                  <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-muted/60 text-muted-foreground border border-border/40">
+                    {stream}
                   </span>
-                )}
-              </button>
-            ))}
+                  {c.cycle && (
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-bold ${
+                        c.cycle === "physics"
+                          ? "bg-primary/20 text-primary-foreground border border-primary/30"
+                          : "bg-[#00A3FF]/20 text-[#00A3FF] border border-[#00A3FF]/30"
+                      }`}
+                    >
+                      {c.cycle === "physics" ? "Physics" : "Chemistry"}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 

@@ -1,1343 +1,305 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Trash2,
-  Pencil,
   Users,
-  RefreshCw,
-  CalendarClock,
-  Check,
-  X,
-  BookOpen,
-  AlertCircle,
   Sparkles,
-  Building2,
-  GraduationCap,
-  Clock,
-  Layers,
-  Search,
-  BookMarked,
-  Info,
+  ArrowRight,
+  ArrowLeft,
+  Upload,
+  RefreshCw,
+  Trash2,
+  CheckCircle2,
+  Plus,
+  UserCheck,
 } from "lucide-react";
-import { WizardFooter } from "@/components/ui/wizard-footer";
+import { AppShell } from "@/components/layout/app-shell";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const PERIODS = [
-  { start: "09:00", end: "10:00", label: "09:00 - 10:00" },
-  { start: "10:00", end: "11:00", label: "10:00 - 11:00" },
-  { start: "11:15", end: "12:15", label: "11:15 - 12:15" },
-  { start: "12:15", end: "01:15", label: "12:15 - 01:15" },
-  { start: "14:00", end: "15:00", label: "02:00 - 03:00" },
-  { start: "15:00", end: "16:00", label: "03:00 - 04:00" },
-];
-
-interface FacultyMember {
-  id: number;
+interface FacultyItem {
   name: string;
-  department_id: number;
-  designation?: string | null;
-}
-
-interface Department {
-  id: number;
-  name: string;
-  institution_id: number;
-}
-
-interface Subject {
-  id: number;
-  name: string;
-  code: string;
-  department_id: number;
-}
-
-interface Section {
-  id: number;
-  name: string;
-  department_id?: number;
-}
-
-interface AcademicSemester {
-  id: number;
-  name: string;
-  academic_year_id: number;
-}
-
-interface SubjectOffering {
-  id: number;
-  subject_id: number;
-  faculty_id: number;
-  section_id: number;
-  semester_id: number;
-  weekly_hours: number;
-}
-
-interface AvailabilityRecord {
-  id?: number;
-  faculty_id: number;
-  day_of_week: string;
-  start_time: string;
-  end_time: string;
-}
-
-interface SubjectMeta {
-  semesterName: string;
-  subjectType: "Theory" | "Lab" | "Elective";
-  weeklyHours: number;
-}
-
-interface FacultyLoadAssignment {
-  handling_department_id: number;
-  semester_name: string;
-  subject_id: number | "";
-  weekly_hours: number;
-}
-
-function isSubjectForSemester(
-  subName: string,
-  subCode: string,
-  semName: string,
-  metaSem?: string
-): boolean {
-  if (metaSem && metaSem.toLowerCase() === semName.toLowerCase()) return true;
-
-  const normSub = (subName + " " + subCode).trim().toLowerCase();
-  const normSem = semName.trim().toLowerCase();
-
-  if (normSub.includes(normSem)) return true;
-
-  const digits = normSem.match(/\d+/);
-  if (digits) {
-    const d = digits[0];
-    const codeDigits = subCode.match(/\d+/);
-    if (codeDigits && codeDigits[0].startsWith(d)) {
-      return true;
-    }
-    const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${d}([A-Za-z]|\\s|$)`, "i");
-    return pattern.test(normSub);
-  }
-
-  return false;
+  department: string;
 }
 
 export default function FacultyPage() {
-  const [faculty, setFaculty] = useState<FacultyMember[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [sections, setSections] = useState<Section[]>([]);
-  const [academicSemesters, setAcademicSemesters] = useState<AcademicSemester[]>([]);
-  const [subjectMetaMap, setSubjectMetaMap] = useState<Record<number, SubjectMeta>>({});
-  const [offerings, setOfferings] = useState<SubjectOffering[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
-  // Stored Faculty Workloads: facultyId -> FacultyLoadAssignment[]
-  const [facultyLoads, setFacultyLoads] = useState<Record<number, FacultyLoadAssignment[]>>({});
+  const [facultyList, setFacultyList] = useState<FacultyItem[]>([]);
+  const [manualName, setManualName] = useState("");
+  const [manualDept, setManualDept] = useState("Computer Science & Engineering");
+  const [parsingFaculty, setParsingFaculty] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
-  // Form states for Add Faculty
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [designation, setDesignation] = useState("Assistant Professor");
-  const [departmentId, setDepartmentId] = useState<number | "">("");
-  const [assignments, setAssignments] = useState<FacultyLoadAssignment[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  // Edit Faculty states
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingFaculty, setEditingFaculty] = useState<FacultyMember | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDesignation, setEditDesignation] = useState("Assistant Professor");
-  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
-  const [editAssignments, setEditAssignments] = useState<FacultyLoadAssignment[]>([]);
-  const [submittingEdit, setSubmittingEdit] = useState(false);
-  const [editError, setEditError] = useState("");
-
-  // Availability Modal states
-  const [availOpen, setAvailOpen] = useState(false);
-  const [activeFaculty, setActiveFaculty] = useState<FacultyMember | null>(null);
-  const [availMap, setAvailMap] = useState<Record<string, boolean>>({});
-  const [savingAvail, setSavingAvail] = useState(false);
-
-  const getSubjectHours = (subId: number | ""): number => {
-    if (!subId) return 0;
-    const numId = Number(subId);
-    const meta = subjectMetaMap[numId];
-    if (meta?.weeklyHours) return meta.weeklyHours;
-    const sub = subjects.find((s) => s.id === numId);
-    if (!sub) return 0;
-    if (sub.name.toLowerCase().includes("lab")) return 3;
-    return 4;
-  };
-
-  const getFilteredSubjects = (deptId: number, semName: string) => {
-    return subjects.filter((s) => {
-      // Must belong strictly to the handling department
-      if (s.department_id !== deptId) return false;
-      const meta = subjectMetaMap[s.id];
-      if (meta?.semesterName) {
-        return meta.semesterName.toLowerCase() === semName.toLowerCase();
-      }
-      return isSubjectForSemester(s.name, s.code, semName);
-    });
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
+  useEffect(() => {
     try {
-      const storedUser = localStorage.getItem("user");
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      const userInstId = user?.institution_id || 1;
-
-      const [deptRes, facRes, subRes, secRes, semRes, offRes] = await Promise.all([
-        fetch(`${API_BASE}/departments/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/faculty/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/subjects/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/semesters/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/subject-offerings/?institution_id=${userInstId}`).catch(() => null),
-      ]);
-
-      let depts: Department[] = [];
-      if (deptRes && deptRes.ok) {
-        depts = await deptRes.json();
-        setDepartments(depts);
-        if (depts.length > 0 && !departmentId) {
-          setDepartmentId(depts[0].id);
-        }
+      const saved = localStorage.getItem("vtu_faculty_list");
+      if (saved) {
+        setFacultyList(JSON.parse(saved));
+      } else {
+        const defaultFac: FacultyItem[] = [
+          { name: "Dr. Pranav Bhat", department: "Computer Science & Engineering" },
+          { name: "Prof. Ujwal Amar", department: "Computer Science & Engineering" },
+          { name: "Prof. Pruthvik K", department: "Computer Science & Engineering" },
+          { name: "Dr. Nivish Gowda", department: "Electronics & Communication Engineering" },
+        ];
+        setFacultyList(defaultFac);
+        localStorage.setItem("vtu_faculty_list", JSON.stringify(defaultFac));
       }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
-      let facs: FacultyMember[] = [];
-      if (facRes && facRes.ok) {
-        facs = await facRes.json();
-        setFaculty(facs);
-      }
+  const saveFacultyToStorage = (updated: FacultyItem[]) => {
+    try {
+      localStorage.setItem("vtu_faculty_list", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-      let subs: Subject[] = [];
-      if (subRes && subRes.ok) {
-        subs = await subRes.json();
-        setSubjects(subs);
-      }
+  const handleFacultyFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      if (secRes && secRes.ok) {
-        setSections(await secRes.json());
-      }
+    setParsingFaculty(true);
+    setUploadSuccess(null);
+    const formData = new FormData();
+    formData.append("file", file);
 
-      let sems: AcademicSemester[] = [];
-      if (semRes && semRes.ok) {
-        sems = await semRes.json();
-        setAcademicSemesters(sems);
-      }
-
-      if (offRes && offRes.ok) {
-        setOfferings(await offRes.json());
-      }
-
-      // Load subject metadata for periods per week
-      let loadedMeta: Record<number, SubjectMeta> = {};
-      const savedMeta = localStorage.getItem(`timett_subject_meta_${userInstId}`);
-      if (savedMeta) {
-        loadedMeta = JSON.parse(savedMeta);
-        setSubjectMetaMap(loadedMeta);
-      }
-
-      // Load saved teaching loads from localStorage
-      const savedLoads = localStorage.getItem(`timett_faculty_loads_${userInstId}`);
-      if (savedLoads) {
-        setFacultyLoads(JSON.parse(savedLoads));
-      }
-
-      // Default initial assignment row (initialized with empty selection and 0 hrs)
-      if (depts.length > 0 && assignments.length === 0) {
-        const defaultSem = sems.length > 0 ? sems[0].name : "Semester 1";
-        setAssignments([
-          {
-            handling_department_id: depts[0].id,
-            semester_name: defaultSem,
-            subject_id: "",
-            weekly_hours: 0,
-          },
-        ]);
+    try {
+      const res = await fetch("http://127.0.0.1:8000/vtu/parse-faculty", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const extracted: FacultyItem[] = data.faculties || [];
+        setFacultyList((prev) => {
+          const updated = [...prev, ...extracted];
+          saveFacultyToStorage(updated);
+          return updated;
+        });
+        setUploadSuccess(`Successfully parsed ${extracted.length} faculties!`);
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to connect to backend API.");
     } finally {
-      setLoading(false);
+      setParsingFaculty(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleAddManualFaculty = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim()) return;
 
-  const availableSemesters =
-    academicSemesters.length > 0
-      ? academicSemesters.map((s) => s.name)
-      : ["Semester 1", "Semester 2", "Semester 3", "Semester 4", "Semester 5", "Semester 6", "Semester 7", "Semester 8"];
+    const newFac: FacultyItem = {
+      name: manualName.trim(),
+      department: manualDept.trim() || "Computer Science & Engineering",
+    };
 
-  const addAssignmentRow = () => {
-    const defaultDept = departments.length > 0 ? departments[0].id : 1;
-    const defaultSem = availableSemesters[0] || "Semester 1";
+    setFacultyList((prev) => {
+      const updated = [...prev, newFac];
+      saveFacultyToStorage(updated);
+      return updated;
+    });
 
-    setAssignments((prev) => [
-      ...prev,
-      {
-        handling_department_id: defaultDept,
-        semester_name: defaultSem,
-        subject_id: "",
-        weekly_hours: 0,
-      },
-    ]);
+    setManualName("");
   };
 
-  const removeAssignmentRow = (index: number) => {
-    setAssignments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateAssignment = (
-    index: number,
-    field: keyof FacultyLoadAssignment,
-    value: any
-  ) => {
-    setAssignments((prev) => {
-      const next = [...prev];
-      const updated = { ...next[index], [field]: value };
-
-      if (field === "handling_department_id" || field === "semester_name") {
-        // Reset subject when department or semester changes
-        updated.subject_id = "";
-        updated.weekly_hours = 0;
-      } else if (field === "subject_id") {
-        updated.weekly_hours = getSubjectHours(value);
-      }
-
-      next[index] = updated;
-      return next;
+  const handleRemoveFaculty = (index: number) => {
+    setFacultyList((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      saveFacultyToStorage(updated);
+      return updated;
     });
   };
-
-  const addEditAssignmentRow = () => {
-    const defaultDept = departments.length > 0 ? departments[0].id : 1;
-    const defaultSem = availableSemesters[0] || "Semester 1";
-
-    setEditAssignments((prev) => [
-      ...prev,
-      {
-        handling_department_id: defaultDept,
-        semester_name: defaultSem,
-        subject_id: "",
-        weekly_hours: 0,
-      },
-    ]);
-  };
-
-  const removeEditAssignmentRow = (index: number) => {
-    setEditAssignments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateEditAssignment = (
-    index: number,
-    field: keyof FacultyLoadAssignment,
-    value: any
-  ) => {
-    setEditAssignments((prev) => {
-      const next = [...prev];
-      const updated = { ...next[index], [field]: value };
-
-      if (field === "handling_department_id" || field === "semester_name") {
-        updated.subject_id = "";
-        updated.weekly_hours = 0;
-      } else if (field === "subject_id") {
-        updated.weekly_hours = getSubjectHours(value);
-      }
-
-      next[index] = updated;
-      return next;
-    });
-  };
-
-  const totalAddHours = assignments.reduce((sum, a) => sum + (a.weekly_hours || 0), 0);
-  const totalEditHours = editAssignments.reduce((sum, a) => sum + (a.weekly_hours || 0), 0);
-
-  const handleAddFacultyWithSubjects = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setError("Please enter a faculty name.");
-      return;
-    }
-
-    const validAssignments = assignments.filter((a) => a.subject_id !== "");
-    if (validAssignments.length === 0) {
-      setError("Please select at least one subject handling assignment.");
-      return;
-    }
-
-    setSubmitting(true);
-    setError("");
-
-    try {
-      const homeDeptId = departmentId || (departments.length > 0 ? departments[0].id : 1);
-
-      // 1. Create Faculty Member under their Home Department
-      const facRes = await fetch(`${API_BASE}/faculty/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          designation: designation.trim() || "Assistant Professor",
-          department_id: Number(homeDeptId),
-        }),
-      });
-
-      if (!facRes.ok) {
-        const errData = await facRes.json();
-        throw new Error(errData.detail || "Failed to create faculty member");
-      }
-
-      const createdFaculty: FacultyMember = await facRes.json();
-
-      // 2. Persist Teaching Loads
-      const updatedLoads = {
-        ...facultyLoads,
-        [createdFaculty.id]: validAssignments,
-      };
-      setFacultyLoads(updatedLoads);
-      localStorage.setItem(
-        `timett_faculty_loads_1`,
-        JSON.stringify(updatedLoads)
-      );
-
-      // 3. Create SubjectOfferings in background for solver
-      for (const item of validAssignments) {
-        const matchingSec = sections.find((s) => s.department_id === item.handling_department_id) || sections[0];
-        const defaultSemId = academicSemesters[0]?.id || 1;
-
-        if (matchingSec) {
-          await fetch(`${API_BASE}/subject-offerings/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              subject_id: Number(item.subject_id),
-              faculty_id: createdFaculty.id,
-              section_id: matchingSec.id,
-              semester_id: defaultSemId,
-              weekly_hours: item.weekly_hours || 4,
-            }),
-          }).catch(() => null);
-        }
-      }
-
-      setName("");
-      setDesignation("Assistant Professor");
-      setOpen(false);
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error saving faculty");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const openEditModal = (fac: FacultyMember) => {
-    setEditingFaculty(fac);
-    setEditName(fac.name);
-    setEditDesignation(fac.designation || "Assistant Professor");
-    setEditDepartmentId(fac.department_id);
-
-    const existingLoads = facultyLoads[fac.id] || [];
-    if (existingLoads.length > 0) {
-      const syncedLoads = existingLoads.map((l) => ({
-        ...l,
-        weekly_hours: getSubjectHours(l.subject_id),
-      }));
-      setEditAssignments(syncedLoads);
-    } else {
-      const defaultDept = fac.department_id || (departments.length > 0 ? departments[0].id : 1);
-      const defaultSem = availableSemesters[0] || "Semester 1";
-      setEditAssignments([
-        {
-          handling_department_id: defaultDept,
-          semester_name: defaultSem,
-          subject_id: "",
-          weekly_hours: 0,
-        },
-      ]);
-    }
-
-    setEditError("");
-    setEditOpen(true);
-  };
-
-  const handleUpdateFaculty = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingFaculty || !editName.trim() || !editDepartmentId) return;
-
-    setSubmittingEdit(true);
-    setEditError("");
-
-    try {
-      const res = await fetch(`${API_BASE}/faculty/${editingFaculty.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          designation: editDesignation.trim() || "Assistant Professor",
-          department_id: Number(editDepartmentId),
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to update faculty");
-      }
-
-      // Save updated teaching loads
-      const validLoads = editAssignments.filter((a) => a.subject_id !== "");
-      const updatedLoads = {
-        ...facultyLoads,
-        [editingFaculty.id]: validLoads,
-      };
-      setFacultyLoads(updatedLoads);
-      localStorage.setItem(
-        `timett_faculty_loads_1`,
-        JSON.stringify(updatedLoads)
-      );
-
-      setEditOpen(false);
-      await fetchData();
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Error updating faculty");
-    } finally {
-      setSubmittingEdit(false);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this faculty member? All their teaching loads will be removed.")) return;
-    try {
-      const res = await fetch(`${API_BASE}/faculty/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setFaculty((prev) => prev.filter((f) => f.id !== id));
-        const updatedLoads = { ...facultyLoads };
-        delete updatedLoads[id];
-        setFacultyLoads(updatedLoads);
-        localStorage.setItem(`timett_faculty_loads_1`, JSON.stringify(updatedLoads));
-      }
-    } catch (err) {
-      console.error("Failed to delete faculty", err);
-    }
-  };
-
-  // Availability matrix handlers
-  const openAvailability = async (fac: FacultyMember) => {
-    setActiveFaculty(fac);
-    setAvailOpen(true);
-    try {
-      const res = await fetch(`${API_BASE}/availability/?faculty_id=${fac.id}`);
-      if (res.ok) {
-        const data: AvailabilityRecord[] = await res.json();
-        const map: Record<string, boolean> = {};
-        data.forEach((r) => {
-          const key = `${r.day_of_week}_${r.start_time.slice(0, 5)}`;
-          map[key] = true;
-        });
-        setAvailMap(map);
-      } else {
-        setAvailMap({});
-      }
-    } catch {
-      setAvailMap({});
-    }
-  };
-
-  const toggleSlot = (day: string, startTime: string) => {
-    const key = `${day}_${startTime}`;
-    setAvailMap((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
-  const handleSaveAvailability = async () => {
-    if (!activeFaculty) return;
-    setSavingAvail(true);
-    try {
-      for (const day of DAYS) {
-        for (const p of PERIODS) {
-          const key = `${day}_${p.start}`;
-          const isAvailable = availMap[key];
-          if (isAvailable) {
-            await fetch(`${API_BASE}/availability/`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                faculty_id: activeFaculty.id,
-                day_of_week: day,
-                start_time: p.start,
-                end_time: p.end,
-              }),
-            });
-          }
-        }
-      }
-      setAvailOpen(false);
-    } catch (err) {
-      console.error("Failed to save availability", err);
-    } finally {
-      setSavingAvail(false);
-    }
-  };
-
-  const filteredDepartments = departments.filter((d) =>
-    d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    faculty.some((f) => f.department_id === d.id && f.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
-        <PageHeader
-          title="Faculty & Workload Assignments"
-          icon={Users}
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={fetchData}
-            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-            title="Refresh faculty roster"
-          >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
-          </Button>
+      <div className="min-h-[calc(100vh-140px)] w-full flex flex-col items-center justify-center p-4 sm:p-6 tt-animate-fade">
+        <div className="relative w-full max-w-4xl rounded-2xl border border-border bg-card/85 backdrop-blur-xl shadow-2xl overflow-hidden my-4">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border px-6 py-5 bg-muted/20">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-xs">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                  Automated Timetable Setup Wizard
+                </h2>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Step 4 of 5 — VTU Institutional Flow
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-primary/10 text-primary font-bold">
+                Total Faculty: {facultyList.length}
+              </span>
+            </div>
+          </div>
 
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
-                <Plus className="size-4" /> Add Faculty
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-              <DialogHeader>
-                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                  <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Instructor Profile</span>
-                </div>
-                <DialogTitle className="text-xl font-bold text-foreground">
-                  Add Faculty & Assign Teaching Loads
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Specify the faculty&apos;s home department, and select handling departments, semesters, and subjects. (Hours per week are automatically fetched from the subject curriculum).
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleAddFacultyWithSubjects} className="space-y-5 pt-2">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Full Name *
-                    </label>
-                    <Input
-                      placeholder="e.g. Dr. Rajesh Kumar or Nagabhusana"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Designation
-                    </label>
-                    <Input
-                      placeholder="e.g. Associate Professor"
-                      value={designation}
-                      onChange={(e) => setDesignation(e.target.value)}
-                      className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Home Department *
-                  </label>
-                  <select
-                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(Number(e.target.value))}
-                  >
-                    {departments.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Handled Course Allocations */}
-                <div className="space-y-3 rounded-2xl bg-white/[0.03] p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-foreground">
-                        Handled Teaching Loads
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        Select department, semester & subject (Periods/Wk are fixed from subject)
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 rounded-xl px-3 gap-1 text-xs font-semibold border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white cursor-pointer"
-                      onClick={addAssignmentRow}
-                    >
-                      <Plus className="size-3.5" /> Add Load
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {assignments.map((item, idx) => {
-                      const filteredSubs = getFilteredSubjects(
-                        item.handling_department_id,
-                        item.semester_name
-                      );
-
-                      return (
-                        <div
-                          key={idx}
-                          className="flex flex-col sm:flex-row items-start sm:items-center gap-2 rounded-xl bg-white/[0.04] p-3"
-                        >
-                          {/* Handling Department */}
-                          <div className="w-full sm:w-36">
-                            <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                              Handling Dept
-                            </label>
-                            <select
-                              className="w-full h-9 rounded-lg bg-muted/60 px-2 text-xs text-foreground cursor-pointer border-0"
-                              value={item.handling_department_id}
-                              onChange={(e) =>
-                                updateAssignment(idx, "handling_department_id", Number(e.target.value))
-                              }
-                            >
-                              {departments.map((d) => (
-                                <option key={d.id} value={d.id}>
-                                  {d.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Semester */}
-                          <div className="w-full sm:w-28">
-                            <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                              Semester
-                            </label>
-                            <select
-                              className="w-full h-9 rounded-lg bg-muted/60 px-2 text-xs text-foreground cursor-pointer border-0"
-                              value={item.semester_name}
-                              onChange={(e) =>
-                                updateAssignment(idx, "semester_name", e.target.value)
-                              }
-                            >
-                              {availableSemesters.map((s) => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Subject strictly filtered by department and semester */}
-                          <div className="flex-1 w-full">
-                            <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                              Subject Handled
-                            </label>
-                            <select
-                              className="w-full h-9 rounded-lg bg-muted/60 px-2 text-xs text-foreground cursor-pointer border-0"
-                              value={item.subject_id}
-                              onChange={(e) =>
-                                updateAssignment(
-                                  idx,
-                                  "subject_id",
-                                  e.target.value ? Number(e.target.value) : ""
-                                )
-                              }
-                            >
-                              <option value="">-- Select Subject --</option>
-                              {filteredSubs.length > 0 ? (
-                                filteredSubs.map((s) => (
-                                  <option key={s.id} value={s.id}>
-                                    {s.code} - {s.name}
-                                  </option>
-                                ))
-                              ) : (
-                                <option value="" disabled>
-                                  No subjects in this department / semester
-                                </option>
-                              )}
-                            </select>
-                          </div>
-
-                          {/* Fixed Hours Display */}
-                          <div className="w-full sm:w-28">
-                            <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                              Periods/Wk
-                            </label>
-                            <div className="h-9 px-2.5 rounded-lg bg-white/[0.06] flex items-center justify-center font-mono font-bold text-xs text-foreground">
-                              {item.weekly_hours} hrs/wk
-                            </div>
-                          </div>
-
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 sm:mt-4 cursor-pointer shrink-0"
-                            onClick={() => removeAssignmentRow(idx)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Total Hours Banner */}
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border-0 text-xs">
-                    <span className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Clock className="size-4 text-primary" />
-                      Total Cumulative Faculty Workload:
-                    </span>
-                    <Badge className="bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-0.5 border-0">
-                      {totalAddHours} Hours / Week
-                    </Badge>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border-0 p-3 text-xs text-red-600 dark:text-red-400">
-                    <AlertCircle className="size-4 shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <DialogFooter className="pt-2">
-                  <Button
-                    type="submit"
-                    disabled={submitting || !name.trim()}
-                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
-                  >
-                    {submitting ? "Saving..." : "Save Faculty Member"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </PageHeader>
-
-        {/* Search & Statistics Bar with Generous Padding */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
-          <div className="relative w-full sm:w-96">
-            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search faculty by name or designation..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-11 pl-10 pr-4 rounded-2xl bg-muted/40 border-0 text-sm"
+          {/* Wizard Progress Bar */}
+          <div className="w-full bg-muted/40 h-1">
+            <div
+              className="bg-gradient-to-r from-primary to-[#00A3FF] h-full transition-all duration-500 shadow-[0_0_12px_rgba(0,102,255,0.8)]"
+              style={{ width: "80%" }}
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
-              {departments.length} Departments
-            </Badge>
-            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
-              {faculty.length} Total Faculty
-            </Badge>
-          </div>
-        </div>
-
-        {/* Hierarchical Departments -> Faculty Members (Unboxed Layout) */}
-        {loading ? (
-          <LoadingState text="Loading faculty members and teaching allocations..." />
-        ) : departments.length === 0 ? (
-          <EmptyState
-            icon={Building2}
-            title="No departments found"
-          />
-        ) : (
-          <div className="space-y-12 pt-2">
-            {filteredDepartments.map((dept) => {
-              const deptFaculty = faculty.filter((f) => f.department_id === dept.id);
-
-              return (
-                <div key={dept.id} className="space-y-4">
-                  {/* Department Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-                    <div className="flex items-center gap-3">
-                      <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
-                      <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
-                    </div>
-
-                    <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
-                      <Users className="size-4 text-[#0070F3]" />
-                      <span>{deptFaculty.length} {deptFaculty.length === 1 ? "Instructor" : "Instructors"}</span>
-                    </div>
-                  </div>
-
-                  {/* Faculty Roster in this Department */}
-                  <div className="pt-2">
-                    {deptFaculty.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic py-3">
-                        No faculty members currently belong to {dept.name}. Click &ldquo;Add Faculty&rdquo; to register instructors for this department.
-                      </p>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {deptFaculty.map((fac) => {
-                          const assignedLoads = facultyLoads[fac.id] || [];
-                          const totalHours = assignedLoads.reduce(
-                            (sum, l) => sum + (l.weekly_hours || getSubjectHours(l.subject_id)),
-                            0
-                          );
-
-                          return (
-                            <div
-                              key={fac.id}
-                              className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] p-5 space-y-4 transition-colors border border-black/[0.04] dark:border-white/[0.04] shadow-none"
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div>
-                                  <h4 className="font-bold text-base text-foreground">{fac.name}</h4>
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    {fac.designation || "Assistant Professor"}
-                                  </p>
-                                </div>
-
-                                <div className="text-right">
-                                  <span className="font-mono font-bold text-sm text-foreground block">
-                                    {totalHours > 0 ? `${totalHours} hrs/week` : "0 hrs/week"}
-                                  </span>
-                                  <span className="text-[10px] text-muted-foreground block mt-0.5">
-                                    Total Teaching Load
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Handling Course Loads */}
-                              <div className="space-y-2 pt-1">
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-                                  Handled Courses & Fixed Curriculum Hours:
-                                </span>
-                                {assignedLoads.length === 0 ? (
-                                  <span className="text-xs text-muted-foreground italic block">
-                                    No teaching loads currently configured.
-                                  </span>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2">
-                                    {assignedLoads.map((load, lIdx) => {
-                                      const sub = subjects.find((s) => s.id === load.subject_id);
-                                      const targetDept = departments.find((d) => d.id === load.handling_department_id);
-                                      const hours = load.weekly_hours || getSubjectHours(load.subject_id);
-
-                                      return (
-                                        <Badge
-                                          key={lIdx}
-                                          variant="outline"
-                                          className="text-xs font-medium bg-black/[0.04] dark:bg-white/[0.05] text-foreground border-0 px-3 py-1 flex items-center gap-1.5 rounded-xl"
-                                        >
-                                          <span className="font-bold text-[#0070F3]">
-                                            {targetDept?.name || "Dept"}
-                                          </span>
-                                          <span className="text-muted-foreground">•</span>
-                                          <span>{load.semester_name}</span>
-                                          <span className="text-muted-foreground">•</span>
-                                          <span className="font-semibold">{sub ? `${sub.code} - ${sub.name}` : "Subject"}</span>
-                                          <span className="rounded-md bg-primary/20 text-primary font-mono text-[10px] px-1.5 py-0.5 font-bold">
-                                            {hours} hrs/wk
-                                          </span>
-                                        </Badge>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Actions Bar */}
-                              <div className="flex items-center justify-end gap-1.5 pt-3 border-t border-black/[0.04] dark:border-white/[0.04]">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openAvailability(fac)}
-                                  className="h-8 text-xs rounded-xl px-3 gap-1.5 border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-                                >
-                                  <CalendarClock className="size-3.5 text-[#0070F3]" /> Availability
-                                </Button>
-
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => openEditModal(fac)}
-                                  className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                  title="Edit faculty"
-                                >
-                                  <Pencil className="size-3.5" />
-                                </Button>
-
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(fac.id)}
-                                  className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                  title="Delete faculty"
-                                >
-                                  <Trash2 className="size-3.5" />
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Edit Faculty Modal */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Instructor</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Faculty & Teaching Loads
-              </DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleUpdateFaculty} className="space-y-4 pt-2">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Full Name *
-                  </label>
-                  <Input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    required
-                    className="rounded-xl border-border bg-muted/40"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Designation
-                  </label>
-                  <Input
-                    value={editDesignation}
-                    onChange={(e) => setEditDesignation(e.target.value)}
-                    className="rounded-xl border-border bg-muted/40"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Home Department *
-                </label>
-                <select
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm text-foreground focus:outline-none cursor-pointer"
-                  value={editDepartmentId}
-                  onChange={(e) => setEditDepartmentId(Number(e.target.value))}
-                >
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Handled Teaching Loads */}
-              <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-foreground">
-                      Handled Teaching Loads
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Handling department, semester & subject (Periods/Wk are fixed from subject)
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 rounded-lg gap-1 text-xs font-semibold border-border bg-card cursor-pointer"
-                    onClick={addEditAssignmentRow}
-                  >
-                    <Plus className="size-3.5" /> Add Load
-                  </Button>
-                </div>
-
-                <div className="space-y-2.5">
-                  {editAssignments.map((item, idx) => {
-                    const filteredSubs = getFilteredSubjects(
-                      item.handling_department_id,
-                      item.semester_name
-                    );
-
-                    return (
-                      <div
-                        key={idx}
-                        className="flex flex-col sm:flex-row items-start sm:items-center gap-2 rounded-xl border border-border bg-card/80 p-3"
-                      >
-                        {/* Handling Department */}
-                        <div className="w-full sm:w-36">
-                          <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                            Handling Dept
-                          </label>
-                          <select
-                            className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
-                            value={item.handling_department_id}
-                            onChange={(e) =>
-                              updateEditAssignment(idx, "handling_department_id", Number(e.target.value))
-                            }
-                          >
-                            {departments.map((d) => (
-                              <option key={d.id} value={d.id}>
-                                {d.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Semester */}
-                        <div className="w-full sm:w-28">
-                          <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                            Semester
-                          </label>
-                          <select
-                            className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
-                            value={item.semester_name}
-                            onChange={(e) =>
-                              updateEditAssignment(idx, "semester_name", e.target.value)
-                            }
-                          >
-                            {availableSemesters.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Subject */}
-                        <div className="flex-1 w-full">
-                          <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                            Subject Handled
-                          </label>
-                          <select
-                            className="w-full rounded-lg border border-border bg-muted/40 px-2 py-1.5 text-xs text-foreground cursor-pointer"
-                            value={item.subject_id}
-                            onChange={(e) =>
-                              updateEditAssignment(
-                                idx,
-                                "subject_id",
-                                e.target.value ? Number(e.target.value) : ""
-                              )
-                            }
-                          >
-                            <option value="">-- Select Subject --</option>
-                            {filteredSubs.length > 0 ? (
-                              filteredSubs.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.code} - {s.name}
-                                </option>
-                              ))
-                            ) : (
-                              <option value="" disabled>
-                                No subjects in this department / semester
-                              </option>
-                            )}
-                          </select>
-                        </div>
-
-                        {/* Fixed Hours Display */}
-                        <div className="w-full sm:w-28">
-                          <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
-                            Periods/Wk
-                          </label>
-                          <div className="h-8 px-2.5 rounded-lg border border-border bg-muted/60 flex items-center justify-center font-mono font-bold text-xs text-foreground">
-                            {item.weekly_hours} hrs/wk
-                          </div>
-                        </div>
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 sm:mt-4 cursor-pointer shrink-0"
-                          onClick={() => removeEditAssignmentRow(idx)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Total Edit Hours Banner */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 text-xs">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <Clock className="size-4 text-primary" />
-                    Total Cumulative Faculty Workload:
-                  </span>
-                  <Badge className="bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-0.5">
-                    {totalEditHours} Hours / Week
-                  </Badge>
-                </div>
-              </div>
-
-              {editError && (
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-600 dark:text-red-400">
-                  <AlertCircle className="size-4 shrink-0" />
-                  <span>{editError}</span>
-                </div>
-              )}
-
-              <DialogFooter className="pt-2">
-                <Button
-                  type="submit"
-                  disabled={submittingEdit || !editName.trim()}
-                  className="tt-gradient-btn rounded-xl font-bold w-full"
-                >
-                  {submittingEdit ? "Updating..." : "Update Faculty Member"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Availability Matrix Modal */}
-        <Dialog open={availOpen} onOpenChange={setAvailOpen}>
-          <DialogContent className="sm:max-w-[700px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-primary mb-1">
-                <CalendarClock className="size-4" />
-                <span className="tt-eyebrow">Weekly Availability Constraints</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                {activeFaculty?.name} &mdash; Working Period Schedule
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Click slots to toggle when this instructor is available to teach.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="overflow-x-auto py-2">
-              <table className="w-full text-xs text-center border-collapse">
-                <thead>
-                  <tr>
-                    <th className="p-2 border border-border bg-muted/40 font-bold text-foreground">
-                      Period / Time
-                    </th>
-                    {DAYS.map((d) => (
-                      <th
-                        key={d}
-                        className="p-2 border border-border bg-muted/40 font-bold text-foreground"
-                      >
-                        {d}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PERIODS.map((p) => (
-                    <tr key={p.start}>
-                      <td className="p-2 border border-border font-mono font-medium text-muted-foreground bg-muted/20">
-                        {p.label}
-                      </td>
-                      {DAYS.map((d) => {
-                        const key = `${d}_${p.start}`;
-                        const isAvail = availMap[key];
-                        return (
-                          <td
-                            key={d}
-                            onClick={() => toggleSlot(d, p.start)}
-                            className={`p-2 border border-border cursor-pointer transition-colors ${
-                              isAvail
-                                ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold hover:bg-emerald-500/30"
-                                : "bg-red-500/10 text-red-500 font-medium hover:bg-red-500/20"
-                            }`}
-                          >
-                            {isAvail ? (
-                              <span className="inline-flex items-center gap-1">
-                                <Check className="size-3.5" /> Available
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1">
-                                <X className="size-3.5" /> Blocked
-                              </span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Body Content */}
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="border-b border-border/50 pb-4 space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-foreground">
+                4. Available Department Faculties
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Enter faculty names manually or upload a PDF / Word document / photo of the faculty roster.
+              </p>
             </div>
 
-            <DialogFooter className="pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setAvailOpen(false)}
-                className="rounded-xl border-border bg-card"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column: File Upload & Manual Form */}
+              <div className="space-y-4">
+                {/* File Upload Box */}
+                <div className="border-2 border-dashed border-primary/40 rounded-xl p-5 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
+                    onChange={handleFacultyFileUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <div className="p-2.5 rounded-full bg-primary/10 text-primary">
+                      {parsingFaculty ? (
+                        <RefreshCw className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Upload className="h-5 w-5" />
+                      )}
+                    </div>
+                    <p className="text-xs font-bold text-foreground">
+                      {parsingFaculty
+                        ? "Extracting Faculty Roster..."
+                        : "Upload Faculty List (PDF / DOCX / Image)"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Parser extracts names and departments automatically
+                    </p>
+                  </div>
+                </div>
+
+                {/* Manual Entry Form */}
+                <form
+                  onSubmit={handleAddManualFaculty}
+                  className="rounded-xl border border-border bg-card/90 p-4 space-y-3 shadow-xs"
+                >
+                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Manual Faculty Entry
+                  </h4>
+                  <div className="space-y-2.5">
+                    <input
+                      type="text"
+                      placeholder="Faculty Name (e.g. Dr. Rajesh Sharma)"
+                      value={manualName}
+                      onChange={(e) => setManualName(e.target.value)}
+                      className="w-full h-10 px-3 text-xs rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
+                      required
+                    />
+                    <input
+                      type="text"
+                      placeholder="Department (e.g. Computer Science & Engineering)"
+                      value={manualDept}
+                      onChange={(e) => setManualDept(e.target.value)}
+                      className="w-full h-10 px-3 text-xs rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full h-9 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:opacity-90 transition cursor-pointer flex items-center justify-center space-x-1.5"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Faculty Member</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Right Column: Ingested Faculty List */}
+              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3 flex flex-col">
+                <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
+                    <Users className="h-4 w-4" />
+                    <span>Ingested Department Faculty ({facultyList.length})</span>
+                  </h4>
+                </div>
+
+                {uploadSuccess && (
+                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center space-x-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>{uploadSuccess}</span>
+                  </div>
+                )}
+
+                {facultyList.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground italic">
+                    No faculty added yet. Upload a roster file or add manually on the left.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[38vh] overflow-y-auto pr-1">
+                    {facultyList.map((f, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="font-bold text-foreground truncate flex items-center space-x-1.5">
+                            <UserCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+                            <span>{f.name}</span>
+                          </p>
+                          <p className="text-[10px] text-muted-foreground truncate">{f.department}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFaculty(idx)}
+                          className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Controls */}
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
+            <Link href="/documents">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
               >
-                Close
-              </Button>
-              <Button
-                onClick={handleSaveAvailability}
-                disabled={savingAvail}
-                className="tt-gradient-btn rounded-xl font-bold"
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Previous: Document Ingestion</span>
+              </button>
+            </Link>
+
+            <Link href="/rooms">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
               >
-                {savingAvail ? "Saving..." : "Save Availability"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <WizardFooter
-          prevHref="/subjects"
-          nextHref="/time-slots"
-        />
+                <span>Next: Rooms & Labs</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </Link>
+          </div>
+
+        </div>
       </div>
     </AppShell>
   );

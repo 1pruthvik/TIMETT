@@ -2,830 +2,459 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { useRouter } from "next/navigation";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
+  BookOpen,
+  Layers,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
   Plus,
   Trash2,
-  Pencil,
-  BookOpen,
+  Upload,
   RefreshCw,
-  Sparkles,
-  Building2,
-  GraduationCap,
-  FlaskConical,
+  CheckCircle2,
   Search,
-  BookMarked,
-  Clock,
-  Layers,
-  Info,
 } from "lucide-react";
-import { WizardFooter } from "@/components/ui/wizard-footer";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-interface Department {
-  id: number;
-  name: string;
-  institution_id: number;
-}
-
-interface AcademicSemester {
-  id: number;
-  name: string;
-  academic_year_id: number;
-}
+import { AppShell } from "@/components/layout/app-shell";
 
 interface Subject {
-  id: number;
-  name: string;
   code: string;
-  department_id: number;
-  subject_type?: string;
-  weekly_hours?: number;
+  name: string;
+  category: "theory" | "practical";
+  weekly_hours: number;
 }
 
-interface SubjectMeta {
-  semesterName: string;
-  subjectType: "Theory" | "Lab" | "Elective";
-  weeklyHours: number;
-}
-
-const SUBJECT_TYPES = [
-  { value: "Theory", label: "Theory (Lecture)" },
-  { value: "Lab", label: "Practical (Laboratory)" },
-  { value: "Elective", label: "Elective Subject" },
-];
-
-function isSubjectForSemester(
-  subName: string,
-  subCode: string,
-  semName: string,
-  metaSem?: string
-): boolean {
-  if (metaSem && metaSem.toLowerCase() === semName.toLowerCase()) return true;
-
-  const normSub = (subName + " " + subCode).trim().toLowerCase();
-  const normSem = semName.trim().toLowerCase();
-
-  if (normSub.includes(normSem)) return true;
-
-  const digits = normSem.match(/\d+/);
-  if (digits) {
-    const d = digits[0];
-    const codeDigits = subCode.match(/\d+/);
-    if (codeDigits && codeDigits[0].startsWith(d)) {
-      return true;
-    }
-    const pattern = new RegExp(`(^|\\s|Sem|sem|[A-Za-z])${d}([A-Za-z]|\\s|$)`, "i");
-    return pattern.test(normSub);
-  }
-
-  return false;
-}
-
-function getSemesterGroupsForDept(
-  deptSubjects: Subject[],
-  availableSemesters: string[],
-  subjectMetaMap: Record<number, SubjectMeta>
-): { semTitle: string; subjects: Subject[]; isUnassigned?: boolean }[] {
-  const groups: { semTitle: string; subjects: Subject[]; isUnassigned?: boolean }[] = [];
-  const assigned = new Set<number>();
-
-  // 1. Check user configured academic semesters
-  for (const semName of availableSemesters) {
-    const matching = deptSubjects.filter((s) => {
-      if (assigned.has(s.id)) return false;
-      const meta = subjectMetaMap[s.id];
-      return isSubjectForSemester(s.name, s.code, semName, meta?.semesterName);
-    });
-    matching.forEach((s) => assigned.add(s.id));
-    groups.push({ semTitle: semName, subjects: matching });
-  }
-
-  // 2. Catch ALL remaining unassigned subjects so NO subject is ever invisible
-  const remaining = deptSubjects.filter((s) => !assigned.has(s.id));
-  if (remaining.length > 0) {
-    groups.push({
-      semTitle: "General / Unassigned Curriculum",
-      subjects: remaining,
-      isUnassigned: true,
-    });
-  }
-
-  return groups;
+interface VTUCourse {
+  code: string;
+  name: string;
+  selected: boolean;
+  studentCount: number;
 }
 
 export default function SubjectsPage() {
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [academicSemesters, setAcademicSemesters] = useState<AcademicSemester[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [institutionId, setInstitutionId] = useState<number>(1);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
-  // Subject metadata mapping: subjectId -> { semesterName, subjectType, weeklyHours }
-  const [subjectMetaMap, setSubjectMetaMap] = useState<Record<number, SubjectMeta>>({});
+  const [courses, setCourses] = useState<VTUCourse[]>([]);
+  const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
+  const [courseSubjectsMap, setCourseSubjectsMap] = useState<
+    Record<string, { theory: Subject[]; practical: Subject[] }>
+  >({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [parsingScheme, setParsingScheme] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
-  // Create Modal
-  const [open, setOpen] = useState(false);
-  const [selectedDeptId, setSelectedDeptId] = useState<number | "">("");
-  const [selectedSemName, setSelectedSemName] = useState<string>("Semester 1");
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [subjectType, setSubjectType] = useState<"Theory" | "Lab" | "Elective">("Theory");
-  const [weeklyHours, setWeeklyHours] = useState("4");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  // Manual Add Subject
+  const [showAddSubj, setShowAddSubj] = useState(false);
+  const [newSubjCode, setNewSubjCode] = useState("");
+  const [newSubjName, setNewSubjName] = useState("");
+  const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "practical">("theory");
+  const [newSubjHours, setNewSubjHours] = useState(4);
 
-  // Edit Modal
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const [editDeptId, setEditDeptId] = useState<number | "">("");
-  const [editSemName, setEditSemName] = useState<string>("Semester 1");
-  const [editName, setEditName] = useState("");
-  const [editCode, setEditCode] = useState("");
-  const [editSubjectType, setEditSubjectType] = useState<"Theory" | "Lab" | "Elective">("Theory");
-  const [editWeeklyHours, setEditWeeklyHours] = useState("4");
-  const [submittingEdit, setSubmittingEdit] = useState(false);
-  const [editError, setEditError] = useState("");
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
+  useEffect(() => {
     try {
-      const storedUser = localStorage.getItem("user");
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      const userInstId = user?.institution_id || 1;
-      setInstitutionId(userInstId);
-
-      const [deptRes, subRes, semRes] = await Promise.all([
-        fetch(`${API_BASE}/departments/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/subjects/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/semesters/?institution_id=${userInstId}`).catch(() => null),
-      ]);
-
-      if (deptRes && deptRes.ok) {
-        const depts: Department[] = await deptRes.json();
-        setDepartments(depts);
-        if (depts.length > 0 && selectedDeptId === "") {
-          setSelectedDeptId(depts[0].id);
-        }
+      const savedCourses = localStorage.getItem("vtu_college_offered_courses");
+      if (savedCourses) {
+        const parsed = JSON.parse(savedCourses);
+        setCourses(parsed);
+        const sel = parsed.find((c: any) => c.selected);
+        if (sel) setActiveCourseCode(sel.code);
+      } else {
+        setCourses([
+          { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180 },
+          { code: "ECE", name: "Electronics & Communication Engineering", selected: true, studentCount: 120 },
+        ]);
       }
 
-      if (semRes && semRes.ok) {
-        const sems: AcademicSemester[] = await semRes.json();
-        setAcademicSemesters(sems);
-        if (sems.length > 0) {
-          setSelectedSemName(sems[0].name);
-        }
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
+      if (savedSubjects) {
+        setCourseSubjectsMap(JSON.parse(savedSubjects));
+      } else {
+        const initialMap = {
+          CSE: {
+            theory: [
+              { code: "1BMATCS301", name: "Mathematics for Computer Science", category: "theory", weekly_hours: 4 },
+              { code: "1BCS302", name: "Digital Design & Computer Organization", category: "theory", weekly_hours: 4 },
+              { code: "1BCS303", name: "Operating Systems Architecture", category: "theory", weekly_hours: 4 },
+              { code: "1BCS304", name: "Data Structures and Applications", category: "theory", weekly_hours: 4 },
+            ],
+            practical: [
+              { code: "1BCSL305", name: "Data Structures Laboratory", category: "practical", weekly_hours: 3 },
+              { code: "1BCSL306", name: "Object Oriented Java Lab", category: "practical", weekly_hours: 3 },
+            ],
+          },
+        };
+        setCourseSubjectsMap(initialMap as any);
+        localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
       }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
-      if (subRes && subRes.ok) {
-        setSubjects(await subRes.json());
-      }
+  const saveSubjectsToStorage = (updatedMap: any) => {
+    try {
+      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedMap));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-      // Load subject metadata from localStorage
-      const savedMeta = localStorage.getItem(`timett_subject_meta_${userInstId}`);
-      if (savedMeta) {
-        setSubjectMetaMap(JSON.parse(savedMeta));
+  const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setParsingScheme(true);
+    setUploadSuccess(null);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/vtu/parse-scheme", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const tSubjs = data.theory_subjects || [];
+        const pSubjs = data.practical_subjects || [];
+
+        setCourseSubjectsMap((prev) => {
+          const updated = {
+            ...prev,
+            [activeCourseCode]: { theory: tSubjs, practical: pSubjs },
+          };
+          saveSubjectsToStorage(updated);
+          return updated;
+        });
+        setUploadSuccess(`Extracted ${tSubjs.length} Theory & ${pSubjs.length} Lab subjects for ${activeCourseCode}!`);
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to connect to backend API.");
     } finally {
-      setLoading(false);
+      setParsingScheme(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const openAddForDeptAndSem = (deptId: number, semName: string) => {
-    setSelectedDeptId(deptId);
-    setSelectedSemName(semName.startsWith("General") ? "Semester 1" : semName);
-    setName("");
-    setCode("");
-    setSubjectType("Theory");
-    setWeeklyHours("4");
-    setError("");
-    setOpen(true);
-  };
-
-  const handleAddSubject = async (e: React.FormEvent) => {
+  const handleAddManualSubject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !code.trim() || !selectedDeptId) return;
+    if (!newSubjCode || !newSubjName) return;
 
-    setSubmitting(true);
-    setError("");
+    const newSubj: Subject = {
+      code: newSubjCode.toUpperCase().trim(),
+      name: newSubjName.trim(),
+      category: newSubjCategory,
+      weekly_hours: Number(newSubjHours) || 4,
+    };
 
-    try {
-      const res = await fetch(`${API_BASE}/subjects/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          code: code.trim().toUpperCase(),
-          department_id: Number(selectedDeptId),
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to add subject");
-      }
-
-      const created: Subject = await res.json();
-
-      // Save subject metadata (semester, type, weekly hours)
-      const updatedMeta = {
-        ...subjectMetaMap,
-        [created.id]: {
-          semesterName: selectedSemName,
-          subjectType,
-          weeklyHours: parseInt(weeklyHours) || 4,
+    setCourseSubjectsMap((prev) => {
+      const current = prev[activeCourseCode] || { theory: [], practical: [] };
+      const updated = {
+        ...prev,
+        [activeCourseCode]: {
+          theory:
+            newSubjCategory === "theory"
+              ? [...current.theory, newSubj]
+              : current.theory,
+          practical:
+            newSubjCategory === "practical"
+              ? [...current.practical, newSubj]
+              : current.practical,
         },
       };
-      setSubjectMetaMap(updatedMeta);
-      localStorage.setItem(
-        `timett_subject_meta_${institutionId}`,
-        JSON.stringify(updatedMeta)
-      );
+      saveSubjectsToStorage(updated);
+      return updated;
+    });
 
-      setName("");
-      setCode("");
-      setOpen(false);
-      await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error creating subject");
-    } finally {
-      setSubmitting(false);
-    }
+    setNewSubjCode("");
+    setNewSubjName("");
+    setShowAddSubj(false);
   };
 
-  const openEditModal = (subject: Subject) => {
-    setEditingSubject(subject);
-    setEditDeptId(subject.department_id);
-    const meta = subjectMetaMap[subject.id];
-    setEditSemName(meta?.semesterName || "Semester 1");
-    setEditName(subject.name);
-    setEditCode(subject.code);
-    setEditSubjectType(meta?.subjectType || "Theory");
-    setEditWeeklyHours((meta?.weeklyHours || 4).toString());
-    setEditError("");
-    setEditOpen(true);
-  };
-
-  const handleUpdateSubject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSubject || !editName.trim() || !editCode.trim() || !editDeptId) return;
-
-    setSubmittingEdit(true);
-    setEditError("");
-
-    try {
-      const res = await fetch(`${API_BASE}/subjects/${editingSubject.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          code: editCode.trim().toUpperCase(),
-          department_id: Number(editDeptId),
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to update subject");
-      }
-
-      // Update metadata
-      const updatedMeta = {
-        ...subjectMetaMap,
-        [editingSubject.id]: {
-          semesterName: editSemName,
-          subjectType: editSubjectType,
-          weeklyHours: parseInt(editWeeklyHours) || 4,
+  const handleRemoveSubject = (category: "theory" | "practical", index: number) => {
+    setCourseSubjectsMap((prev) => {
+      const current = prev[activeCourseCode] || { theory: [], practical: [] };
+      const updated = {
+        ...prev,
+        [activeCourseCode]: {
+          theory:
+            category === "theory"
+              ? current.theory.filter((_, i) => i !== index)
+              : current.theory,
+          practical:
+            category === "practical"
+              ? current.practical.filter((_, i) => i !== index)
+              : current.practical,
         },
       };
-      setSubjectMetaMap(updatedMeta);
-      localStorage.setItem(
-        `timett_subject_meta_${institutionId}`,
-        JSON.stringify(updatedMeta)
-      );
-
-      setEditOpen(false);
-      await fetchData();
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Error updating subject");
-    } finally {
-      setSubmittingEdit(false);
-    }
+      saveSubjectsToStorage(updated);
+      return updated;
+    });
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this subject? All offerings will be removed.")) return;
-    try {
-      const res = await fetch(`${API_BASE}/subjects/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setSubjects((prev) => prev.filter((s) => s.id !== id));
-        const updatedMeta = { ...subjectMetaMap };
-        delete updatedMeta[id];
-        setSubjectMetaMap(updatedMeta);
-        localStorage.setItem(
-          `timett_subject_meta_${institutionId}`,
-          JSON.stringify(updatedMeta)
-        );
-      }
-    } catch (err) {
-      console.error("Failed to delete subject", err);
-    }
-  };
+  const selectedCourses = courses.filter((c) => c.selected);
+  const activeData = courseSubjectsMap[activeCourseCode] || { theory: [], practical: [] };
 
-  const availableSemesters =
-    academicSemesters.length > 0
-      ? academicSemesters.map((s) => s.name)
-      : ["Semester 1", "Semester 2", "Semester 3", "Semester 4", "Semester 5", "Semester 6", "Semester 7", "Semester 8"];
+  const filteredTheory = activeData.theory.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.code.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const filteredDepartments = departments.filter((d) =>
-    d.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPractical = activeData.practical.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
-        <PageHeader
-          title="Curriculum Subjects & Semesters"
-          icon={BookOpen}
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={fetchData}
-            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-            title="Refresh subjects"
-          >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
-          </Button>
+      <div className="min-h-[calc(100vh-140px)] w-full flex flex-col items-center justify-center p-4 sm:p-6 tt-animate-fade">
+        <div className="relative w-full max-w-4xl rounded-2xl border border-border bg-card/85 backdrop-blur-xl shadow-2xl overflow-hidden my-4">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border px-6 py-5 bg-muted/20">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-xs">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                  Automated Timetable Setup Wizard
+                </h2>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Subjects & Practical Lab Curriculum Management
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-primary/10 text-primary font-bold">
+                {activeData.theory.length + activeData.practical.length} Subjects Active
+              </span>
+            </div>
+          </div>
 
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
-                <Plus className="size-4" /> Add Subject
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-              <DialogHeader>
-                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                  <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Curriculum Entry</span>
-                </div>
-                <DialogTitle className="text-xl font-bold text-foreground">
-                  Add Subject to Semester
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Register a subject under a specific department and academic semester.
-                </DialogDescription>
-              </DialogHeader>
+          {/* Body Content */}
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-foreground">
+                  VTU Scheme Subjects & Lab Allocation
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Manage theory and practical laboratory subjects for <span className="text-primary font-bold">{activeCourseCode}</span>.
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddSubj(!showAddSubj)}
+                  className="px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/15 text-primary text-xs font-bold flex items-center space-x-1.5 cursor-pointer transition"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Add Subject</span>
+                </button>
+              </div>
+            </div>
 
-              <form onSubmit={handleAddSubject} className="space-y-4 pt-2">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Department *
-                    </label>
-                    <select
-                      value={selectedDeptId}
-                      onChange={(e) => setSelectedDeptId(Number(e.target.value))}
-                      required
-                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer border-0"
-                    >
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+            {/* Course Tabs */}
+            <div className="flex flex-wrap gap-2 pb-1 border-b border-border/40">
+              {selectedCourses.map((c) => (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={() => setActiveCourseCode(c.code)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+                    activeCourseCode === c.code
+                      ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                      : "bg-muted/40 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span>{c.code}</span>
+                  <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
+                </button>
+              ))}
+            </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Academic Semester *
-                    </label>
-                    <select
-                      value={selectedSemName}
-                      onChange={(e) => setSelectedSemName(e.target.value)}
-                      required
-                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer border-0"
-                    >
-                      {availableSemesters.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Subject Name *
-                  </label>
-                  <Input
-                    placeholder="e.g. Operating Systems or Machine Learning"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+            {/* Manual Subject Form */}
+            {showAddSubj && (
+              <form
+                onSubmit={handleAddManualSubject}
+                className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 tt-animate-fade"
+              >
+                <p className="text-xs font-bold text-primary">Add Subject for {activeCourseCode}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Code (e.g. 1BCS304)"
+                    value={newSubjCode}
+                    onChange={(e) => setNewSubjCode(e.target.value)}
+                    className="h-10 px-3 text-xs rounded-lg border bg-background"
                     required
-                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
                   />
+                  <input
+                    type="text"
+                    placeholder="Subject Name"
+                    value={newSubjName}
+                    onChange={(e) => setNewSubjName(e.target.value)}
+                    className="h-10 px-3 text-xs rounded-lg border bg-background sm:col-span-2"
+                    required
+                  />
+                  <select
+                    value={newSubjCategory}
+                    onChange={(e) => {
+                      const cat = e.target.value as "theory" | "practical";
+                      setNewSubjCategory(cat);
+                      setNewSubjHours(cat === "practical" ? 3 : 4);
+                    }}
+                    className="h-10 px-3 text-xs rounded-lg border bg-background"
+                  >
+                    <option value="theory">Theory (4 hrs/wk)</option>
+                    <option value="practical">Practical / Lab (3 hrs/wk)</option>
+                  </select>
                 </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Subject Code *
-                    </label>
-                    <Input
-                      placeholder="e.g. CS301"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      required
-                      className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center uppercase"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Subject Type
-                    </label>
-                    <select
-                      value={subjectType}
-                      onChange={(e) => setSubjectType(e.target.value as "Theory" | "Lab" | "Elective")}
-                      className="w-full h-11 rounded-xl bg-muted/40 px-3 text-xs font-semibold text-foreground focus:outline-none cursor-pointer border-0"
-                    >
-                      {SUBJECT_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1 block">
-                      Weekly Periods
-                    </label>
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="4"
-                      value={weeklyHours}
-                      onChange={(e) => setWeeklyHours(e.target.value)}
-                      className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
-                    />
-                  </div>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubj(false)}
+                    className="px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1 text-xs font-bold bg-primary text-primary-foreground rounded-lg"
+                  >
+                    Save Subject
+                  </button>
                 </div>
+              </form>
+            )}
 
-                {error && (
-                  <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-500 flex items-start gap-2">
-                    <Info className="size-4 shrink-0 mt-0.5" />
-                    <span>{error}</span>
+            {/* Search Box */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search subject code or title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-10 pl-9 pr-4 text-xs rounded-xl border border-border bg-background/60 focus:ring-1 focus:ring-primary outline-none"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+
+            {/* Segregated Subjects Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Theory Subjects */}
+              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3">
+                <h4 className="text-xs font-bold text-primary tracking-wider uppercase flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>Theory Subjects ({filteredTheory.length})</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{activeCourseCode}</span>
+                </h4>
+                {filteredTheory.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-4 text-center">
+                    No theory subjects found.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {filteredTheory.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="font-mono font-bold text-primary">{s.code}</span>
+                          <p className="font-medium text-foreground truncate">{s.name}</p>
+                        </div>
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono font-semibold">
+                            {s.weekly_hours} hrs/wk
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubject("theory", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
+              </div>
 
-                <DialogFooter className="pt-2">
-                  <Button
-                    type="submit"
-                    disabled={submitting || !name.trim() || !code.trim() || !selectedDeptId}
-                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
-                  >
-                    {submitting ? "Saving..." : "Save Subject"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </PageHeader>
-
-        {/* Search & Overview Stats with Generous Padding */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
-          <div className="relative w-full sm:w-96">
-            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search subjects or departments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-11 pl-10 pr-4 rounded-2xl bg-muted/40 border-0 text-sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
-              {departments.length} Departments
-            </Badge>
-            <Badge variant="outline" className="h-11 text-xs font-bold px-4 rounded-2xl bg-muted/50 border-0 flex items-center">
-              {subjects.length} Total Subjects
-            </Badge>
-          </div>
-        </div>
-
-        {/* Hierarchical Departments -> Semesters -> Subjects List (Unboxed) */}
-        {loading ? (
-          <LoadingState text="Loading department curriculum & semester subjects..." />
-        ) : departments.length === 0 ? (
-          <EmptyState
-            icon={Building2}
-            title="No departments found"
-          />
-        ) : (
-          <div className="space-y-12 pt-2">
-            {filteredDepartments.map((dept) => {
-              const deptSubjects = subjects.filter((s) => s.department_id === dept.id);
-              const semesterGroups = getSemesterGroupsForDept(
-                deptSubjects,
-                availableSemesters,
-                subjectMetaMap
-              );
-
-              return (
-                <div key={dept.id} className="space-y-4">
-                  {/* Department Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-                    <div className="flex items-center gap-3">
-                      <Building2 className="size-5 text-[#0070F3] stroke-[1.75]" />
-                      <h3 className="text-lg font-bold text-foreground">{dept.name}</h3>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
-                        <BookOpen className="size-4 text-[#0070F3]" />
-                        <span>{deptSubjects.length} {deptSubjects.length === 1 ? "Subject" : "Subjects"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Semesters under this Department */}
-                  <div className="space-y-8 pt-2">
-                    {semesterGroups.map((group) => {
-                      return (
-                        <div
-                          key={group.semTitle}
-                          className="space-y-3"
-                        >
-                          {/* Semester Sub-header with Quick Add Button */}
-                          <div className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.04]">
-                            <div className="flex items-center gap-2">
-                              {group.isUnassigned ? (
-                                <Info className="size-4 text-amber-500" />
-                              ) : (
-                                <GraduationCap className="size-4 text-[#0070F3]" />
-                              )}
-                              <span className="text-sm font-bold text-foreground">
-                                {group.semTitle}
-                              </span>
-                              <span className="text-xs font-semibold text-muted-foreground">
-                                ({group.subjects.length} {group.subjects.length === 1 ? "Subject" : "Subjects"})
-                              </span>
-                            </div>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openAddForDeptAndSem(dept.id, group.semTitle)}
-                              className="h-8 text-xs rounded-xl px-3 gap-1.5 font-bold border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-                            >
-                              <Plus className="size-3.5" /> Add Subject to {group.semTitle}
-                            </Button>
-                          </div>
-
-                          {/* Subjects in this Semester */}
-                          {group.subjects.length === 0 ? (
-                            <p className="text-xs text-muted-foreground italic py-2">
-                              No subjects registered for {group.semTitle} in this department. Click &ldquo;Add Subject to {group.semTitle}&rdquo; to configure courses.
-                            </p>
-                          ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                              {group.subjects.map((sub) => {
-                                const meta = subjectMetaMap[sub.id];
-                                const type = meta?.subjectType || (sub.name.toLowerCase().includes("lab") ? "Lab" : "Theory");
-                                const hours = meta?.weeklyHours || 4;
-
-                                return (
-                                  <div
-                                    key={sub.id}
-                                    className="flex flex-col justify-between p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors space-y-3 shadow-none border border-black/[0.04] dark:border-white/[0.04]"
-                                  >
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <span className="rounded-lg bg-black/[0.04] dark:bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] font-bold text-foreground">
-                                          {sub.code}
-                                        </span>
-                                        <span className="text-[11px] font-semibold text-muted-foreground">
-                                          {type === "Lab" ? "Practical Lab" : type}
-                                        </span>
-                                      </div>
-                                      <h5 className="font-bold text-sm text-foreground line-clamp-1">
-                                        {sub.name}
-                                      </h5>
-                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                                        <Clock className="size-3 text-muted-foreground" />
-                                        <span>{hours} periods/week</span>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                                        onClick={() => openEditModal(sub)}
-                                        title="Edit subject details or semester"
-                                      >
-                                        <Pencil className="size-3.5" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                                        onClick={() => handleDelete(sub.id)}
-                                        title="Delete subject"
-                                      >
-                                        <Trash2 className="size-3.5" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+              {/* Practical / Lab Subjects */}
+              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3">
+                <h4 className="text-xs font-bold text-[#00A3FF] tracking-wider uppercase flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <Layers className="h-4 w-4" />
+                    <span>Practical & Lab Subjects ({filteredPractical.length})</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{activeCourseCode}</span>
+                </h4>
+                {filteredPractical.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-4 text-center">
+                    No practical subjects found.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {filteredPractical.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="font-mono font-bold text-[#00A3FF]">{s.code}</span>
+                          <p className="font-medium text-foreground truncate">{s.name}</p>
                         </div>
-                      );
-                    })}
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-semibold">
+                            {s.weekly_hours} hrs/wk
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubject("practical", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              );
-            })}
+                )}
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Edit Subject Dialog */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[480px] rounded-3xl border-border bg-card/95 backdrop-blur-2xl p-6">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Course</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Subject Details
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Update course name, code, department, and assigned semester.
-              </DialogDescription>
-            </DialogHeader>
+          {/* Footer Controls */}
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
+            <Link href="/documents">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Document Ingestion</span>
+              </button>
+            </Link>
 
-            <form onSubmit={handleUpdateSubject} className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Department *
-                  </label>
-                  <select
-                    value={editDeptId}
-                    onChange={(e) => setEditDeptId(Number(e.target.value))}
-                    required
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
-                  >
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <Link href="/faculty">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
+              >
+                <span>Faculty Setup</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </Link>
+          </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Semester *
-                  </label>
-                  <select
-                    value={editSemName}
-                    onChange={(e) => setEditSemName(e.target.value)}
-                    required
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
-                  >
-                    {availableSemesters.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Subject Name *
-                </label>
-                <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  required
-                  className="rounded-xl border-border bg-muted/40"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Subject Code *
-                  </label>
-                  <Input
-                    value={editCode}
-                    onChange={(e) => setEditCode(e.target.value)}
-                    required
-                    className="rounded-xl border-border bg-muted/40 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Subject Type
-                  </label>
-                  <select
-                    value={editSubjectType}
-                    onChange={(e) => setEditSubjectType(e.target.value as "Theory" | "Lab" | "Elective")}
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground focus:outline-none cursor-pointer"
-                  >
-                    {SUBJECT_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Periods/Week
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={editWeeklyHours}
-                    onChange={(e) => setEditWeeklyHours(e.target.value)}
-                    className="rounded-xl border-border bg-muted/40 font-mono"
-                  />
-                </div>
-              </div>
-
-              {editError && (
-                <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-500 flex items-start gap-2">
-                  <Info className="size-4 shrink-0 mt-0.5" />
-                  <span>{editError}</span>
-                </div>
-              )}
-
-              <DialogFooter className="pt-2">
-                <Button
-                  type="submit"
-                  disabled={submittingEdit || !editName.trim() || !editCode.trim() || !editDeptId}
-                  className="tt-gradient-btn rounded-xl font-bold w-full"
-                >
-                  {submittingEdit ? "Updating..." : "Update Subject"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-        <WizardFooter
-          prevHref="/rooms"
-          nextHref="/faculty"
-        />
+        </div>
       </div>
     </AppShell>
   );

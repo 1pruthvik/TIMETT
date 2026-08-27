@@ -37,10 +37,11 @@ class Section(Base):
         nullable=True,
     )
 
-    cycle_group: Mapped[str | None] = mapped_column(
-        String(50),
+    cycle_group_id: Mapped[int | None] = mapped_column(
+        ForeignKey("cycle_groups.id"),
         nullable=True,
-    )  # Physics, Chemistry, or None
+        index=True,
+    )
 
     batch_count: Mapped[int] = mapped_column(
         Integer,
@@ -49,5 +50,6 @@ class Section(Base):
     )
 
     # Relationships
-    stream = relationship("Stream", back_populates="sections")
+    stream = relationship("Stream", back_populates="sections", foreign_keys=[stream_id])
+    cycle_group = relationship("CycleGroup", back_populates="sections", foreign_keys=[cycle_group_id])
     batches = relationship("Batch", back_populates="section", cascade="all, delete-orphan")

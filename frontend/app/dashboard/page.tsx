@@ -6,12 +6,11 @@ import {
   ArrowRight,
   CalendarDays,
   Plus,
-  Sparkles,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { WizardModal } from "@/components/dashboard/wizard-modal";
 
-/* ── Time-aware greeting ── */
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -20,7 +19,8 @@ function getGreeting(): string {
 }
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState("Admin");
+  const [userName, setUserName] = useState("Mob-max30");
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -33,7 +33,7 @@ export default function DashboardPage() {
     <AppShell>
       <div className="h-[calc(100vh-140px)] w-full flex flex-col justify-center items-center text-center px-6 sm:px-12 relative tt-animate-fade">
         <div className="max-w-4xl w-full space-y-8">
-          {/* Greeting Typography */}
+          {/* Greeting Typography matching Image 2 */}
           <div className="space-y-3">
             <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
               {getGreeting()},
@@ -43,15 +43,16 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          {/* Action Buttons: Generate New & Open Timetable Studio */}
+          {/* Prominent Action Buttons from Image 2 */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-            <Link href="/academic-terms?wizard=true">
-              <Button className="h-14 rounded-2xl tt-gradient-btn px-8 text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all">
-                <Plus className="size-5" />
-                Generate New
-                <ArrowRight className="size-5" />
-              </Button>
-            </Link>
+            <Button
+              onClick={() => setIsWizardOpen(true)}
+              className="h-14 rounded-2xl tt-gradient-btn px-8 text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all"
+            >
+              <Plus className="size-5" />
+              Generate New
+              <ArrowRight className="size-5" />
+            </Button>
 
             <Link href="/timetable">
               <Button
@@ -65,6 +66,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Multi-Step Setup Wizard */}
+      <WizardModal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
     </AppShell>
   );
 }

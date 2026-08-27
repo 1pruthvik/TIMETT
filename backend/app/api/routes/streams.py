@@ -1,19 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.models.stream import Stream
 from app.schemas.stream import StreamCreate, StreamUpdate, StreamResponse
 
-router = APIRouter(prefix="/streams", tags=["streams"])
+router = APIRouter(
+    prefix="/streams",
+    tags=["Streams"],
+)
 
 
 @router.get("/", response_model=list[StreamResponse])
-def get_streams(db: Session = Depends(get_db)):
-    return db.query(Stream).all()
+def get_streams(institution_id: int | None = None, db: Session = Depends(get_db)):
+    query = db.query(Stream)
+    if institution_id is not None:
+        query = query.filter(Stream.institution_id == institution_id)
+    return query.all()
 
 
-@router.post("/", response_model=StreamResponse)
+@router.get("/{stream_id}", response_model=StreamResponse)
+def get_stream(stream_id: int, db: Session = Depends(get_db)):
+    stream = db.query(Stream).filter(Stream.id == stream_id).first()
+    if not stream:
+        raise HTTPException(status_code=404, detail="Stream not found")
+    return stream
+
+
+@router.post("/", response_model=StreamResponse, status_code=status.HTTP_201_CREATED)
 def create_stream(stream_in: StreamCreate, db: Session = Depends(get_db)):
     existing = db.query(Stream).filter(Stream.code == stream_in.code).first()
     if existing:
@@ -45,3 +59,4 @@ def delete_stream(stream_id: int, db: Session = Depends(get_db)):
     db.delete(stream)
     db.commit()
     return {"message": "Stream deleted successfully"}
+

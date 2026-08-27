@@ -28,11 +28,11 @@ import { TimettLogo } from "@/components/ui/timett-logo";
 import { cn } from "@/lib/utils";
 
 const RESOURCE_SUB_NAV = [
-  { label: "1. Academic Year & Type", href: "/academic-year", icon: CalendarRange },
-  { label: "2. Courses & Intake", href: "/courses", icon: Building2 },
-  { label: "3. Scheme & Subjects", href: "/documents", icon: FileText },
-  { label: "4. Department Faculties", href: "/faculties", icon: Users },
-  { label: "5. Sections & Durations", href: "/sections", icon: Layers3 },
+  { label: "Academic Year & Type", href: "/academic-year", icon: CalendarRange },
+  { label: "Courses & Intake", href: "/courses", icon: Building2 },
+  { label: "Scheme & Subjects", href: "/documents", icon: FileText },
+  { label: "Department Faculties", href: "/faculties", icon: Users },
+  { label: "Sections & Durations", href: "/sections", icon: Layers3 },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -149,19 +149,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
             aria-label="Expanded navigation"
           >
-            {/* Studio Link */}
-            <Link
-              href="/timetable"
-              className={cn(
-                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
-                pathname === "/timetable"
-                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
-                  : "text-foreground/70 hover:text-foreground"
-              )}
-            >
-              Studio
-            </Link>
-
             {/* Resources with Hover Dropdown */}
             <div
               className="relative py-1"
@@ -223,6 +210,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </div>
+
+            {/* Studio Link */}
+            <Link
+              href="/timetable"
+              className={cn(
+                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
+                pathname === "/timetable"
+                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
+                  : "text-foreground/70 hover:text-foreground"
+              )}
+            >
+              Studio
+            </Link>
 
             {/* Kaci */}
             <Link

@@ -131,14 +131,6 @@ export default function FacultiesPage() {
         {/* Page Hero Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
           <div className="space-y-1.5">
-            <div className="flex items-center space-x-2.5">
-              <span className="px-3 py-1 text-xs font-mono font-bold rounded-full bg-primary/10 text-primary border border-primary/20">
-                Step 4 of 5
-              </span>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                VTU Institutional Flow
-              </span>
-            </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
               Available Department Faculties
             </h1>

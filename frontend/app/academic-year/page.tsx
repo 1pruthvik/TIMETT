@@ -66,16 +66,8 @@ export default function AcademicYearPage() {
         {/* Page Hero Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
           <div className="space-y-1.5">
-            <div className="flex items-center space-x-2.5">
-              <span className="px-3 py-1 text-xs font-mono font-bold rounded-full bg-primary/10 text-primary border border-primary/20">
-                Step 1 of 5
-              </span>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                VTU Institutional Flow
-              </span>
-            </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              Choose Academic Year & Institution Type
+              Academic Year & Institution Type
             </h1>
             <p className="text-sm text-muted-foreground max-w-3xl">
               Configure your institutional affiliation, active academic session, academic year level, and target semester for automated schedule generation.
@@ -104,7 +96,7 @@ export default function AcademicYearPage() {
         {/* Section 1: Institution Scheme Selection */}
         <div className="space-y-4">
           <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-            1. Institution Scheme Affiliation
+            Institution Scheme Affiliation
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div

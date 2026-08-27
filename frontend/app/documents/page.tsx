@@ -35,8 +35,9 @@ export default function DocumentsPage() {
 
   const [courses, setCourses] = useState<VTUCourse[]>([]);
   const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
+  const [activeSemester, setActiveSemester] = useState<string>("3");
   const [courseSubjectsMap, setCourseSubjectsMap] = useState<
-    Record<string, { theory: Subject[]; practical: Subject[] }>
+    Record<string, Record<string, { theory: Subject[]; practical: Subject[] }>>
   >({});
   const [parsingScheme, setParsingScheme] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
@@ -63,258 +64,305 @@ export default function DocumentsPage() {
         ]);
       }
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
-      const isOldData = savedSubjects && (
-        savedSubjects.includes("Mathematics for Computer Science") || 
-        savedSubjects.includes("L-T-P") ||
-        savedSubjects.includes("1BEE401") ||
-        !savedSubjects.includes("CSE-AIML") ||
-        !savedSubjects.includes("CSE-DS") ||
-        !savedSubjects.includes("1BMATEC301") ||
-        !savedSubjects.includes("\"EEE\"") ||
-        !savedSubjects.includes("ISE") ||
-        !savedSubjects.includes("AI&DS") ||
-        !savedSubjects.includes("1BMATM301") ||
-        !savedSubjects.includes("1BMATCV301") ||
-        !savedSubjects.includes("1BMATCH301") ||
-        !savedSubjects.includes("1BBM301")
-      );
-      if (savedSubjects && !isOldData) {
+      // Clean up old storage key if present to avoid conflicts
+      localStorage.removeItem("vtu_course_subjects_map");
+
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v2");
+      if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
         const initialMap = {
           CSE: {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL307A", name: "Project Management (with Git)", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL307A", name: "Project Management (with Git)", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           "CSE-AIML": {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           "CSE-DS": {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           ECE: {
-            theory: [
-              { code: "1BMATEC301", name: "Transform Techniques and Optimization Theory", category: "theory", weekly_hours: 5 },
-              { code: "1BEC302", name: "Digital System Design Using Verilog", category: "theory", weekly_hours: 3 },
-              { code: "1BEC303", name: "Network Analysis", category: "theory", weekly_hours: 5 },
-              { code: "1BEC304", name: "Analog Electronics and Linear Integrated Circuits", category: "theory", weekly_hours: 3 },
-              { code: "1BEC305", name: "Python Programming", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BEC302", name: "Digital System Design Using Verilog Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BECL306", name: "Analog Electronics and Linear Integrated Circuits Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BECL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATEC301", name: "Transform Techniques and Optimization Theory", category: "theory", weekly_hours: 5 },
+                { code: "1BEC302", name: "Digital System Design Using Verilog", category: "theory", weekly_hours: 3 },
+                { code: "1BEC303", name: "Network Analysis", category: "theory", weekly_hours: 5 },
+                { code: "1BEC304", name: "Analog Electronics and Linear Integrated Circuits", category: "theory", weekly_hours: 3 },
+                { code: "1BEC305", name: "Python Programming", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BEC302", name: "Digital System Design Using Verilog Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BECL306", name: "Analog Electronics and Linear Integrated Circuits Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BECL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           EEE: {
-            theory: [],
-            practical: [],
+            "3": { theory: [], practical: [] },
+            "4": {
+              theory: [
+                { code: "1BEE401", name: "Electric Motors", category: "theory", weekly_hours: 3 },
+                { code: "1BEE402", name: "Microcontroller", category: "theory", weekly_hours: 3 },
+                { code: "1BEE403", name: "Field Theory", category: "theory", weekly_hours: 5 },
+                { code: "1BEE404", name: "Transmission and Distribution", category: "theory", weekly_hours: 3 },
+                { code: "1BEE407", name: "Biology for Electrical Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1BEE409", name: "Electric Power Generation and Economics", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BEE402", name: "Microcontroller Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BEEL405", name: "Electric Motors Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BEEL406", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           ISE: {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL307A", name: "Project Management (with Git)", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL307A", name: "Project Management (with Git)", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           "AI-DS": {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           "AI&DS": {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           AIDS: {
-            theory: [
-              { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
-              { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
-              { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
-              { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCS301", name: "Probability, Distributions and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCS302", name: "Object Oriented Programming with Java", category: "theory", weekly_hours: 3 },
+                { code: "1BCS303", name: "Digital Design and Computer Organization", category: "theory", weekly_hours: 4 },
+                { code: "1BCS304", name: "Operating Systems", category: "theory", weekly_hours: 3 },
+                { code: "1BCS305", name: "Data Structures and Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCS302", name: "Object Oriented Programming with Java Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCSL306", name: "Data Structures Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           ME: {
-            theory: [
-              { code: "1BMATM301", name: "Transforms and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BME302", name: "Materials Science and Metallurgy", category: "theory", weekly_hours: 3 },
-              { code: "1BME303", name: "Basic Thermodynamics", category: "theory", weekly_hours: 3 },
-              { code: "1BME304", name: "Mechanics of Materials", category: "theory", weekly_hours: 3 },
-              { code: "1BME305", name: "Manufacturing Technology - I", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BME302", name: "Materials Science and Metallurgy Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BMEL306", name: "Computer Aided Machine Drawing Lab", category: "practical", weekly_hours: 4 },
-              { code: "1BMEL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATM301", name: "Transforms and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BME302", name: "Materials Science and Metallurgy", category: "theory", weekly_hours: 3 },
+                { code: "1BME303", name: "Basic Thermodynamics", category: "theory", weekly_hours: 3 },
+                { code: "1BME304", name: "Mechanics of Materials", category: "theory", weekly_hours: 3 },
+                { code: "1BME305", name: "Manufacturing Technology - I", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BME302", name: "Materials Science and Metallurgy Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BMEL306", name: "Computer Aided Machine Drawing Lab", category: "practical", weekly_hours: 4 },
+                { code: "1BMEL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           CIV: {
-            theory: [
-              { code: "1BMATCV301", name: "Probability and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery", category: "theory", weekly_hours: 3 },
-              { code: "1BCV303", name: "Solid Mechanics", category: "theory", weekly_hours: 5 },
-              { code: "1BCV304", name: "Building Materials and Construction Methods", category: "theory", weekly_hours: 3 },
-              { code: "1BCV305", name: "Engineering Geology for Infrastructure Projects", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCVL306", name: "Building CAD and 3D Modelling Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCVL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCV301", name: "Probability and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery", category: "theory", weekly_hours: 3 },
+                { code: "1BCV303", name: "Solid Mechanics", category: "theory", weekly_hours: 5 },
+                { code: "1BCV304", name: "Building Materials and Construction Methods", category: "theory", weekly_hours: 3 },
+                { code: "1BCV305", name: "Engineering Geology for Infrastructure Projects", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL306", name: "Building CAD and 3D Modelling Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           Civil: {
-            theory: [
-              { code: "1BMATCV301", name: "Probability and Statistics", category: "theory", weekly_hours: 5 },
-              { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery", category: "theory", weekly_hours: 3 },
-              { code: "1BCV303", name: "Solid Mechanics", category: "theory", weekly_hours: 5 },
-              { code: "1BCV304", name: "Building Materials and Construction Methods", category: "theory", weekly_hours: 3 },
-              { code: "1BCV305", name: "Engineering Geology for Infrastructure Projects", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCVL306", name: "Building CAD and 3D Modelling Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCVL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCV301", name: "Probability and Statistics", category: "theory", weekly_hours: 5 },
+                { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery", category: "theory", weekly_hours: 3 },
+                { code: "1BCV303", name: "Solid Mechanics", category: "theory", weekly_hours: 5 },
+                { code: "1BCV304", name: "Building Materials and Construction Methods", category: "theory", weekly_hours: 3 },
+                { code: "1BCV305", name: "Engineering Geology for Infrastructure Projects", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCV302", name: "Fluid Mechanics and Hydraulic Machinery Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL306", name: "Building CAD and 3D Modelling Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           CH: {
-            theory: [
-              { code: "1BMATCH301", name: "Applied Differential Calculus in Chemical Engineering", category: "theory", weekly_hours: 5 },
-              { code: "1BCH302", name: "Mechanical Operations", category: "theory", weekly_hours: 3 },
-              { code: "1BCH303", name: "Momentum Transfer", category: "theory", weekly_hours: 5 },
-              { code: "1BCH304", name: "Process Principles and Calculations", category: "theory", weekly_hours: 3 },
-              { code: "1BCH305", name: "Materials Chemistry and its Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCH302", name: "Mechanical Operations Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCHL306", name: "Momentum Transfer Lab (Professional Core Course Lab)", category: "practical", weekly_hours: 2 },
-              { code: "1BCHL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCH301", name: "Applied Differential Calculus in Chemical Engineering", category: "theory", weekly_hours: 5 },
+                { code: "1BCH302", name: "Mechanical Operations", category: "theory", weekly_hours: 3 },
+                { code: "1BCH303", name: "Momentum Transfer", category: "theory", weekly_hours: 5 },
+                { code: "1BCH304", name: "Process Principles and Calculations", category: "theory", weekly_hours: 3 },
+                { code: "1BCH305", name: "Materials Chemistry and its Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCH302", name: "Mechanical Operations Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL306", name: "Momentum Transfer Lab (Professional Core Course Lab)", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           Chemical: {
-            theory: [
-              { code: "1BMATCH301", name: "Applied Differential Calculus in Chemical Engineering", category: "theory", weekly_hours: 5 },
-              { code: "1BCH302", name: "Mechanical Operations", category: "theory", weekly_hours: 3 },
-              { code: "1BCH303", name: "Momentum Transfer", category: "theory", weekly_hours: 5 },
-              { code: "1BCH304", name: "Process Principles and Calculations", category: "theory", weekly_hours: 3 },
-              { code: "1BCH305", name: "Materials Chemistry and its Applications", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BCH302", name: "Mechanical Operations Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BCHL306", name: "Momentum Transfer Lab (Professional Core Course Lab)", category: "practical", weekly_hours: 2 },
-              { code: "1BCHL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BMATCH301", name: "Applied Differential Calculus in Chemical Engineering", category: "theory", weekly_hours: 5 },
+                { code: "1BCH302", name: "Mechanical Operations", category: "theory", weekly_hours: 3 },
+                { code: "1BCH303", name: "Momentum Transfer", category: "theory", weekly_hours: 5 },
+                { code: "1BCH304", name: "Process Principles and Calculations", category: "theory", weekly_hours: 3 },
+                { code: "1BCH305", name: "Materials Chemistry and its Applications", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BCH302", name: "Mechanical Operations Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL306", name: "Momentum Transfer Lab (Professional Core Course Lab)", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           BME: {
-            theory: [
-              { code: "1BBM301", name: "Transform Techniques and Fourier Series", category: "theory", weekly_hours: 5 },
-              { code: "1BBM302", name: "Digital Design and HDL", category: "theory", weekly_hours: 3 },
-              { code: "1BBM303", name: "Analog Electronic Circuits", category: "theory", weekly_hours: 5 },
-              { code: "1BBM304", name: "Human Anatomy and Physiology", category: "theory", weekly_hours: 3 },
-              { code: "1BBM305", name: "Instrumentation, Measurements and Biomedical Transducers", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BBM302", name: "Digital Design and HDL Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BBML306", name: "Analog Electronic Circuits Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BBML307", name: "Instrumentation, Measurements and Biomedical Transducers Lab", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BBM301", name: "Transform Techniques and Fourier Series", category: "theory", weekly_hours: 5 },
+                { code: "1BBM302", name: "Digital Design and HDL", category: "theory", weekly_hours: 3 },
+                { code: "1BBM303", name: "Analog Electronic Circuits", category: "theory", weekly_hours: 5 },
+                { code: "1BBM304", name: "Human Anatomy and Physiology", category: "theory", weekly_hours: 3 },
+                { code: "1BBM305", name: "Instrumentation, Measurements and Biomedical Transducers", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BBM302", name: "Digital Design and HDL Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML306", name: "Analog Electronic Circuits Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML307", name: "Instrumentation, Measurements and Biomedical Transducers Lab", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
           Biomedical: {
-            theory: [
-              { code: "1BBM301", name: "Transform Techniques and Fourier Series", category: "theory", weekly_hours: 5 },
-              { code: "1BBM302", name: "Digital Design and HDL", category: "theory", weekly_hours: 3 },
-              { code: "1BBM303", name: "Analog Electronic Circuits", category: "theory", weekly_hours: 5 },
-              { code: "1BBM304", name: "Human Anatomy and Physiology", category: "theory", weekly_hours: 3 },
-              { code: "1BBM305", name: "Instrumentation, Measurements and Biomedical Transducers", category: "theory", weekly_hours: 3 },
-              { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
-            ],
-            practical: [
-              { code: "1BBM302", name: "Digital Design and HDL Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BBML306", name: "Analog Electronic Circuits Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BBML307", name: "Instrumentation, Measurements and Biomedical Transducers Lab", category: "practical", weekly_hours: 2 },
-            ],
+            "3": {
+              theory: [
+                { code: "1BBM301", name: "Transform Techniques and Fourier Series", category: "theory", weekly_hours: 5 },
+                { code: "1BBM302", name: "Digital Design and HDL", category: "theory", weekly_hours: 3 },
+                { code: "1BBM303", name: "Analog Electronic Circuits", category: "theory", weekly_hours: 5 },
+                { code: "1BBM304", name: "Human Anatomy and Physiology", category: "theory", weekly_hours: 3 },
+                { code: "1BBM305", name: "Instrumentation, Measurements and Biomedical Transducers", category: "theory", weekly_hours: 3 },
+                { code: "1BMATDIP310", name: "Mathematics course for Lateral Entry Students", category: "theory", weekly_hours: 1 },
+              ],
+              practical: [
+                { code: "1BBM302", name: "Digital Design and HDL Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML306", name: "Analog Electronic Circuits Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML307", name: "Instrumentation, Measurements and Biomedical Transducers Lab", category: "practical", weekly_hours: 2 },
+              ],
+            },
+            "4": { theory: [], practical: [] }
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v2", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -323,7 +371,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v2", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }
@@ -349,9 +397,13 @@ export default function DocumentsPage() {
         const pSubjs = data.practical_subjects || [];
 
         setCourseSubjectsMap((prev) => {
+          const currentCourse = prev[activeCourseCode] || {};
           const updated = {
             ...prev,
-            [activeCourseCode]: { theory: tSubjs, practical: pSubjs },
+            [activeCourseCode]: {
+              ...currentCourse,
+              [activeSemester]: { theory: tSubjs, practical: pSubjs },
+            },
           };
           saveSubjectsToStorage(updated);
           return updated;
@@ -377,18 +429,22 @@ export default function DocumentsPage() {
     };
 
     setCourseSubjectsMap((prev) => {
-      const current = prev[activeCourseCode] || { theory: [], practical: [] };
+      const currentCourse = prev[activeCourseCode] || {};
+      const currentSem = currentCourse[activeSemester] || { theory: [], practical: [] };
       const updated = {
         ...prev,
         [activeCourseCode]: {
-          theory:
-            newSubjCategory === "theory"
-              ? [...current.theory, newSubj]
-              : current.theory,
-          practical:
-            newSubjCategory === "practical"
-              ? [...current.practical, newSubj]
-              : current.practical,
+          ...currentCourse,
+          [activeSemester]: {
+            theory:
+              newSubjCategory === "theory"
+                ? [...currentSem.theory, newSubj]
+                : currentSem.theory,
+            practical:
+              newSubjCategory === "practical"
+                ? [...currentSem.practical, newSubj]
+                : currentSem.practical,
+          }
         },
       };
       saveSubjectsToStorage(updated);
@@ -402,18 +458,22 @@ export default function DocumentsPage() {
 
   const handleRemoveSubject = (category: "theory" | "practical", index: number) => {
     setCourseSubjectsMap((prev) => {
-      const current = prev[activeCourseCode] || { theory: [], practical: [] };
+      const currentCourse = prev[activeCourseCode] || {};
+      const currentSem = currentCourse[activeSemester] || { theory: [], practical: [] };
       const updated = {
         ...prev,
         [activeCourseCode]: {
-          theory:
-            category === "theory"
-              ? current.theory.filter((_, i) => i !== index)
-              : current.theory,
-          practical:
-            category === "practical"
-              ? current.practical.filter((_, i) => i !== index)
-              : current.practical,
+          ...currentCourse,
+          [activeSemester]: {
+            theory:
+              category === "theory"
+                ? currentSem.theory.filter((_, i) => i !== index)
+                : currentSem.theory,
+            practical:
+              category === "practical"
+                ? currentSem.practical.filter((_, i) => i !== index)
+                : currentSem.practical,
+          }
         },
       };
       saveSubjectsToStorage(updated);
@@ -422,7 +482,8 @@ export default function DocumentsPage() {
   };
 
   const selectedCourses = courses.filter((c) => c.selected);
-  const activeData = courseSubjectsMap[activeCourseCode] || { theory: [], practical: [] };
+  const activeCourseData = courseSubjectsMap[activeCourseCode] || {};
+  const activeData = activeCourseData[activeSemester] || { theory: [], practical: [] };
 
   return (
     <AppShell>
@@ -443,6 +504,32 @@ export default function DocumentsPage() {
               <Plus className="h-4 w-4" />
               <span>Add Subject</span>
             </button>
+          </div>
+        </div>
+
+        {/* Semester Selector Tabs Bar */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            Target Semester
+          </h2>
+          <div className="flex gap-2.5">
+            {[
+              { id: "3", label: "III Semester (3rd Sem)" },
+              { id: "4", label: "IV Semester (4th Sem)" },
+            ].map((sem) => (
+              <button
+                key={sem.id}
+                type="button"
+                onClick={() => setActiveSemester(sem.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSemester === sem.id
+                    ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30"
+                    : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {sem.label}
+              </button>
+            ))}
           </div>
         </div>
 

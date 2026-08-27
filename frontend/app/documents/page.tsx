@@ -246,6 +246,20 @@ export default function DocumentsPage() {
         { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    "CSE-AIML": {
+      theory: [
+        { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3 },
+        { code: "1BIS602", name: "Information and Network Security", category: "theory", weekly_hours: 3 },
+        { code: "1BCI603", name: "High Performance Computing in Artificial Intelligence", category: "theory", weekly_hours: 3 },
+        { code: "1BCS604", name: "Internet of Things", category: "theory", weekly_hours: 3 },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "1BCSL606", name: "IoT Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

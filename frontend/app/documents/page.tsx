@@ -70,8 +70,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v3");
       localStorage.removeItem("vtu_course_subjects_map_v4");
       localStorage.removeItem("vtu_course_subjects_map_v5");
+      localStorage.removeItem("vtu_course_subjects_map_v6");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v6");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v7");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -419,7 +420,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v6", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v7", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -428,7 +429,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v6", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v7", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

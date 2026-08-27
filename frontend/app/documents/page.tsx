@@ -70,7 +70,7 @@ export default function DocumentsPage() {
         !savedSubjects.includes("CSE-AIML") ||
         !savedSubjects.includes("CSE-DS") ||
         !savedSubjects.includes("1BMATEC301") ||
-        !savedSubjects.includes("1BEE401") ||
+        !savedSubjects.includes("\"EEE\"") ||
         !savedSubjects.includes("ISE") ||
         !savedSubjects.includes("AI&DS") ||
         !savedSubjects.includes("1BMATM301") ||
@@ -143,19 +143,8 @@ export default function DocumentsPage() {
             ],
           },
           EEE: {
-            theory: [
-              { code: "1BEE401", name: "Electric Motors", category: "theory", weekly_hours: 3 },
-              { code: "1BEE402", name: "Microcontroller", category: "theory", weekly_hours: 3 },
-              { code: "1BEE403", name: "Field Theory", category: "theory", weekly_hours: 5 },
-              { code: "1BEE404", name: "Transmission and Distribution", category: "theory", weekly_hours: 3 },
-              { code: "1BEE407", name: "Biology for Electrical Engineers", category: "theory", weekly_hours: 2 },
-              { code: "1BEE409", name: "Electric Power Generation and Economics", category: "theory", weekly_hours: 3 },
-            ],
-            practical: [
-              { code: "1BEE402", name: "Microcontroller Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BEEL405", name: "Electric Motors Lab", category: "practical", weekly_hours: 2 },
-              { code: "1BEEL406", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
-            ],
+            theory: [],
+            practical: [],
           },
           ISE: {
             theory: [

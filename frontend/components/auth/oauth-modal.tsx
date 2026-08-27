@@ -84,7 +84,7 @@ export function OAuthAccountChooserModal({
             Sign in with {providerTitle}
           </DialogTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            Authorize your {providerTitle} identity to continue to TIMETT
+            Authorize your {providerTitle} identity to continue to Tempus
           </p>
         </div>
 

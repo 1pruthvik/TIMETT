@@ -13,6 +13,7 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  Building2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -28,6 +29,7 @@ interface VTUCourse {
 interface SubjectItem {
   code: string;
   name: string;
+  department: string;
   category: "theory" | "tutorial" | "practical";
   weekly_hours: number;
 }
@@ -223,45 +225,45 @@ function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
     if (stream === "ECE") {
       return {
         streamName: "ECE Stream",
-        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE/ECE stream", l: 3, t: 2 },
-        chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
-        physics: { code: "1BPHEC202", name: "Quantum Physics and Electronic Sensors (ECE stream)", l: 3, p: 2 },
-        caed: { code: "1BCEDEC203", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
+        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE/ECE stream", dept: "Maths Dept", l: 3, t: 2 },
+        chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", dept: "Chemistry Dept", l: 3, p: 2 },
+        physics: { code: "1BPHEC202", name: "Quantum Physics and Electronic Sensors (ECE stream)", dept: "Physics Dept", l: 3, p: 2 },
+        caed: { code: "1BCEDEC203", name: "Computer-Aided Engineering Drawing for ECE stream", dept: "ME Dept", l: 2, p: 2 },
       };
     }
     if (stream === "EEE") {
       return {
         streamName: "EEE Stream",
-        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE stream", l: 3, t: 2 },
-        chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
-        physics: { code: "1BPHEE202", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
-        caed: { code: "1BCEDE203", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
+        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE stream", dept: "Maths Dept", l: 3, t: 2 },
+        chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", dept: "Chemistry Dept", l: 3, p: 2 },
+        physics: { code: "1BPHEE202", name: "Physics of Electrical Engineering Materials (EEE stream)", dept: "Physics Dept", l: 3, p: 2 },
+        caed: { code: "1BCEDE203", name: "Computer-Aided Engineering Drawing for EEE stream", dept: "ME Dept", l: 2, p: 2 },
       };
     }
     if (stream === "ME") {
       return {
         streamName: "ME Stream",
-        maths: { code: "1BMATM201", name: "Multivariable Calculus and Numerical Methods: ME Stream", l: 3, t: 2 },
-        chemistry: { code: "1BCHEM202", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", l: 3, p: 2 },
-        physics: { code: "1BPHYM202", name: "Physics of Materials (Mech stream)", l: 3, p: 2 },
-        caed: { code: "1BCEDM203", name: "Computer-Aided Engineering Drawing for ME stream", l: 2, p: 2 },
+        maths: { code: "1BMATM201", name: "Multivariable Calculus and Numerical Methods: ME Stream", dept: "Maths Dept", l: 3, t: 2 },
+        chemistry: { code: "1BCHEM202", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", dept: "Chemistry Dept", l: 3, p: 2 },
+        physics: { code: "1BPHYM202", name: "Physics of Materials (Mech stream)", dept: "Physics Dept", l: 3, p: 2 },
+        caed: { code: "1BCEDM203", name: "Computer-Aided Engineering Drawing for ME stream", dept: "ME Dept", l: 2, p: 2 },
       };
     }
     if (stream === "CV") {
       return {
         streamName: "CV Stream",
-        maths: { code: "1BMATC201", name: "Differential Calculus and Numerical Methods: CV Stream", l: 3, t: 2 },
-        chemistry: { code: "1BCHEC202", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", l: 3, p: 2 },
-        physics: { code: "1BPHYC202", name: "Physics for Sustainable Structural Systems (CV stream)", l: 3, p: 2 },
-        caed: { code: "1BCEDC203", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
+        maths: { code: "1BMATC201", name: "Differential Calculus and Numerical Methods: CV Stream", dept: "Maths Dept", l: 3, t: 2 },
+        chemistry: { code: "1BCHEC202", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", dept: "Chemistry Dept", l: 3, p: 2 },
+        physics: { code: "1BPHYC202", name: "Physics for Sustainable Structural Systems (CV stream)", dept: "Physics Dept", l: 3, p: 2 },
+        caed: { code: "1BCEDC203", name: "Computer-Aided Engineering Drawing for CV Stream", dept: "ME Dept", l: 2, p: 2 },
       };
     }
     return {
       streamName: "CSE Stream",
-      maths: { code: "1BMATS201", name: "Numerical Methods: CSE Stream", l: 3, t: 2 },
-      chemistry: { code: "1BCHES202", name: "Applied Chemistry for Smart Systems (CSE)", l: 3, p: 2 },
-      physics: { code: "1BPHYS202", name: "Quantum Physics and Applications (CSE stream)", l: 3, p: 2 },
-      caed: { code: "1BCEDS203", name: "Computer-Aided Engineering Drawing for CSE stream", l: 2, p: 2 },
+      maths: { code: "1BMATS201", name: "Numerical Methods: CSE Stream", dept: "Maths Dept", l: 3, t: 2 },
+      chemistry: { code: "1BCHES202", name: "Applied Chemistry for Smart Systems (CSE)", dept: "Chemistry Dept", l: 3, p: 2 },
+      physics: { code: "1BPHYS202", name: "Quantum Physics and Applications (CSE stream)", dept: "Physics Dept", l: 3, p: 2 },
+      caed: { code: "1BCEDS203", name: "Computer-Aided Engineering Drawing for CSE stream", dept: "ME Dept", l: 2, p: 2 },
     };
   }
 
@@ -269,45 +271,45 @@ function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
   if (stream === "ECE") {
     return {
       streamName: "ECE Stream",
-      maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE/ECE Stream", l: 3, t: 2 },
-      physics: { code: "1BPHEC102", name: "Quantum Physics and Electronics Sensors (ECE stream)", l: 3, p: 2 },
-      chemistry: { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
-      caed: { code: "1BCEDEC103", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
+      maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE/ECE Stream", dept: "Maths Dept", l: 3, t: 2 },
+      physics: { code: "1BPHEC102", name: "Quantum Physics and Electronics Sensors (ECE stream)", dept: "Physics Dept", l: 3, p: 2 },
+      chemistry: { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", dept: "Chemistry Dept", l: 3, p: 2 },
+      caed: { code: "1BCEDEC103", name: "Computer-Aided Engineering Drawing for ECE stream", dept: "ME Dept", l: 2, p: 2 },
     };
   }
   if (stream === "EEE") {
     return {
       streamName: "EEE Stream",
-      maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE Stream", l: 3, t: 2 },
-      physics: { code: "1BPHEE102", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
-      chemistry: { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
-      caed: { code: "1BCEDE103", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
+      maths: { code: "1BMATE101", name: "Differential Calculus and Linear Algebra: EEE Stream", dept: "Maths Dept", l: 3, t: 2 },
+      physics: { code: "1BPHEE102", name: "Physics of Electrical Engineering Materials (EEE stream)", dept: "Physics Dept", l: 3, p: 2 },
+      chemistry: { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", dept: "Chemistry Dept", l: 3, p: 2 },
+      caed: { code: "1BCEDE103", name: "Computer-Aided Engineering Drawing for EEE stream", dept: "ME Dept", l: 2, p: 2 },
     };
   }
   if (stream === "ME") {
     return {
       streamName: "ME Stream",
-      maths: { code: "1BMATM101", name: "Differential Calculus and Linear Algebra: ME Stream", l: 3, t: 2 },
-      physics: { code: "1BPHYM102", name: "Physics of Materials (Mech stream)", l: 3, p: 2 },
-      chemistry: { code: "1BCHEM102", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", l: 3, p: 2 },
-      caed: { code: "1BCEDM103", name: "Computer-Aided Engineering Drawing for ME stream", l: 2, p: 2 },
+      maths: { code: "1BMATM101", name: "Differential Calculus and Linear Algebra: ME Stream", dept: "Maths Dept", l: 3, t: 2 },
+      physics: { code: "1BPHYM102", name: "Physics of Materials (Mech stream)", dept: "Physics Dept", l: 3, p: 2 },
+      chemistry: { code: "1BCHEM102", name: "Applied Chemistry for Advanced Metal Protection and Sustainable Energy Systems (ME)", dept: "Chemistry Dept", l: 3, p: 2 },
+      caed: { code: "1BCEDM103", name: "Computer-Aided Engineering Drawing for ME stream", dept: "ME Dept", l: 2, p: 2 },
     };
   }
   if (stream === "CV") {
     return {
       streamName: "CV Stream",
-      maths: { code: "1BMATC101", name: "Differential Calculus and Linear Algebra: CV Stream", l: 3, t: 2 },
-      physics: { code: "1BPHYC102", name: "Physics for Sustainable Structural Systems (CV stream)", l: 3, p: 2 },
-      chemistry: { code: "1BCHEC102", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", l: 3, p: 2 },
-      caed: { code: "1BCEDC103", name: "Computer-Aided Engineering Drawing for CV Stream", l: 2, p: 2 },
+      maths: { code: "1BMATC101", name: "Differential Calculus and Linear Algebra: CV Stream", dept: "Maths Dept", l: 3, t: 2 },
+      physics: { code: "1BPHYC102", name: "Physics for Sustainable Structural Systems (CV stream)", dept: "Physics Dept", l: 3, p: 2 },
+      chemistry: { code: "1BCHEC102", name: "Applied Chemistry for Sustainable Structure & Material Design (CV)", dept: "Chemistry Dept", l: 3, p: 2 },
+      caed: { code: "1BCEDC103", name: "Computer-Aided Engineering Drawing for CV Stream", dept: "ME Dept", l: 2, p: 2 },
     };
   }
   return {
     streamName: "CSE Stream",
-    maths: { code: "1BMATS101", name: "Calculus and Linear Algebra: CSE Stream", l: 3, t: 2 },
-    physics: { code: "1BPHYS102", name: "Quantum Physics and Applications (CSE stream)", l: 3, p: 2 },
-    chemistry: { code: "1BCHES102", name: "Applied Chemistry for Smart Systems (CSE)", l: 3, p: 2 },
-    caed: { code: "1BCEDS103", name: "Computer-Aided Engineering Drawing for CSE stream", l: 2, p: 2 },
+    maths: { code: "1BMATS101", name: "Calculus and Linear Algebra: CSE Stream", dept: "Maths Dept", l: 3, t: 2 },
+    physics: { code: "1BPHYS102", name: "Quantum Physics and Applications (CSE stream)", dept: "Physics Dept", l: 3, p: 2 },
+    chemistry: { code: "1BCHES102", name: "Applied Chemistry for Smart Systems (CSE)", dept: "Chemistry Dept", l: 3, p: 2 },
+    caed: { code: "1BCEDS103", name: "Computer-Aided Engineering Drawing for CSE stream", dept: "ME Dept", l: 2, p: 2 },
   };
 }
 
@@ -333,6 +335,7 @@ export default function DocumentsPage() {
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [newSubjCode, setNewSubjCode] = useState("");
   const [newSubjName, setNewSubjName] = useState("");
+  const [newSubjDept, setNewSubjDept] = useState("CSE Dept");
   const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "tutorial" | "practical">("theory");
   const [newSubjHours, setNewSubjHours] = useState(3);
   const [parsingScheme, setParsingScheme] = useState(false);
@@ -471,7 +474,7 @@ export default function DocumentsPage() {
   const chosenPSCPair = pscOptions.find((p) => p.psc.code === currentSelection.pscCode);
   const chosenPLC = plcOptions.find((p) => p.code === currentSelection.plcCode);
 
-  // Synchronize compiled subjects map for downstream sections & solver (1st Year)
+  // Synchronize compiled subjects map with departments for downstream sections & solver (1st Year)
   useEffect(() => {
     if (!isFirstYear || selectedCourses.length === 0) return;
     const map: Record<string, { theory: any[]; tutorial: any[]; practical: any[] }> = {};
@@ -489,41 +492,45 @@ export default function DocumentsPage() {
 
       if (isPhys) {
         const theory = [
-          { code: stream.maths.code, name: stream.maths.name, category: "theory", weekly_hours: 3 },
-          { code: stream.physics.code, name: stream.physics.name, category: "theory", weekly_hours: 3 },
-          { code: stream.caed.code, name: stream.caed.name, category: "theory", weekly_hours: 2 },
+          { code: stream.maths.code, name: stream.maths.name, department: "Maths Dept", category: "theory", weekly_hours: 3 },
+          { code: stream.physics.code, name: stream.physics.name, department: "Physics Dept", category: "theory", weekly_hours: 3 },
+          { code: stream.caed.code, name: stream.caed.name, department: "ME Dept", category: "theory", weekly_hours: 2 },
           {
             code: esc ? esc.code : isSecondSem ? "1BESC204x" : "1BESC104x",
             name: esc ? esc.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)",
+            department: esc ? esc.dept : "Respective Engg Dept",
             category: "theory",
             weekly_hours: 3,
           },
           {
             code: pscPair ? pscPair.psc.code : isSecondSem ? "1Bxxx205x" : "1Bxxx105x",
             name: pscPair ? pscPair.psc.name : "Programme Specific Course (PSC)",
+            department: pscPair ? pscPair.psc.dept : "Respective Engg Dept",
             category: "theory",
             weekly_hours: 3,
           },
-          { code: isSecondSem ? "1BSKS206" : "1BSKS106", name: "Soft Skills", category: "theory", weekly_hours: 1 },
-          { code: isSecondSem ? "1BKSK209" : "1BKSK109", name: "Samskrutika Kannada / Balake Kannada", category: "theory", weekly_hours: 1 },
+          { code: isSecondSem ? "1BSKS206" : "1BSKS106", name: "Soft Skills", department: "Humanities Dept", category: "theory", weekly_hours: 1 },
+          { code: isSecondSem ? "1BKSK209" : "1BKSK109", name: "Samskrutika Kannada / Balake Kannada", department: "Humanities Dept", category: "theory", weekly_hours: 1 },
         ];
 
         const tutorial = [
-          { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, category: "tutorial", weekly_hours: 2 },
+          { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, department: "Maths Dept", category: "tutorial", weekly_hours: 2 },
         ];
 
         const practical = [
-          { code: `${stream.physics.code}-LAB`, name: "Applied Physics Practical Sessions", category: "practical", weekly_hours: 2 },
-          { code: `${stream.caed.code}-LAB`, name: "Computer-Aided Engineering Drawing Lab", category: "practical", weekly_hours: 2 },
+          { code: `${stream.physics.code}-LAB`, name: "Applied Physics Practical Sessions", department: "Physics Dept", category: "practical", weekly_hours: 2 },
+          { code: `${stream.caed.code}-LAB`, name: "Computer-Aided Engineering Drawing Lab", department: "ME Dept", category: "practical", weekly_hours: 2 },
           {
             code: pscPair ? pscPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x",
             name: pscPair ? pscPair.pscl.name : "Programme-Specific Course Lab (PSCL)",
+            department: pscPair ? pscPair.pscl.dept : "Respective Dept",
             category: "practical",
             weekly_hours: 2,
           },
           {
             code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
             name: isSecondSem ? "Interdisciplinary Project-Based Learning" : "Innovation and Design Thinking Lab (Project-based)",
+            department: isSecondSem ? "Multiple Depts" : "Any Dept",
             category: "practical",
             weekly_hours: 2,
           },
@@ -532,40 +539,44 @@ export default function DocumentsPage() {
         map[c.code] = { theory, tutorial, practical };
       } else {
         const theory = [
-          { code: stream.maths.code, name: stream.maths.name, category: "theory", weekly_hours: 3 },
-          { code: stream.chemistry.code, name: stream.chemistry.name, category: "theory", weekly_hours: 3 },
-          { code: isSecondSem ? "1BAIA203" : "1BAIA103", name: "Introduction to AI and Applications", category: "theory", weekly_hours: 3 },
+          { code: stream.maths.code, name: stream.maths.name, department: "Maths Dept", category: "theory", weekly_hours: 3 },
+          { code: stream.chemistry.code, name: stream.chemistry.name, department: "Chemistry Dept", category: "theory", weekly_hours: 3 },
+          { code: isSecondSem ? "1BAIA203" : "1BAIA103", name: "Introduction to AI and Applications", department: "Any Dept", category: "theory", weekly_hours: 3 },
           {
             code: esc ? esc.code : isSecondSem ? "1BESC204x" : "1BESC104x",
             name: esc ? esc.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)",
+            department: esc ? esc.dept : "Respective Engg Dept",
             category: "theory",
             weekly_hours: 3,
           },
           {
             code: plc ? plc.code : isSecondSem ? "1BPLC205x" : "1BPLC105x",
             name: plc ? plc.name : "Programming Language Course (PLC)",
+            department: plc ? plc.dept : "CSE & Allied Dept",
             category: "theory",
             weekly_hours: 3,
           },
-          { code: isSecondSem ? "1BENG206" : "1BENG106", name: "Communication Skills", category: "theory", weekly_hours: 1 },
-          { code: isSecondSem ? "1BICO207" : "1BICO107", name: "Indian Constitution & Engineering Ethics", category: "theory", weekly_hours: 1 },
+          { code: isSecondSem ? "1BENG206" : "1BENG106", name: "Communication Skills", department: "Humanities Dept", category: "theory", weekly_hours: 1 },
+          { code: isSecondSem ? "1BICO207" : "1BICO107", name: "Indian Constitution & Engineering Ethics", department: "Humanities Dept", category: "theory", weekly_hours: 1 },
         ];
 
         const tutorial = [
-          { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, category: "tutorial", weekly_hours: 2 },
+          { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, department: "Maths Dept", category: "tutorial", weekly_hours: 2 },
         ];
 
         const practical = [
-          { code: `${stream.chemistry.code}-LAB`, name: "Applied Chemistry Laboratory", category: "practical", weekly_hours: 2 },
+          { code: `${stream.chemistry.code}-LAB`, name: "Applied Chemistry Laboratory", department: "Chemistry Dept", category: "practical", weekly_hours: 2 },
           {
             code: plc ? plc.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB",
             name: plc ? plc.labName : "Programming Language Practice Lab",
+            department: plc ? plc.dept : "CSE & Allied Dept",
             category: "practical",
             weekly_hours: 2,
           },
           {
             code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
             name: isSecondSem ? "Interdisciplinary Project-Based Learning" : "Innovation and Design Thinking Lab (Project-based)",
+            department: isSecondSem ? "Multiple Depts" : "Any Dept",
             category: "practical",
             weekly_hours: 2,
           },
@@ -592,6 +603,7 @@ export default function DocumentsPage() {
     const item: SubjectItem = {
       code: newSubjCode.toUpperCase().trim(),
       name: newSubjName.trim(),
+      department: newSubjDept.trim() || `${activeCourseCode} Dept`,
       category: newSubjCategory,
       weekly_hours: newSubjHours,
     };
@@ -651,18 +663,21 @@ export default function DocumentsPage() {
         const extractedTheory: SubjectItem[] = (data.theory || []).map((s: any) => ({
           code: s.code || "SUBJ-TH",
           name: s.name || "Theory Subject",
+          department: s.department || `${activeCourseCode} Dept`,
           category: "theory",
           weekly_hours: s.weekly_hours || 4,
         }));
         const extractedTutorial: SubjectItem[] = (data.tutorial || []).map((s: any) => ({
           code: s.code || "SUBJ-TUT",
           name: s.name || "Tutorial Session",
+          department: s.department || `${activeCourseCode} Dept`,
           category: "tutorial",
           weekly_hours: s.weekly_hours || 2,
         }));
         const extractedPractical: SubjectItem[] = (data.practical || []).map((s: any) => ({
           code: s.code || "SUBJ-LAB",
           name: s.name || "Practical Lab",
+          department: s.department || `${activeCourseCode} Dept`,
           category: "practical",
           weekly_hours: s.weekly_hours || 3,
         }));
@@ -678,18 +693,18 @@ export default function DocumentsPage() {
         saveHigherSemSubjects(updated);
         setUploadSuccess(`Extracted ${extractedTheory.length + extractedTutorial.length + extractedPractical.length} subjects from ${file.name}`);
       } else {
-        // Mock fallback if offline
+        // Fallback for demo
         const fallbackTheory: SubjectItem[] = [
-          { code: `${activeCourseCode}${semNumber}01`, name: `Core Engineering Theory I (${activeCourseCode})`, category: "theory", weekly_hours: 4 },
-          { code: `${activeCourseCode}${semNumber}02`, name: `Core Engineering Theory II (${activeCourseCode})`, category: "theory", weekly_hours: 4 },
-          { code: `${activeCourseCode}${semNumber}03`, name: `Specialized Department Course`, category: "theory", weekly_hours: 3 },
+          { code: `21${activeCourseCode}${semNumber}1`, name: `Core Engineering Theory I`, department: `${activeCourseCode} Dept`, category: "theory", weekly_hours: 4 },
+          { code: `21${activeCourseCode}${semNumber}2`, name: `Core Engineering Theory II`, department: `${activeCourseCode} Dept`, category: "theory", weekly_hours: 4 },
+          { code: `21${activeCourseCode}${semNumber}3`, name: `Specialized Course / Elective`, department: `${activeCourseCode} Dept`, category: "theory", weekly_hours: 3 },
         ];
         const fallbackTutorial: SubjectItem[] = [
-          { code: `${activeCourseCode}${semNumber}01-TUT`, name: `Core Theory Tutorial`, category: "tutorial", weekly_hours: 2 },
+          { code: `21${activeCourseCode}${semNumber}1-TUT`, name: `Core Theory Tutorial`, department: `${activeCourseCode} Dept`, category: "tutorial", weekly_hours: 2 },
         ];
         const fallbackPractical: SubjectItem[] = [
-          { code: `${activeCourseCode}${semNumber}04L`, name: `Department Laboratory I`, category: "practical", weekly_hours: 3 },
-          { code: `${activeCourseCode}${semNumber}05L`, name: `Department Laboratory II`, category: "practical", weekly_hours: 3 },
+          { code: `21${activeCourseCode}${semNumber}4L`, name: `Department Laboratory I`, department: `${activeCourseCode} Dept`, category: "practical", weekly_hours: 3 },
+          { code: `21${activeCourseCode}${semNumber}5L`, name: `Department Laboratory II`, department: `${activeCourseCode} Dept`, category: "practical", weekly_hours: 3 },
         ];
 
         const updated = {
@@ -827,57 +842,77 @@ export default function DocumentsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 
                 {/* 1. Mathematics */}
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
+                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                  <div className="min-w-0 pr-2">
                     <span className="font-mono font-bold text-primary text-xs">{streamData.maths.code}</span>
                     <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.maths.name}</p>
                   </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>3 hrs/wk</span>
-                  </span>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                      {streamData.maths.dept}
+                    </span>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>3 hrs/wk</span>
+                    </span>
+                  </div>
                 </div>
 
                 {/* 2. Physics OR Chemistry */}
                 {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">{streamData.physics.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.physics.name}</p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>3 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {streamData.physics.dept}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>3 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">{streamData.chemistry.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.chemistry.name}</p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>3 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {streamData.chemistry.dept}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>3 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
                 {/* 3. CAED (Physics Group) OR Intro to AI (Chemistry Group) */}
                 {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">{streamData.caed.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{streamData.caed.name}</p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {streamData.caed.dept}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>2 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">
                         {isSecondSem ? "1BAIA203" : "1BAIA103"}
                       </span>
@@ -885,10 +920,15 @@ export default function DocumentsPage() {
                         Introduction to AI and Applications
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>3 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        Any Dept
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>3 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
@@ -898,17 +938,19 @@ export default function DocumentsPage() {
                     <span className="font-mono font-bold text-primary text-xs">
                       {chosenESC ? chosenESC.code : isSecondSem ? "1BESC204x" : "1BESC104x"}
                     </span>
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
-                      3 hrs/wk
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {chosenESC ? chosenESC.dept : "Respective Engg Dept"}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                        3 hrs/wk
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <p className="font-bold text-foreground text-sm">
                       {chosenESC ? chosenESC.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)"}
                     </p>
-                    {chosenESC && (
-                      <span className="text-[11px] text-muted-foreground font-mono">{chosenESC.dept}</span>
-                    )}
                   </div>
                   <select
                     value={currentSelection.escCode || ""}
@@ -931,17 +973,19 @@ export default function DocumentsPage() {
                       <span className="font-mono font-bold text-primary text-xs">
                         {chosenPSCPair ? chosenPSCPair.psc.code : isSecondSem ? "1Bxxx205x" : "1Bxxx105x"}
                       </span>
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
-                        3 hrs/wk
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                          {chosenPSCPair ? chosenPSCPair.psc.dept : "Respective Engg Dept"}
+                        </span>
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                          3 hrs/wk
+                        </span>
+                      </div>
                     </div>
                     <div>
                       <p className="font-bold text-foreground text-sm">
                         {chosenPSCPair ? chosenPSCPair.psc.name : "Programme Specific Course (PSC)"}
                       </p>
-                      {chosenPSCPair && (
-                        <span className="text-[11px] text-muted-foreground font-mono">{chosenPSCPair.psc.dept}</span>
-                      )}
                     </div>
                     <select
                       value={currentSelection.pscCode || ""}
@@ -962,17 +1006,19 @@ export default function DocumentsPage() {
                       <span className="font-mono font-bold text-primary text-xs">
                         {chosenPLC ? chosenPLC.code : isSecondSem ? "1BPLC205x" : "1BPLC105x"}
                       </span>
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
-                        3 hrs/wk
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                          {chosenPLC ? chosenPLC.dept : "CSE & Allied Dept"}
+                        </span>
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary/20 text-primary font-mono font-bold">
+                          3 hrs/wk
+                        </span>
+                      </div>
                     </div>
                     <div>
                       <p className="font-bold text-foreground text-sm">
                         {chosenPLC ? chosenPLC.name : "Programming Language Course (PLC)"}
                       </p>
-                      {chosenPLC && (
-                        <span className="text-[11px] text-muted-foreground font-mono">{chosenPLC.dept}</span>
-                      )}
                     </div>
                     <select
                       value={currentSelection.plcCode || ""}
@@ -982,7 +1028,7 @@ export default function DocumentsPage() {
                       <option value="">-- Choose Programming Language (PLC) --</option>
                       {plcOptions.map((opt) => (
                         <option key={opt.code} value={opt.code}>
-                          {opt.code} — {opt.name}
+                          {opt.code} — {opt.name} ({opt.dept})
                         </option>
                       ))}
                     </select>
@@ -991,37 +1037,47 @@ export default function DocumentsPage() {
 
                 {/* 6. Soft Skills (Physics Group) OR Communication Skills (Chemistry Group) */}
                 {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">
                         {isSecondSem ? "1BSKS206" : "1BSKS106"}
                       </span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">Soft Skills</p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>1 hr/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        Humanities Dept
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>1 hr/wk</span>
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">
                         {isSecondSem ? "1BENG206" : "1BENG106"}
                       </span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">Communication Skills</p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>1 hr/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        Humanities Dept
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>1 hr/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
                 {/* 7. Kannada (Physics Group) OR Indian Constitution (Chemistry Group) */}
                 {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3 md:col-span-2">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">
                         {isSecondSem ? "1BKSK209 / 1BKBK209" : "1BKSK109 / 1BKBK109"}
                       </span>
@@ -1029,14 +1085,19 @@ export default function DocumentsPage() {
                         Samskrutika Kannada / Balake Kannada
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>1 hr/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        Humanities Dept
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>1 hr/wk</span>
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between md:col-span-2">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3 md:col-span-2">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-primary text-xs">
                         {isSecondSem ? "1BICO207" : "1BICO107"}
                       </span>
@@ -1044,10 +1105,15 @@ export default function DocumentsPage() {
                         Indian Constitution & Engineering Ethics
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>1 hr/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        Humanities Dept
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>1 hr/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
@@ -1065,8 +1131,8 @@ export default function DocumentsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
+                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                  <div className="min-w-0 pr-2">
                     <span className="font-mono font-bold text-amber-500 text-xs">
                       {streamData.maths.code}-TUT
                     </span>
@@ -1074,10 +1140,15 @@ export default function DocumentsPage() {
                       {streamData.maths.name} (Tutorial)
                     </p>
                   </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                      Maths Dept
+                    </span>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1098,8 +1169,8 @@ export default function DocumentsPage() {
                 
                 {/* Physics Lab OR Chemistry Lab */}
                 {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">
                         {streamData.physics.code}-LAB
                       </span>
@@ -1107,14 +1178,19 @@ export default function DocumentsPage() {
                         Applied Physics Practical Sessions
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {streamData.physics.dept}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>2 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">
                         {streamData.chemistry.code}-LAB
                       </span>
@@ -1122,17 +1198,22 @@ export default function DocumentsPage() {
                         Applied Chemistry Laboratory
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {streamData.chemistry.dept}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>2 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
                 {/* CAED Lab (Physics Group) OR PLC Practice Lab (Chemistry Group) */}
                 {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">
                         {streamData.caed.code}-LAB
                       </span>
@@ -1140,14 +1221,19 @@ export default function DocumentsPage() {
                         Computer-Aided Engineering Drawing Lab
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {streamData.caed.dept}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>2 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <div className="flex items-center space-x-2">
                         <span className="font-mono font-bold text-[#00A3FF] text-xs">
                           {chosenPLC ? chosenPLC.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB"}
@@ -1160,17 +1246,22 @@ export default function DocumentsPage() {
                         {chosenPLC ? chosenPLC.labName : "Programming Language Practice Lab"}
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {chosenPLC ? chosenPLC.dept : "CSE & Allied Dept"}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>2 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
                 {/* Auto-Paired PSCL Lab (Physics Group only) */}
                 {isPhysGroup && (
-                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between">
-                    <div className="min-w-0 pr-3">
+                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
                       <div className="flex items-center space-x-2">
                         <span className="font-mono font-bold text-[#00A3FF] text-xs">
                           {chosenPSCPair ? chosenPSCPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x"}
@@ -1183,16 +1274,21 @@ export default function DocumentsPage() {
                         {chosenPSCPair ? chosenPSCPair.pscl.name : "Programme-Specific Course Lab (PSCL)"}
                       </p>
                     </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                        {chosenPSCPair ? chosenPSCPair.pscl.dept : "Respective Dept"}
+                      </span>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>2 hrs/wk</span>
+                      </span>
+                    </div>
                   </div>
                 )}
 
                 {/* Innovation & Design Thinking Lab (I Sem) OR Interdisciplinary Project-Based Learning (II Sem) */}
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between">
-                  <div className="min-w-0 pr-3">
+                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
+                  <div className="min-w-0 pr-2">
                     <span className="font-mono font-bold text-[#00A3FF] text-xs">
                       {isSecondSem ? "1BPRJ258" : "1BIDTL158"}
                     </span>
@@ -1202,10 +1298,15 @@ export default function DocumentsPage() {
                         : "Innovation and Design Thinking Lab (Project-based)"}
                     </p>
                   </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold shrink-0 flex items-center space-x-1">
-                    <Clock className="h-3 w-3" />
-                    <span>2 hrs/wk</span>
-                  </span>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                      {isSecondSem ? "Multiple Depts" : "Any Dept"}
+                    </span>
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                      <Clock className="h-3 w-3" />
+                      <span>2 hrs/wk</span>
+                    </span>
+                  </div>
                 </div>
 
               </div>
@@ -1236,7 +1337,7 @@ export default function DocumentsPage() {
                     Close
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <input
                     type="text"
                     placeholder={`Code (e.g. 21${activeCourseCode}${semNumber}1)`}
@@ -1251,6 +1352,14 @@ export default function DocumentsPage() {
                     value={newSubjName}
                     onChange={(e) => setNewSubjName(e.target.value)}
                     className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Teaching Dept (e.g. CSE Dept)"
+                    value={newSubjDept}
+                    onChange={(e) => setNewSubjDept(e.target.value)}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
                     required
                   />
                   <select
@@ -1345,13 +1454,16 @@ export default function DocumentsPage() {
                     {activeHigherData.theory.map((s, idx) => (
                       <div
                         key={idx}
-                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between group hover:border-primary/40 transition"
+                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3 group hover:border-primary/40 transition"
                       >
-                        <div className="min-w-0 pr-3">
+                        <div className="min-w-0 pr-2">
                           <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
                           <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                         </div>
                         <div className="flex items-center space-x-2.5 shrink-0">
+                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                            {s.department || `${activeCourseCode} Dept`}
+                          </span>
                           <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
                             <Clock className="h-3 w-3" />
                             <span>{s.weekly_hours} hrs/wk</span>
@@ -1389,13 +1501,16 @@ export default function DocumentsPage() {
                     {activeHigherData.tutorial.map((s, idx) => (
                       <div
                         key={idx}
-                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between group hover:border-amber-500/40 transition"
+                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3 group hover:border-amber-500/40 transition"
                       >
-                        <div className="min-w-0 pr-3">
+                        <div className="min-w-0 pr-2">
                           <span className="font-mono font-bold text-amber-500 text-xs">{s.code}</span>
                           <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                         </div>
                         <div className="flex items-center space-x-2.5 shrink-0">
+                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                            {s.department || `${activeCourseCode} Dept`}
+                          </span>
                           <span className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-500 font-mono font-bold flex items-center space-x-1">
                             <Clock className="h-3 w-3" />
                             <span>{s.weekly_hours} hrs/wk</span>
@@ -1433,13 +1548,16 @@ export default function DocumentsPage() {
                     {activeHigherData.practical.map((s, idx) => (
                       <div
                         key={idx}
-                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between group hover:border-[#00A3FF]/40 transition"
+                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3 group hover:border-[#00A3FF]/40 transition"
                       >
-                        <div className="min-w-0 pr-3">
+                        <div className="min-w-0 pr-2">
                           <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
                           <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                         </div>
                         <div className="flex items-center space-x-2.5 shrink-0">
+                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+                            {s.department || `${activeCourseCode} Dept`}
+                          </span>
                           <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
                             <Clock className="h-3 w-3" />
                             <span>{s.weekly_hours} hrs/wk</span>

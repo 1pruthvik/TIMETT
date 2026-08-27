@@ -32,6 +32,7 @@ export default function SectionsPage() {
   // Computed data
   const [totalStudents, setTotalStudents] = useState(180);
   const [activeSubjectsCount, setActiveSubjectsCount] = useState(6);
+  const [activeLabSubjectsCount, setActiveLabSubjectsCount] = useState(2);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Generator State
@@ -69,15 +70,25 @@ export default function SectionsPage() {
         setTotalStudents(total || 180);
       }
 
-      const savedSubjs = localStorage.getItem("vtu_course_subjects_map");
-      if (savedSubjs) {
-        const parsedSubjs = JSON.parse(savedSubjs);
-        let count = 0;
-        Object.values(parsedSubjs).forEach((val: any) => {
-          count += (val.theory?.length || 0) + (val.practical?.length || 0);
-        });
-        if (count > 0) setActiveSubjectsCount(count);
-      }
+      // Check Sem 5 and Sem 6 for lab subjects count
+      let totalSubjs = 0;
+      let totalLabs = 0;
+      ["vtu_course_subjects_map_sem5", "vtu_course_subjects_map_sem6", "vtu_course_subjects_map"].forEach((key) => {
+        const savedSubjs = localStorage.getItem(key);
+        if (savedSubjs) {
+          try {
+            const parsed = JSON.parse(savedSubjs);
+            Object.values(parsed).forEach((val: any) => {
+              totalSubjs += (val.theory?.length || 0) + (val.practical?.length || 0);
+              if (val.practical?.length) totalLabs = Math.max(totalLabs, val.practical.length);
+            });
+          } catch (e) {}
+        }
+      });
+
+      if (totalSubjs > 0) setActiveSubjectsCount(totalSubjs);
+      if (totalLabs > 0) setActiveLabSubjectsCount(totalLabs);
+
     } catch (e) {
       console.error(e);
     } finally {
@@ -91,7 +102,7 @@ export default function SectionsPage() {
     try {
       localStorage.setItem(
         "vtu_room_capacity_config",
-        JSON.stringify({ roomCapacity, labCapacity, coincidedLabGroup })
+        JSON.stringify({ roomCapacity, labCapacity, coincidedLabGroup, labRotationMode, labBatchesCount: calculatedBatchesPerSec })
       );
       localStorage.setItem(
         "vtu_slot_duration_config",
@@ -104,6 +115,7 @@ export default function SectionsPage() {
     roomCapacity,
     labCapacity,
     coincidedLabGroup,
+    labRotationMode,
     theoryMin,
     labMin,
     lunchBreakStart,
@@ -112,7 +124,14 @@ export default function SectionsPage() {
   ]);
 
   const calculatedSections = Math.ceil(totalStudents / Math.max(1, roomCapacity));
-  const calculatedBatchesPerSec = Math.ceil((roomCapacity || 60) / Math.max(1, labCapacity));
+  const calculatedBatchesPerSec = Math.max(1, activeLabSubjectsCount);
+  const calculatedLabCapacity = Math.ceil((roomCapacity || 60) / calculatedBatchesPerSec);
+
+  useEffect(() => {
+    if (calculatedLabCapacity > 0) {
+      setLabCapacity(calculatedLabCapacity);
+    }
+  }, [calculatedLabCapacity]);
 
   const handleRunGenerator = async () => {
     setGenerating(true);

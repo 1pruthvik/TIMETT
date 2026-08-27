@@ -54,6 +54,17 @@ export function WizardFooter({
     const handleWheel = (e: WheelEvent) => {
       if (navigationLockRef.current) return;
 
+      // Ignore wheel events originating from pickers, modals, or interactive scroll containers
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        target.closest(
+          '[data-no-wizard-scroll="true"], [data-year-picker="true"], .scroll-drum-container, [role="dialog"], [role="listbox"]'
+        )
+      ) {
+        return;
+      }
+
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const scrollHeight = document.documentElement.scrollHeight;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Calendar, ChevronUp, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,48 +9,104 @@ interface YearScrollPickerProps {
   onChange: (year: string) => void;
 }
 
-// Generate range of academic years e.g. 2022-2023 ... 2035-2036
-const ACADEMIC_YEARS = Array.from({ length: 14 }, (_, i) => {
-  const start = 2022 + i;
+// Comprehensive range of academic years
+const ACADEMIC_YEARS = Array.from({ length: 16 }, (_, i) => {
+  const start = 2021 + i;
   return `${start} - ${start + 1}`;
 });
 
+const ITEM_HEIGHT = 44; // Height of each year item in px
+const CONTAINER_HEIGHT = 220; // Height of drum container in px
+const PADDING_Y = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2; // 88px so 1st and last item center exactly
+
 export function YearScrollPicker({ value, onChange }: YearScrollPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
+  const [scrollTop, setScrollTop] = useState(0);
 
-  // Default to 2026 - 2027 if value not found
-  const currentIndex = ACADEMIC_YEARS.indexOf(value) !== -1 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isProgrammaticScrollRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const activeIndex = ACADEMIC_YEARS.indexOf(value) !== -1 
     ? ACADEMIC_YEARS.indexOf(value) 
     : ACADEMIC_YEARS.indexOf("2026 - 2027");
+
+  // Scroll drum list so target index is centered in the selection window
+  const scrollToIndex = useCallback((index: number, smooth = true) => {
+    if (!scrollRef.current) return;
+    const targetScrollTop = index * ITEM_HEIGHT;
+    isProgrammaticScrollRef.current = true;
+    scrollRef.current.scrollTo({
+      top: targetScrollTop,
+      behavior: smooth ? "smooth" : "auto",
+    });
+    setScrollTop(targetScrollTop);
+
+    setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 300);
+  }, []);
+
+  // Sync scroll position when popover opens or value changes externally
+  useEffect(() => {
+    if (isOpen && activeIndex !== -1) {
+      // Small timeout to allow DOM layout
+      setTimeout(() => {
+        scrollToIndex(activeIndex, false);
+      }, 30);
+    }
+  }, [isOpen, activeIndex, scrollToIndex]);
+
+  // Handle user scrolling through the drum
+  const handleDrumScroll = () => {
+    if (!scrollRef.current) return;
+    const currentScroll = scrollRef.current.scrollTop;
+    setScrollTop(currentScroll);
+
+    if (isProgrammaticScrollRef.current) return;
+
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      const nearestIndex = Math.max(
+        0,
+        Math.min(ACADEMIC_YEARS.length - 1, Math.round(currentScroll / ITEM_HEIGHT))
+      );
+      if (ACADEMIC_YEARS[nearestIndex] && ACADEMIC_YEARS[nearestIndex] !== value) {
+        onChange(ACADEMIC_YEARS[nearestIndex]);
+      }
+    }, 150);
+  };
 
   // Step up / down functions
   const handlePrevYear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentIndex > 0) {
-      onChange(ACADEMIC_YEARS[currentIndex - 1]);
+    if (activeIndex > 0) {
+      const newYear = ACADEMIC_YEARS[activeIndex - 1];
+      onChange(newYear);
+      if (isOpen) scrollToIndex(activeIndex - 1, true);
     }
   };
 
   const handleNextYear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentIndex < ACADEMIC_YEARS.length - 1) {
-      onChange(ACADEMIC_YEARS[currentIndex + 1]);
+    if (activeIndex < ACADEMIC_YEARS.length - 1) {
+      const newYear = ACADEMIC_YEARS[activeIndex + 1];
+      onChange(newYear);
+      if (isOpen) scrollToIndex(activeIndex + 1, true);
     }
   };
 
-  // Direct wheel scrolling on the input box
-  const handleBoxWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
+  // Intercept wheel on the trigger box to roll years without triggering page overscroll
+  const handleTriggerWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
     if (e.deltaY > 0) {
-      if (currentIndex < ACADEMIC_YEARS.length - 1) {
-        onChange(ACADEMIC_YEARS[currentIndex + 1]);
+      if (activeIndex < ACADEMIC_YEARS.length - 1) {
+        onChange(ACADEMIC_YEARS[activeIndex + 1]);
       }
     } else if (e.deltaY < 0) {
-      if (currentIndex > 0) {
-        onChange(ACADEMIC_YEARS[currentIndex - 1]);
+      if (activeIndex > 0) {
+        onChange(ACADEMIC_YEARS[activeIndex - 1]);
       }
     }
   };
@@ -66,26 +122,21 @@ export function YearScrollPicker({ value, onChange }: YearScrollPickerProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Auto scroll drum list to center active year when opened
-  useEffect(() => {
-    if (isOpen && listRef.current) {
-      const activeEl = listRef.current.querySelector(`[data-year="${value}"]`) as HTMLElement;
-      if (activeEl) {
-        activeEl.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
-    }
-  }, [isOpen, value]);
-
   return (
-    <div className="relative w-full" ref={containerRef}>
-      {/* Interactive Year Selector Box with Wheel Trigger */}
+    <div
+      className="relative w-full"
+      ref={containerRef}
+      data-no-wizard-scroll="true"
+      data-year-picker="true"
+    >
+      {/* Interactive Year Box Trigger */}
       <div
-        onWheel={handleBoxWheel}
+        onWheel={handleTriggerWheel}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-full h-12 px-4 rounded-xl border bg-background/80 flex items-center justify-between transition-all cursor-pointer select-none group",
           isOpen
-            ? "border-primary ring-2 ring-primary/40 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+            ? "border-primary ring-2 ring-primary/40 shadow-[0_0_18px_rgba(0,102,255,0.25)]"
             : "border-border hover:border-primary/50 hover:bg-card/90"
         )}
       >
@@ -96,72 +147,101 @@ export function YearScrollPicker({ value, onChange }: YearScrollPickerProps) {
           </span>
         </div>
 
-        {/* Up / Down Mini Roller Steppers */}
+        {/* Steppers */}
         <div className="flex items-center space-x-1">
           <button
             type="button"
             onClick={handlePrevYear}
-            disabled={currentIndex <= 0}
+            disabled={activeIndex <= 0}
             className="p-1 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition disabled:opacity-30 cursor-pointer"
-            title="Previous Academic Year"
+            title="Previous Year"
           >
             <ChevronUp className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={handleNextYear}
-            disabled={currentIndex >= ACADEMIC_YEARS.length - 1}
+            disabled={activeIndex >= ACADEMIC_YEARS.length - 1}
             className="p-1 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition disabled:opacity-30 cursor-pointer"
-            title="Next Academic Year"
+            title="Next Year"
           >
             <ChevronDown className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* 3D Drum Roller Wheel Scroll Dropdown Popover */}
+      {/* 3D Fixed-Center Selection Reel Drum Picker */}
       {isOpen && (
-        <div className="absolute left-0 top-[calc(100%+8px)] w-full z-50 rounded-2xl bg-card/95 backdrop-blur-2xl border border-primary/30 shadow-[0_16px_50px_rgba(0,0,0,0.6)] p-3 tt-animate-pop overflow-hidden">
+        <div
+          data-no-wizard-scroll="true"
+          onWheel={(e) => e.stopPropagation()}
+          className="absolute left-0 top-[calc(100%+8px)] w-full z-50 rounded-2xl bg-[#0a0a0f]/95 dark:bg-[#08080c]/98 backdrop-blur-3xl border border-primary/35 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-2 tt-animate-pop overflow-hidden"
+          style={{ height: `${CONTAINER_HEIGHT + 16}px` }}
+        >
           {/* Top Fade Mask */}
-          <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-card to-transparent pointer-events-none z-10" />
+          <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[#0a0a0f] dark:from-[#08080c] via-[#0a0a0f]/75 to-transparent pointer-events-none z-20" />
 
-          {/* Scrollable Drum Column */}
+          {/* FIXED Center Selection Window Highlight Frame */}
           <div
-            ref={listRef}
-            className="max-h-56 overflow-y-auto space-y-1 py-4 scroll-smooth pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="absolute left-2 right-2 rounded-xl bg-primary/20 border-2 border-primary shadow-[0_0_20px_rgba(0,102,255,0.45)] pointer-events-none z-10"
+            style={{
+              top: `${PADDING_Y + 8}px`,
+              height: `${ITEM_HEIGHT}px`,
+            }}
+          />
+
+          {/* Scrollable Year Drum Reel */}
+          <div
+            ref={scrollRef}
+            onScroll={handleDrumScroll}
+            className="h-full overflow-y-auto scroll-smooth snap-y snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-none"
+            style={{
+              paddingTop: `${PADDING_Y}px`,
+              paddingBottom: `${PADDING_Y}px`,
+            }}
           >
             {ACADEMIC_YEARS.map((yr, idx) => {
-              const isSelected = yr === value;
-              const distance = Math.abs(idx - currentIndex);
-              
+              // Calculate distance of this item's center from the drum's visual center
+              const itemCenter = idx * ITEM_HEIGHT + ITEM_HEIGHT / 2;
+              const drumCenter = scrollTop + PADDING_Y + ITEM_HEIGHT / 2 - PADDING_Y; // equals scrollTop + ITEM_HEIGHT / 2
+              const diff = itemCenter - (scrollTop + ITEM_HEIGHT / 2);
+              const distance = Math.abs(diff);
+
+              const isCentered = distance < ITEM_HEIGHT / 2;
+              const rotation = Math.max(-45, Math.min(45, (diff / PADDING_Y) * 35));
+              const scale = Math.max(0.8, 1 - (distance / CONTAINER_HEIGHT) * 0.4);
+              const opacity = Math.max(0.2, 1 - (distance / (CONTAINER_HEIGHT / 1.5)));
+
               return (
                 <div
                   key={yr}
-                  data-year={yr}
                   onClick={() => {
                     onChange(yr);
-                    setIsOpen(false);
-                  }}
-                  style={{
-                    transform: isSelected ? "scale(1.04)" : `scale(${Math.max(0.88, 1 - distance * 0.04)})`,
-                    opacity: isSelected ? 1 : Math.max(0.35, 1 - distance * 0.2),
+                    scrollToIndex(idx, true);
                   }}
                   className={cn(
-                    "h-11 px-4 rounded-xl flex items-center justify-between text-sm font-mono font-bold transition-all duration-200 cursor-pointer",
-                    isSelected
-                      ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/40"
-                      : "hover:bg-muted/50 text-foreground"
+                    "snap-center flex items-center justify-between px-4 transition-all duration-150 cursor-pointer font-mono",
+                    isCentered
+                      ? "text-primary-foreground font-extrabold text-base drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]"
+                      : "text-muted-foreground/60 font-semibold text-sm hover:text-foreground"
                   )}
+                  style={{
+                    height: `${ITEM_HEIGHT}px`,
+                    transform: `perspective(400px) rotateX(${rotation}deg) scale(${scale})`,
+                    opacity: opacity,
+                  }}
                 >
-                  <span className="tracking-wide">{yr}</span>
-                  {isSelected && <Check className="h-4 w-4 text-primary-foreground stroke-[3]" />}
+                  <span className="tracking-wider">{yr}</span>
+                  {isCentered && (
+                    <Check className="h-4 w-4 text-primary stroke-[3]" />
+                  )}
                 </div>
               );
             })}
           </div>
 
           {/* Bottom Fade Mask */}
-          <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none z-10" />
+          <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#0a0a0f] dark:from-[#08080c] via-[#0a0a0f]/75 to-transparent pointer-events-none z-20" />
         </div>
       )}
     </div>

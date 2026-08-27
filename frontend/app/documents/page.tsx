@@ -75,9 +75,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v8");
       localStorage.removeItem("vtu_course_subjects_map_v9");
       localStorage.removeItem("vtu_course_subjects_map_v10");
-      localStorage.removeItem("vtu_course_subjects_map_v11");
+      localStorage.removeItem("vtu_course_subjects_map_v12");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v12");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v13");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -525,7 +525,21 @@ export default function DocumentsPage() {
                 { code: "1BBML307", name: "Instrumentation, Measurements and Biomedical Transducers Lab", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BBM401", name: "Data Acquisition Circuits", category: "theory", weekly_hours: 3 },
+                { code: "1BBM402", name: "Data Structures and Algorithms", category: "theory", weekly_hours: 3 },
+                { code: "1BBM403", name: "Biomechanics", category: "theory", weekly_hours: 5 },
+                { code: "1BBM404", name: "Embedded Controllers", category: "theory", weekly_hours: 3 },
+                { code: "1BBM407", name: "Biology for Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1Bxx409", name: "Control Systems Engineering", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BBM402", name: "Data Structures and Algorithms Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML405", name: "Data Acquisition Circuits Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML406", name: "Embedded Controllers Lab", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           Biomedical: {
             "3": {
@@ -543,11 +557,25 @@ export default function DocumentsPage() {
                 { code: "1BBML307", name: "Instrumentation, Measurements and Biomedical Transducers Lab", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BBM401", name: "Data Acquisition Circuits", category: "theory", weekly_hours: 3 },
+                { code: "1BBM402", name: "Data Structures and Algorithms", category: "theory", weekly_hours: 3 },
+                { code: "1BBM403", name: "Biomechanics", category: "theory", weekly_hours: 5 },
+                { code: "1BBM404", name: "Embedded Controllers", category: "theory", weekly_hours: 3 },
+                { code: "1BBM407", name: "Biology for Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1Bxx409", name: "Control Systems Engineering", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BBM402", name: "Data Structures and Algorithms Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML405", name: "Data Acquisition Circuits Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BBML406", name: "Embedded Controllers Lab", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v12", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v13", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -556,7 +584,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v12", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v13", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

@@ -137,7 +137,7 @@ export default function AuthCallbackPage() {
         <h2 className="text-base font-bold text-foreground">
           {error ? error : status}
         </h2>
-        <p className="text-xs text-muted-foreground mt-1.5">Establishing encrypted session with TIMETT...</p>
+        <p className="text-xs text-muted-foreground mt-1.5">Establishing encrypted session with Tempus...</p>
       </div>
     </main>
   );

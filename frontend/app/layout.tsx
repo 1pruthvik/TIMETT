@@ -18,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TIMETT — Intelligent Timetable Operating System",
+  title: "Tempus — Intelligent Timetable Operating System",
   description:
     "Next-generation college timetable planner powered by constraint optimization and intelligent scheduling.",
   icons: {

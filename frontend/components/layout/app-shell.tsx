@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Admin User");
-  const [userEmail, setUserEmail] = useState("admin@timett.io");
+  const [userEmail, setUserEmail] = useState("admin@tempus.io");
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [resDropdownOpen, setResDropdownOpen] = useState(false);
@@ -56,7 +56,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     "/documents",
     "/faculties",
     "/sections",
-  ].some((p) => pathname.startsWith(p));
+    "/constraints",
+  ].includes(pathname);
 
   const handleMouseEnter = () => {
     if (closeTimeoutRef.current) {
@@ -67,13 +68,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   const handleMouseLeave = () => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
     closeTimeoutRef.current = setTimeout(() => {
       setMenuOpen(false);
       setResDropdownOpen(false);
-    }, 350);
+    }, 200);
   };
 
   useEffect(() => {
@@ -129,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/dashboard"
             className="flex items-center cursor-pointer p-1"
-            title="TIMETT Dashboard"
+            title="Tempus Dashboard"
           >
             <TimettLogo
               className={cn(

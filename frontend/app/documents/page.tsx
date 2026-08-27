@@ -7,12 +7,10 @@ import {
   Upload,
   BookOpen,
   Layers,
-  Sparkles,
   RefreshCw,
   Plus,
   Trash2,
   CheckCircle2,
-  FileText,
   Clock,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
@@ -198,16 +196,11 @@ export default function DocumentsPage() {
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              VTU Scheme Document Upload & Subject Ingestion
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              Upload official VTU syllabus scheme files or snapshots. The OCR pipeline extracts subject codes, courses, and automatically separates them into Theory and Practical laboratory classes.
-            </p>
-          </div>
+        {/* Page Hero Header (No suggestions/descriptions) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            VTU Scheme Document Upload & Subject Ingestion
+          </h1>
 
           <div className="flex items-center gap-3 shrink-0">
             <button
@@ -216,7 +209,7 @@ export default function DocumentsPage() {
               className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
             >
               <Plus className="h-4 w-4" />
-              <span>Add Subject Manually</span>
+              <span>Add Subject</span>
             </button>
           </div>
         </div>
@@ -225,7 +218,7 @@ export default function DocumentsPage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Select Active Course Scheme
+              Course Scheme
             </h2>
             <span className="text-xs font-mono text-primary font-bold">
               {activeData.theory.length} Theory + {activeData.practical.length} Practical Labs
@@ -278,7 +271,7 @@ export default function DocumentsPage() {
               />
               <input
                 type="text"
-                placeholder="Subject Name (e.g. Data Structures & Algorithms)"
+                placeholder="Subject Name"
                 value={newSubjName}
                 onChange={(e) => setNewSubjName(e.target.value)}
                 className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
@@ -300,7 +293,7 @@ export default function DocumentsPage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl"
+                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
               >
                 Save Subject
               </button>
@@ -308,7 +301,7 @@ export default function DocumentsPage() {
           </form>
         )}
 
-        {/* Scheme File Upload Dropzone (Full Width Expansive) */}
+        {/* Scheme File Upload Dropzone */}
         <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
           <input
             type="file"
@@ -324,16 +317,11 @@ export default function DocumentsPage() {
                 <Upload className="h-8 w-8" />
               )}
             </div>
-            <div>
-              <p className="text-base font-bold text-foreground">
-                {parsingScheme
-                  ? `Interpreting Scheme & Extracting Subjects for ${activeCourseCode}...`
-                  : `Upload VTU Scheme Document or Image for ${activeCourseCode} (PDF / PNG / JPG / DOCX)`}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-xl mx-auto">
-                Automatic regex and OCR parser extracts 2025/2021 curriculum codes and segregates Theory and Practical laboratories.
-              </p>
-            </div>
+            <p className="text-base font-bold text-foreground">
+              {parsingScheme
+                ? `Extracting Subjects for ${activeCourseCode}...`
+                : `Upload VTU Scheme for ${activeCourseCode} (PDF / PNG / JPG / DOCX)`}
+            </p>
           </div>
         </div>
 
@@ -344,7 +332,7 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        {/* Theory and Practical Lists (Spread in 2 Wide Columns) */}
+        {/* Theory and Practical Lists */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Theory Subjects */}
           <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
@@ -358,7 +346,7 @@ export default function DocumentsPage() {
 
             {activeData.theory.length === 0 ? (
               <p className="text-xs text-muted-foreground italic py-8 text-center">
-                No theory subjects extracted. Upload scheme or add manually.
+                No theory subjects extracted.
               </p>
             ) : (
               <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
@@ -402,7 +390,7 @@ export default function DocumentsPage() {
 
             {activeData.practical.length === 0 ? (
               <p className="text-xs text-muted-foreground italic py-8 text-center">
-                No practical lab subjects extracted. Upload scheme or add manually.
+                No practical lab subjects extracted.
               </p>
             ) : (
               <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">

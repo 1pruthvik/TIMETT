@@ -4,16 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Layers3,
   Clock,
   Sparkles,
   RefreshCw,
   CheckCircle2,
-  AlertCircle,
   Building2,
-  Users,
   Calendar,
-  Layers,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -35,6 +31,7 @@ export default function SectionsPage() {
   // Computed data
   const [totalStudents, setTotalStudents] = useState(180);
   const [activeSubjectsCount, setActiveSubjectsCount] = useState(6);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Generator State
   const [generating, setGenerating] = useState(false);
@@ -59,27 +56,31 @@ export default function SectionsPage() {
 
       const savedCourses = localStorage.getItem("vtu_college_offered_courses");
       if (savedCourses) {
-        const parsed = JSON.parse(savedCourses);
-        const selected = parsed.filter((c: any) => c.selected);
+        const parsedCourses = JSON.parse(savedCourses);
+        const selected = parsedCourses.filter((c: any) => c.selected);
         const total = selected.reduce((sum: number, c: any) => sum + (c.studentCount || 0), 0);
         setTotalStudents(total || 180);
       }
 
       const savedSubjs = localStorage.getItem("vtu_course_subjects_map");
       if (savedSubjs) {
-        const parsed = JSON.parse(savedSubjs);
+        const parsedSubjs = JSON.parse(savedSubjs);
         let count = 0;
-        Object.values(parsed).forEach((val: any) => {
+        Object.values(parsedSubjs).forEach((val: any) => {
           count += (val.theory?.length || 0) + (val.practical?.length || 0);
         });
         if (count > 0) setActiveSubjectsCount(count);
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  const saveAllConfigs = () => {
+  // Automatic saving on any change
+  useEffect(() => {
+    if (!isLoaded) return;
     try {
       localStorage.setItem(
         "vtu_room_capacity_config",
@@ -92,13 +93,21 @@ export default function SectionsPage() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [
+    roomCapacity,
+    labCapacity,
+    coincidedLabGroup,
+    theoryMin,
+    labMin,
+    lunchBreakStart,
+    lunchBreakDuration,
+    isLoaded,
+  ]);
 
   const calculatedSections = Math.ceil(totalStudents / Math.max(1, roomCapacity));
   const calculatedBatchesPerSec = Math.ceil((roomCapacity || 60) / Math.max(1, labCapacity));
 
   const handleRunGenerator = async () => {
-    saveAllConfigs();
     setGenerating(true);
     setGenStatus(null);
 
@@ -129,16 +138,11 @@ export default function SectionsPage() {
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              Section Calculation, Lab Coinciding & Period Durations
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              Configure room capacities, parallel practical lab sub-batches ($B_1, B_2$), shared coincided facilities, and standard daily period durations.
-            </p>
-          </div>
+        {/* Page Hero Header (No suggestions/descriptions) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            Section Calculation, Lab Coinciding & Period Durations
+          </h1>
 
           <div className="flex items-center gap-3 shrink-0">
             <button
@@ -157,14 +161,13 @@ export default function SectionsPage() {
           </div>
         </div>
 
-        {/* Live Capacity Metrics Grid (Spread Across the Entire Page) */}
+        {/* Live Capacity Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Total Enrolled Students
+              Enrolled Students
             </p>
             <p className="text-3xl font-extrabold text-primary font-mono">{totalStudents}</p>
-            <p className="text-[11px] text-muted-foreground">Across all active programs</p>
           </div>
 
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
@@ -172,7 +175,6 @@ export default function SectionsPage() {
               Computed Class Sections
             </p>
             <p className="text-3xl font-extrabold text-primary font-mono">{calculatedSections}</p>
-            <p className="text-[11px] text-muted-foreground">Section A, B, C...</p>
           </div>
 
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
@@ -180,15 +182,13 @@ export default function SectionsPage() {
               Lab Batches / Section
             </p>
             <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{calculatedBatchesPerSec}</p>
-            <p className="text-[11px] text-muted-foreground">Batches B1, B2 (Coinciding)</p>
           </div>
 
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Active Curriculum Subjects
+              Curriculum Subjects
             </p>
             <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{activeSubjectsCount}</p>
-            <p className="text-[11px] text-muted-foreground">Extracted from VTU Scheme</p>
           </div>
         </div>
 
@@ -232,9 +232,6 @@ export default function SectionsPage() {
                   onChange={(e) => setRoomCapacity(Number(e.target.value))}
                   className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
-                <span className="text-[11px] text-muted-foreground block">
-                  VTU standard: 60 students per classroom section
-                </span>
               </div>
 
               <div className="space-y-2">
@@ -247,9 +244,6 @@ export default function SectionsPage() {
                   onChange={(e) => setLabCapacity(Number(e.target.value))}
                   className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
-                <span className="text-[11px] text-muted-foreground block">
-                  VTU standard: 30 students per practical batch (B1 & B2 run in parallel)
-                </span>
               </div>
 
               <div className="space-y-2">
@@ -263,9 +257,6 @@ export default function SectionsPage() {
                   placeholder="e.g. CS Central Computing Lab"
                   className="w-full h-12 px-4 text-sm font-medium rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
                 />
-                <span className="text-[11px] text-muted-foreground block">
-                  Assigns parallel batches to synchronized or specialized laboratory facilities.
-                </span>
               </div>
             </div>
           </div>
@@ -296,7 +287,6 @@ export default function SectionsPage() {
                       min
                     </span>
                   </div>
-                  <span className="text-[11px] text-muted-foreground block">50 min standard period</span>
                 </div>
 
                 <div className="space-y-2">
@@ -314,11 +304,10 @@ export default function SectionsPage() {
                       min
                     </span>
                   </div>
-                  <span className="text-[11px] text-muted-foreground block">100 min double-block</span>
                 </div>
               </div>
 
-              {/* Standard Daily Timings Grid */}
+              {/* Daily Timings Grid */}
               <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-2.5">
                 <p className="text-xs font-bold text-foreground flex items-center space-x-1.5">
                   <Calendar className="h-3.5 w-3.5 text-primary" />

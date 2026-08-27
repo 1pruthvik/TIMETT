@@ -6,11 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Building2,
   GraduationCap,
-  Sparkles,
   Calendar,
-  CheckCircle2,
-  Layers,
-  ArrowRight,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -22,7 +18,7 @@ export default function AcademicYearPage() {
   const [institutionType, setInstitutionType] = useState<"vtu" | "university">("vtu");
   const [selectedYear, setSelectedYear] = useState("2");
   const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     try {
@@ -36,124 +32,89 @@ export default function AcademicYearPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  const saveSetup = () => {
-    const config = {
-      academicYear,
-      institutionType,
-      selectedYear,
-      selectedSemType,
-    };
+  // Automatic saving on any change
+  useEffect(() => {
+    if (!isLoaded) return;
     try {
+      const config = {
+        academicYear,
+        institutionType,
+        selectedYear,
+        selectedSemType,
+      };
       localStorage.setItem("vtu_academic_setup", JSON.stringify(config));
     } catch (e) {
       console.error(e);
     }
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2000);
-  };
-
-  const handleNext = () => {
-    saveSetup();
-  };
+  }, [academicYear, institutionType, selectedYear, selectedSemType, isLoaded]);
 
   return (
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              Academic Year & Institution Type
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              Configure your institutional affiliation, active academic session, academic year level, and target semester for automated schedule generation.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={saveSetup}
-              className="px-5 py-2.5 text-xs font-bold rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-            >
-              Save Configuration
-            </button>
-          </div>
+        {/* Clean Page Header (No suggestions/descriptions) */}
+        <div className="border-b border-border/60 pb-5">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            Academic Year & Institution Type
+          </h1>
         </div>
 
-        {/* Status Toast Banner */}
-        {savedSuccess && (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-semibold flex items-center space-x-3 tt-animate-fade">
-            <CheckCircle2 className="h-5 w-5" />
-            <span>Academic term configuration saved successfully!</span>
-          </div>
-        )}
-
-        {/* Section 1: Institution Scheme Selection */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+        {/* Institution Scheme Selection (No suggestion text) */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Institution Scheme Affiliation
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div
               onClick={() => setInstitutionType("vtu")}
-              className={`p-6 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
+              className={`p-6 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                 institutionType === "vtu"
                   ? "border-primary bg-primary/5 ring-2 ring-primary/30 shadow-[0_0_24px_rgba(0,102,255,0.15)]"
                   : "border-border bg-card/60 hover:bg-muted/30 opacity-70"
               }`}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-4">
                 <div className="p-3.5 rounded-xl bg-primary/10 text-primary">
                   <Building2 className="h-6 w-6" />
                 </div>
-                {institutionType === "vtu" && (
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary text-primary-foreground">
-                    Active
-                  </span>
-                )}
-              </div>
-              <div>
                 <h3 className="text-lg font-bold text-foreground">VTU Affiliated College</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Pre-loads official VTU Curriculum, 2025/2021 Schemes, standard theory (4h) & lab (3h) hours, and automated OCR subject ingestion.
-                </p>
               </div>
+              {institutionType === "vtu" && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
+                  Selected
+                </span>
+              )}
             </div>
 
             <div
               onClick={() => setInstitutionType("university")}
-              className={`p-6 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
+              className={`p-6 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                 institutionType === "university"
                   ? "border-primary bg-primary/5 ring-2 ring-primary/30 shadow-[0_0_24px_rgba(0,102,255,0.15)]"
                   : "border-border bg-card/60 hover:bg-muted/30 opacity-70"
               }`}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-4">
                 <div className="p-3.5 rounded-xl bg-primary/10 text-primary">
                   <GraduationCap className="h-6 w-6" />
                 </div>
-                {institutionType === "university" && (
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary text-primary-foreground">
-                    Active
-                  </span>
-                )}
+                <h3 className="text-lg font-bold text-foreground">Autonomous University</h3>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-foreground">Autonomous University / Deemed</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enables custom curriculum structures, customized credit hours, multi-department elective matrices, and bespoke cycle groups.
-                </p>
-              </div>
+              {institutionType === "university" && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary text-primary-foreground">
+                  Selected
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Section 2: Session & Term Details */}
+        {/* Session & Term Details (No suggestion text) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Academic Year */}
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-3">
@@ -170,7 +131,6 @@ export default function AcademicYearPage() {
               />
               <Calendar className="absolute right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             </div>
-            <p className="text-[11px] text-muted-foreground">Current academic operational year</p>
           </div>
 
           {/* Academic Level */}
@@ -188,11 +148,6 @@ export default function AcademicYearPage() {
               <option value="3">3rd Year (5th & 6th Sem)</option>
               <option value="4">4th Year (7th & 8th Sem)</option>
             </select>
-            <p className="text-[11px] text-muted-foreground">
-              {selectedYear === "1"
-                ? "First-year dual mirrored cycle scheduler active"
-                : "Department specialized branch curriculum active"}
-            </p>
           </div>
 
           {/* Semester Type */}
@@ -236,7 +191,6 @@ export default function AcademicYearPage() {
                   : "8th Sem"}
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground">Odd / Even Semester phase</p>
           </div>
         </div>
 
@@ -245,7 +199,6 @@ export default function AcademicYearPage() {
           prevHref="/dashboard"
           nextHref="/courses"
           nextLabel="Next: Courses & Intake"
-          onNext={handleNext}
         />
 
       </div>

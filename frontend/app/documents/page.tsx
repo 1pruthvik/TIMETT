@@ -75,8 +75,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v8");
       localStorage.removeItem("vtu_course_subjects_map_v9");
       localStorage.removeItem("vtu_course_subjects_map_v10");
+      localStorage.removeItem("vtu_course_subjects_map_v11");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v11");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v12");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -460,7 +461,21 @@ export default function DocumentsPage() {
                 { code: "1BCHL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BMATCH401", name: "Probability and Statistics for Chemical Engineering", category: "theory", weekly_hours: 3 },
+                { code: "1BCH402", name: "Heat Transfer", category: "theory", weekly_hours: 3 },
+                { code: "1BCH403", name: "Chemical Engineering Thermodynamics", category: "theory", weekly_hours: 4 },
+                { code: "1BCH404", name: "Industrial Pollution Control and Management", category: "theory", weekly_hours: 3 },
+                { code: "1BCH405", name: "Chemical Reaction Engineering-I", category: "theory", weekly_hours: 3 },
+                { code: "1BRM408", name: "Program Specific Biology", category: "theory", weekly_hours: 2 },
+              ],
+              practical: [
+                { code: "1BCH402", name: "Heat Transfer Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL406", name: "Instrument Analysis and Pollution control lab (PCC Lab)", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL407", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           Chemical: {
             "3": {
@@ -478,7 +493,21 @@ export default function DocumentsPage() {
                 { code: "1BCHL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BMATCH401", name: "Probability and Statistics for Chemical Engineering", category: "theory", weekly_hours: 3 },
+                { code: "1BCH402", name: "Heat Transfer", category: "theory", weekly_hours: 3 },
+                { code: "1BCH403", name: "Chemical Engineering Thermodynamics", category: "theory", weekly_hours: 4 },
+                { code: "1BCH404", name: "Industrial Pollution Control and Management", category: "theory", weekly_hours: 3 },
+                { code: "1BCH405", name: "Chemical Reaction Engineering-I", category: "theory", weekly_hours: 3 },
+                { code: "1BRM408", name: "Program Specific Biology", category: "theory", weekly_hours: 2 },
+              ],
+              practical: [
+                { code: "1BCH402", name: "Heat Transfer Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL406", name: "Instrument Analysis and Pollution control lab (PCC Lab)", category: "practical", weekly_hours: 2 },
+                { code: "1BCHL407", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           BME: {
             "3": {
@@ -518,7 +547,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v11", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v12", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -527,7 +556,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v11", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v12", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

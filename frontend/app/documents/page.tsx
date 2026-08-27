@@ -67,20 +67,7 @@ export default function DocumentsPage() {
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
-        const initialMap = {
-          CSE: {
-            theory: [
-              { code: "1BMATCS301", name: "Mathematics for Computer Science", category: "theory", weekly_hours: 4 },
-              { code: "1BCS302", name: "Digital Design & Computer Organization", category: "theory", weekly_hours: 4 },
-              { code: "1BCS303", name: "Operating Systems Architecture", category: "theory", weekly_hours: 4 },
-              { code: "1BCS304", name: "Data Structures and Applications", category: "theory", weekly_hours: 4 },
-            ],
-            practical: [
-              { code: "1BCSL305", name: "Data Structures Laboratory", category: "practical", weekly_hours: 3 },
-              { code: "1BCSL306", name: "Object Oriented Java Lab", category: "practical", weekly_hours: 3 },
-            ],
-          },
-        };
+        const initialMap = {};
         setCourseSubjectsMap(initialMap as any);
         localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
       }

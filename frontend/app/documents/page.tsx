@@ -1,398 +1,457 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { AppShell } from "@/components/layout/app-shell";
-import { PageHeader } from "@/components/ui/page-header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  FileText,
   Upload,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  RefreshCw,
   BookOpen,
-  Users,
-  Building2,
+  Layers,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  RefreshCw,
+  Plus,
   Trash2,
-  Check,
+  FileText,
+  CheckCircle2,
 } from "lucide-react";
+import { AppShell } from "@/components/layout/app-shell";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-interface DocumentItem {
-  id: number;
-  filename: string;
-  file_type: string;
-  doc_type: string;
-  status: string;
-  uploaded_at: string;
-  extracted_data?: {
-    branches?: Array<{ name: string; code: string; student_count: number }>;
-    subjects?: Array<{
-      code: string;
-      name: string;
-      is_lab: boolean;
-      subject_type: string;
-      weekly_hours: number;
-      cycle_group?: string;
-    }>;
-    faculty?: Array<{ name: string; designation: string }>;
-  };
+interface Subject {
+  code: string;
+  name: string;
+  category: "theory" | "practical";
+  weekly_hours: number;
 }
 
-export default function DocumentIngestionPage() {
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState<DocumentItem | null>(null);
+interface VTUCourse {
+  code: string;
+  name: string;
+  selected: boolean;
+  studentCount: number;
+}
 
-  // Candidate review state
-  const [candidateSubjects, setCandidateSubjects] = useState<any[]>([]);
-  const [candidateFaculty, setCandidateFaculty] = useState<any[]>([]);
-  const [candidateBranches, setCandidateBranches] = useState<any[]>([]);
-  const [confirming, setConfirming] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
+export default function DocumentsPage() {
+  const router = useRouter();
 
-  const fetchDocuments = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/documents/`);
-      if (res.ok) {
-        const data = await res.json();
-        setDocuments(data);
-        if (data.length > 0 && !selectedDoc) {
-          selectDocument(data[0]);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch documents", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [courses, setCourses] = useState<VTUCourse[]>([]);
+  const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
+  const [courseSubjectsMap, setCourseSubjectsMap] = useState<
+    Record<string, { theory: Subject[]; practical: Subject[] }>
+  >({});
+  const [parsingScheme, setParsingScheme] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+
+  // Manual Add Subject
+  const [showAddSubj, setShowAddSubj] = useState(false);
+  const [newSubjCode, setNewSubjCode] = useState("");
+  const [newSubjName, setNewSubjName] = useState("");
+  const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "practical">("theory");
+  const [newSubjHours, setNewSubjHours] = useState(4);
 
   useEffect(() => {
-    fetchDocuments();
+    try {
+      const savedCourses = localStorage.getItem("vtu_college_offered_courses");
+      if (savedCourses) {
+        const parsed = JSON.parse(savedCourses);
+        setCourses(parsed);
+        const sel = parsed.find((c: any) => c.selected);
+        if (sel) setActiveCourseCode(sel.code);
+      } else {
+        setCourses([
+          { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180 },
+          { code: "ECE", name: "Electronics & Communication Engineering", selected: true, studentCount: 120 },
+        ]);
+      }
+
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
+      if (savedSubjects) {
+        setCourseSubjectsMap(JSON.parse(savedSubjects));
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
-  const selectDocument = (doc: DocumentItem) => {
-    setSelectedDoc(doc);
-    setSuccessMsg("");
-    if (doc.extracted_data) {
-      setCandidateSubjects(doc.extracted_data.subjects || []);
-      setCandidateFaculty(doc.extracted_data.faculty || []);
-      setCandidateBranches(doc.extracted_data.branches || []);
-    } else {
-      setCandidateSubjects([]);
-      setCandidateFaculty([]);
-      setCandidateBranches([]);
+  const saveSubjectsToStorage = (updatedMap: any) => {
+    try {
+      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedMap));
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
-    setSuccessMsg("");
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("doc_type", "syllabus");
-      formData.append("institution_id", "1");
+    setParsingScheme(true);
+    setUploadSuccess(null);
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const res = await fetch(`${API_BASE}/documents/upload`, {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/vtu/parse-scheme", {
         method: "POST",
         body: formData,
       });
-
       if (res.ok) {
-        const createdDoc = await res.json();
-        setDocuments((prev) => [createdDoc, ...prev]);
-        selectDocument(createdDoc);
+        const data = await res.json();
+        const tSubjs = data.theory_subjects || [];
+        const pSubjs = data.practical_subjects || [];
+
+        setCourseSubjectsMap((prev) => {
+          const updated = {
+            ...prev,
+            [activeCourseCode]: { theory: tSubjs, practical: pSubjs },
+          };
+          saveSubjectsToStorage(updated);
+          return updated;
+        });
+        setUploadSuccess(`Extracted ${tSubjs.length} Theory & ${pSubjs.length} Lab subjects for ${activeCourseCode}!`);
       }
     } catch (err) {
-      console.error("Failed to upload document", err);
+      console.error(err);
     } finally {
-      setUploading(false);
+      setParsingScheme(false);
     }
   };
 
-  const handleConfirmCandidates = async () => {
-    if (!selectedDoc) return;
-    setConfirming(true);
-    setSuccessMsg("");
-    try {
-      const res = await fetch(`${API_BASE}/documents/${selectedDoc.id}/confirm`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          confirmed_branches: candidateBranches,
-          confirmed_subjects: candidateSubjects,
-          confirmed_faculty: candidateFaculty,
-        }),
-      });
+  const handleAddManualSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSubjCode || !newSubjName) return;
 
-      if (res.ok) {
-        const updated = await res.json();
-        setDocuments((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-        setSelectedDoc(updated);
-        setSuccessMsg("Candidates verified and ingested into database successfully!");
-      }
-    } catch (err) {
-      console.error("Failed to confirm candidates", err);
-    } finally {
-      setConfirming(false);
-    }
+    const newSubj: Subject = {
+      code: newSubjCode.toUpperCase().trim(),
+      name: newSubjName.trim(),
+      category: newSubjCategory,
+      weekly_hours: Number(newSubjHours) || 4,
+    };
+
+    setCourseSubjectsMap((prev) => {
+      const current = prev[activeCourseCode] || { theory: [], practical: [] };
+      const updated = {
+        ...prev,
+        [activeCourseCode]: {
+          theory:
+            newSubjCategory === "theory"
+              ? [...current.theory, newSubj]
+              : current.theory,
+          practical:
+            newSubjCategory === "practical"
+              ? [...current.practical, newSubj]
+              : current.practical,
+        },
+      };
+      saveSubjectsToStorage(updated);
+      return updated;
+    });
+
+    setNewSubjCode("");
+    setNewSubjName("");
+    setShowAddSubj(false);
   };
+
+  const handleRemoveSubject = (category: "theory" | "practical", index: number) => {
+    setCourseSubjectsMap((prev) => {
+      const current = prev[activeCourseCode] || { theory: [], practical: [] };
+      const updated = {
+        ...prev,
+        [activeCourseCode]: {
+          theory:
+            category === "theory"
+              ? current.theory.filter((_, i) => i !== index)
+              : current.theory,
+          practical:
+            category === "practical"
+              ? current.practical.filter((_, i) => i !== index)
+              : current.practical,
+        },
+      };
+      saveSubjectsToStorage(updated);
+      return updated;
+    });
+  };
+
+  const selectedCourses = courses.filter((c) => c.selected);
+  const activeData = courseSubjectsMap[activeCourseCode] || { theory: [], practical: [] };
 
   return (
     <AppShell>
-      <div className="space-y-8 max-w-7xl mx-auto tt-animate-fade pb-16">
-        <PageHeader
-          title="VTU Document Ingestion & Candidate Review"
-          icon={FileText}
-        >
-          <label className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all inline-flex items-center justify-center text-white">
-            <input
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={handleFileUpload}
-              className="hidden"
-              disabled={uploading}
-            />
-            <Upload className={`size-4 ${uploading ? "animate-spin" : ""}`} />
-            {uploading ? "Extracting Candidates..." : "Upload Syllabus / Roster"}
-          </label>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={fetchDocuments}
-            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-            title="Refresh documents"
-          >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
-          </Button>
-        </PageHeader>
-
-        {/* ── Chronon AI / OCR Auxiliary Rule Notice ── */}
-        <div className="p-4 rounded-2xl bg-[#0070F3]/10 border border-[#0070F3]/20 flex items-start gap-3">
-          <Sparkles className="size-5 text-[#0070F3] shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <h4 className="text-xs font-bold text-foreground">
-              Deterministic Ingestion & Human Review Gate
-            </h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Extracted curriculum subjects, branches, and faculty rosters are staged as candidates for human verification. They will only become authoritative scheduling inputs after you review and click <strong>&quot;Confirm & Ingest&quot;</strong>.
-            </p>
+      <div className="min-h-[calc(100vh-140px)] w-full flex flex-col items-center justify-center p-4 sm:p-6 tt-animate-fade">
+        <div className="relative w-full max-w-4xl rounded-2xl border border-border bg-card/85 backdrop-blur-xl shadow-2xl overflow-hidden my-4">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border px-6 py-5 bg-muted/20">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-xs">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                  Automated Timetable Setup Wizard
+                </h2>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Step 3 of 5 — VTU Institutional Flow
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-primary/10 text-primary font-bold">
+                Document Ingestion
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* ── Main Two-Column Layout ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-2">
-          {/* Left Column: Uploaded Documents List (4 Cols) */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-              <h3 className="text-sm font-bold text-foreground">Uploaded Documents ({documents.length})</h3>
+          {/* Wizard Progress Bar */}
+          <div className="w-full bg-muted/40 h-1">
+            <div
+              className="bg-gradient-to-r from-primary to-[#00A3FF] h-full transition-all duration-500 shadow-[0_0_12px_rgba(0,102,255,0.8)]"
+              style={{ width: "60%" }}
+            />
+          </div>
+
+          {/* Body Content */}
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-foreground">
+                  3. VTU Scheme Document Upload & Subject Ingestion
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Upload VTU Scheme PDF/DOCX or photos. Subjects are auto-segregated into Theory & Practical Labs.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddSubj(!showAddSubj)}
+                className="px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/15 text-primary text-xs font-bold flex items-center space-x-1.5 self-start cursor-pointer transition"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Add Subject</span>
+              </button>
             </div>
 
-            {documents.length === 0 ? (
-              <div className="p-8 text-center rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-dashed border-black/[0.08] dark:border-white/10">
-                <FileText className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                <p className="text-xs font-semibold text-muted-foreground">
-                  No documents ingested yet. Upload a VTU scheme PDF or Faculty list above.
+            {/* Course Selection Tabs */}
+            <div className="flex flex-wrap gap-2 pb-1 border-b border-border/40">
+              {selectedCourses.map((c) => (
+                <button
+                  key={c.code}
+                  type="button"
+                  onClick={() => setActiveCourseCode(c.code)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+                    activeCourseCode === c.code
+                      ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
+                      : "bg-muted/40 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span>{c.code}</span>
+                  <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Manual Subject Form */}
+            {showAddSubj && (
+              <form
+                onSubmit={handleAddManualSubject}
+                className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 tt-animate-fade"
+              >
+                <p className="text-xs font-bold text-primary">Add Subject for {activeCourseCode}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Code (e.g. 1BCS304)"
+                    value={newSubjCode}
+                    onChange={(e) => setNewSubjCode(e.target.value)}
+                    className="h-10 px-3 text-xs rounded-lg border bg-background"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Subject Name"
+                    value={newSubjName}
+                    onChange={(e) => setNewSubjName(e.target.value)}
+                    className="h-10 px-3 text-xs rounded-lg border bg-background sm:col-span-2"
+                    required
+                  />
+                  <select
+                    value={newSubjCategory}
+                    onChange={(e) => {
+                      const cat = e.target.value as "theory" | "practical";
+                      setNewSubjCategory(cat);
+                      setNewSubjHours(cat === "practical" ? 3 : 4);
+                    }}
+                    className="h-10 px-3 text-xs rounded-lg border bg-background"
+                  >
+                    <option value="theory">Theory (4 hrs/wk)</option>
+                    <option value="practical">Practical / Lab (3 hrs/wk)</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubj(false)}
+                    className="px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1 text-xs font-bold bg-primary text-primary-foreground rounded-lg"
+                  >
+                    Save Subject
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Drag and Drop File Upload Area */}
+            <div className="border-2 border-dashed border-primary/40 rounded-2xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
+                onChange={handleSchemeFileUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+              <div className="flex flex-col items-center justify-center space-y-2.5">
+                <div className="p-3 rounded-full bg-primary/10 text-primary shadow-xs">
+                  {parsingScheme ? (
+                    <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+                  ) : (
+                    <Upload className="h-6 w-6" />
+                  )}
+                </div>
+                <p className="text-sm font-bold text-foreground">
+                  {parsingScheme
+                    ? `Extracting VTU Subjects for ${activeCourseCode}...`
+                    : `Click or Drag VTU Scheme Document / Photo for ${activeCourseCode} (PDF / Image / DOCX)`}
+                </p>
+                <p className="text-xs text-muted-foreground max-w-md">
+                  OCR Engine intercepts 2025/2021 codes and automatically segregates Theory and Practical subjects.
                 </p>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {documents.map((doc) => {
-                  const isSelected = selectedDoc?.id === doc.id;
-                  const isConfirmed = doc.status === "CONFIRMED";
+            </div>
 
-                  return (
-                    <div
-                      key={doc.id}
-                      onClick={() => selectDocument(doc)}
-                      className={`p-4 rounded-2xl transition-all cursor-pointer border ${
-                        isSelected
-                          ? "bg-[#0070F3]/10 border-[#0070F3]/40 shadow-xs"
-                          : "bg-black/[0.02] dark:bg-white/[0.03] border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-foreground line-clamp-1">
-                            {doc.filename}
-                          </p>
-                          <p className="text-[11px] font-mono text-muted-foreground">
-                            {new Date(doc.uploaded_at).toLocaleDateString()} • {doc.file_type.toUpperCase()}
-                          </p>
-                        </div>
-
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] font-bold border-0 ${
-                            isConfirmed
-                              ? "bg-emerald-500/20 text-emerald-400"
-                              : "bg-amber-500/20 text-amber-400"
-                          }`}
-                        >
-                          {doc.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  );
-                })}
+            {uploadSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center space-x-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>{uploadSuccess}</span>
               </div>
             )}
-          </div>
 
-          {/* Right Column: Candidate Review & Normalization Workspace (8 Cols) */}
-          <div className="lg:col-span-8 space-y-6">
-            {selectedDoc ? (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-                  <div>
-                    <h3 className="text-base font-bold text-foreground">
-                      Candidate Review Workspace
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Document: <span className="font-mono text-foreground font-semibold">{selectedDoc.filename}</span>
-                    </p>
-                  </div>
-
-                  <Button
-                    onClick={handleConfirmCandidates}
-                    disabled={confirming || selectedDoc.status === "CONFIRMED"}
-                    className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold gap-2 cursor-pointer shadow-md disabled:opacity-50"
-                  >
-                    {confirming ? (
-                      <>
-                        <RefreshCw className="size-4 animate-spin" /> Ingesting...
-                      </>
-                    ) : selectedDoc.status === "CONFIRMED" ? (
-                      <>
-                        <CheckCircle2 className="size-4 text-emerald-300" /> Ingested & Authoritative
-                      </>
-                    ) : (
-                      <>
-                        <Check className="size-4" /> Confirm & Ingest Candidates
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {successMsg && (
-                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-2">
-                    <CheckCircle2 className="size-4" /> {successMsg}
+            {/* Segregated Subjects Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Theory Subjects */}
+              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3">
+                <h4 className="text-xs font-bold text-primary tracking-wider uppercase flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>Theory Subjects ({activeData.theory.length})</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{activeCourseCode}</span>
+                </h4>
+                {activeData.theory.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-3 text-center">
+                    No theory subjects parsed yet. Upload scheme or add manually.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                    {activeData.theory.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="font-mono font-bold text-primary">{s.code}</span>
+                          <p className="font-medium text-foreground truncate">{s.name}</p>
+                        </div>
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono font-semibold">
+                            {s.weekly_hours} hrs/wk
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubject("theory", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
-
-                {/* Candidate Subjects Section */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                    <BookOpen className="size-4 text-[#0070F3]" />
-                    <span>Extracted Curriculum Subjects ({candidateSubjects.length})</span>
-                  </div>
-
-                  {candidateSubjects.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic py-2">
-                      No candidate subjects detected in this document.
-                    </p>
-                  ) : (
-                    <div className="rounded-2xl border border-black/[0.06] dark:border-white/[0.06] overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06]">
-                            <TableHead className="text-xs font-bold text-center w-28">Subject Code</TableHead>
-                            <TableHead className="text-xs font-bold">Course Title</TableHead>
-                            <TableHead className="text-xs font-bold text-center w-24">Type</TableHead>
-                            <TableHead className="text-xs font-bold text-center w-24">Hours/Wk</TableHead>
-                            <TableHead className="text-xs font-bold text-center w-28">Cycle Group</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {candidateSubjects.map((sub, idx) => (
-                            <TableRow key={idx} className="border-b border-black/[0.04] dark:border-white/[0.04]">
-                              <TableCell className="text-center font-mono text-xs font-bold text-[#0070F3]">
-                                {sub.code}
-                              </TableCell>
-                              <TableCell className="text-xs font-semibold text-foreground">
-                                {sub.name}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Badge variant="outline" className="text-[10px] font-bold border-0 bg-black/[0.04] dark:bg-white/[0.06]">
-                                  {sub.subject_type || (sub.is_lab ? "Lab" : "Theory")}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-center font-mono text-xs font-bold text-foreground">
-                                {sub.weekly_hours} hrs
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className="text-xs text-muted-foreground font-medium">
-                                  {sub.cycle_group || "Common"}
-                                </span>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </div>
-
-                {/* Candidate Faculty Section */}
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                    <Users className="size-4 text-emerald-400" />
-                    <span>Extracted Faculty Members ({candidateFaculty.length})</span>
-                  </div>
-
-                  {candidateFaculty.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic py-2">
-                      No faculty roster entries detected in this document.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {candidateFaculty.map((fac, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04] flex items-center justify-between"
-                        >
-                          <div className="space-y-0.5">
-                            <span className="font-bold text-xs text-foreground block">
-                              {fac.name}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground block">
-                              {fac.designation || "Assistant Professor"}
-                            </span>
-                          </div>
-                          <Badge className="bg-emerald-500/20 text-emerald-400 text-[10px] border-0">
-                            Candidate
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </div>
-            ) : (
-              <div className="p-12 text-center rounded-3xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.06] dark:border-white/[0.06]">
-                <FileText className="size-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-                <h4 className="text-sm font-bold text-foreground mb-1">
-                  Select a document on the left
+
+              {/* Practical / Lab Subjects */}
+              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3">
+                <h4 className="text-xs font-bold text-[#00A3FF] tracking-wider uppercase flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <Layers className="h-4 w-4" />
+                    <span>Practical & Lab Subjects ({activeData.practical.length})</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{activeCourseCode}</span>
                 </h4>
-                <p className="text-xs text-muted-foreground">
-                  Or upload a new VTU Syllabus / Faculty roster to review candidates.
-                </p>
+                {activeData.practical.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic py-3 text-center">
+                    No lab subjects parsed yet. Upload scheme or add manually.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                    {activeData.practical.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="font-mono font-bold text-[#00A3FF]">{s.code}</span>
+                          <p className="font-medium text-foreground truncate">{s.name}</p>
+                        </div>
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-semibold">
+                            {s.weekly_hours} hrs/wk
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubject("practical", idx)}
+                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
+
+          {/* Footer Controls */}
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
+            <Link href="/departments">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Previous: Departments</span>
+              </button>
+            </Link>
+
+            <Link href="/faculty">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
+              >
+                <span>Next: Faculty</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </Link>
+          </div>
+
         </div>
       </div>
     </AppShell>

@@ -1,569 +1,253 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  Building2,
+  GraduationCap,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+} from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Pencil, Calendar, CalendarRange, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
-import { WizardFooter } from "@/components/ui/wizard-footer";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-interface AcademicYear {
-  id: number;
-  institution_id: number;
-  name: string;
-}
-
-interface Semester {
-  id: number;
-  academic_year_id: number;
-  name: string;
-}
 
 export default function AcademicTermsPage() {
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
-  const [semesters, setSemesters] = useState<Semester[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [institutionId, setInstitutionId] = useState<number>(1);
+  const router = useRouter();
 
-  // Year Modal
-  const [yearOpen, setYearOpen] = useState(false);
-  const [yearName, setYearName] = useState("2026 - 2027");
-  const [submittingYear, setSubmittingYear] = useState(false);
-  const [yearError, setYearError] = useState("");
-
-  // Edit Year Modal
-  const [editYearOpen, setEditYearOpen] = useState(false);
-  const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
-  const [editYearName, setEditYearName] = useState("");
-  const [submittingEditYear, setSubmittingEditYear] = useState(false);
-  const [editYearError, setEditYearError] = useState("");
-
-  // Semester Modal
-  const [semOpen, setSemOpen] = useState(false);
-  const [semName, setSemName] = useState("Semester 1");
-  const [selectedYearId, setSelectedYearId] = useState<number | "">("");
-  const [submittingSem, setSubmittingSem] = useState(false);
-  const [semError, setSemError] = useState("");
-
-  // Edit Semester Modal
-  const [editSemOpen, setEditSemOpen] = useState(false);
-  const [editingSem, setEditingSem] = useState<Semester | null>(null);
-  const [editSemName, setEditSemName] = useState("");
-  const [editSemYearId, setEditSemYearId] = useState<number | "">("");
-  const [submittingEditSem, setSubmittingEditSem] = useState(false);
-  const [editSemError, setEditSemError] = useState("");
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      let instId = 1;
-      const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          if (user.institution_id) instId = user.institution_id;
-        } catch {
-          // ignore
-        }
-      }
-      setInstitutionId(instId);
-
-      const yrPromise = fetch(`${API_BASE}/academic-years/?institution_id=${instId}`).catch(() => null);
-      const semPromise = fetch(`${API_BASE}/semesters/?institution_id=${instId}`).catch(() => null);
-
-      const [yrRes, semRes] = await Promise.all([yrPromise, semPromise]);
-
-      const yrs: AcademicYear[] = (yrRes && yrRes.ok) ? await yrRes.json() : [];
-      const sems: Semester[] = (semRes && semRes.ok) ? await semRes.json() : [];
-
-      setAcademicYears(yrs);
-      setSemesters(sems);
-      if (yrs.length > 0) {
-        setSelectedYearId(yrs[0].id);
-      }
-    } catch (err) {
-      console.error("Failed to fetch academic terms data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [academicYear, setAcademicYear] = useState("2026 - 2027");
+  const [institutionType, setInstitutionType] = useState<"vtu" | "university">("vtu");
+  const [selectedYear, setSelectedYear] = useState("2");
+  const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    try {
+      const saved = localStorage.getItem("vtu_academic_setup");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.academicYear) setAcademicYear(parsed.academicYear);
+        if (parsed.institutionType) setInstitutionType(parsed.institutionType);
+        if (parsed.selectedYear) setSelectedYear(parsed.selectedYear);
+        if (parsed.selectedSemType) setSelectedSemType(parsed.selectedSemType);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
-  const handleAddYear = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!yearName.trim()) return;
-    setSubmittingYear(true);
-    setYearError("");
+  const saveSetup = () => {
+    const config = {
+      academicYear,
+      institutionType,
+      selectedYear,
+      selectedSemType,
+    };
     try {
-      const res = await fetch(`${API_BASE}/academic-years/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ institution_id: institutionId, name: yearName.trim() }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to create academic year");
-      }
-      setYearOpen(false);
-      await fetchData();
-    } catch (err) {
-      setYearError(err instanceof Error ? err.message : "Error creating year");
-    } finally {
-      setSubmittingYear(false);
+      localStorage.setItem("vtu_academic_setup", JSON.stringify(config));
+    } catch (e) {
+      console.error(e);
     }
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 2000);
   };
 
-  const openEditYearModal = (yr: AcademicYear) => {
-    setEditingYear(yr);
-    setEditYearName(yr.name);
-    setEditYearError("");
-    setEditYearOpen(true);
-  };
-
-  const handleUpdateYear = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingYear || !editYearName.trim()) return;
-    setSubmittingEditYear(true);
-    setEditYearError("");
-    try {
-      const res = await fetch(`${API_BASE}/academic-years/${editingYear.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          institution_id: editingYear.institution_id || institutionId,
-          name: editYearName.trim(),
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to update academic year");
-      }
-      setEditYearOpen(false);
-      await fetchData();
-    } catch (err) {
-      setEditYearError(err instanceof Error ? err.message : "Error updating year");
-    } finally {
-      setSubmittingEditYear(false);
-    }
-  };
-
-  const handleAddSemester = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!semName.trim() || !selectedYearId) return;
-    setSubmittingSem(true);
-    setSemError("");
-    try {
-      const res = await fetch(`${API_BASE}/semesters/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          academic_year_id: Number(selectedYearId),
-          name: semName.trim(),
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to create semester");
-      }
-      setSemOpen(false);
-      await fetchData();
-    } catch (err) {
-      setSemError(err instanceof Error ? err.message : "Error creating semester");
-    } finally {
-      setSubmittingSem(false);
-    }
-  };
-
-  const openEditSemesterModal = (sem: Semester) => {
-    setEditingSem(sem);
-    setEditSemName(sem.name);
-    setEditSemYearId(sem.academic_year_id);
-    setEditSemError("");
-    setEditSemOpen(true);
-  };
-
-  const handleUpdateSemester = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSem || !editSemName.trim() || !editSemYearId) return;
-    setSubmittingEditSem(true);
-    setEditSemError("");
-    try {
-      const res = await fetch(`${API_BASE}/semesters/${editingSem.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          academic_year_id: Number(editSemYearId),
-          name: editSemName.trim(),
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to update semester");
-      }
-      setEditSemOpen(false);
-      await fetchData();
-    } catch (err) {
-      setEditSemError(err instanceof Error ? err.message : "Error updating semester");
-    } finally {
-      setSubmittingEditSem(false);
-    }
-  };
-
-  const handleDeleteYear = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this academic year?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/academic-years/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setAcademicYears((prev) => prev.filter((y) => y.id !== id));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleDeleteSemester = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this semester?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/semesters/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setSemesters((prev) => prev.filter((s) => s.id !== id));
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  const handleNext = () => {
+    saveSetup();
+    router.push("/departments");
   };
 
   return (
     <AppShell>
-      <div className="space-y-8 max-w-7xl mx-auto tt-animate-fade">
-        <PageHeader
-          title="Academic Terms & Semesters"
-          icon={CalendarRange}
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={fetchData}
-            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-            title="Refresh academic terms"
-          >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-primary" : ""}`} />
-          </Button>
+      <div className="min-h-[calc(100vh-140px)] w-full flex flex-col items-center justify-center p-4 sm:p-6 tt-animate-fade">
+        <div className="relative w-full max-w-4xl rounded-2xl border border-border bg-card/85 backdrop-blur-xl shadow-2xl overflow-hidden my-4">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border px-6 py-5 bg-muted/20">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-xs">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                  Automated Timetable Setup Wizard
+                </h2>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Step 1 of 5 — VTU Institutional Flow
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="hidden sm:inline-block text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                Academic Terms
+              </span>
+            </div>
+          </div>
 
-          {/* Add Year Dialog */}
-          <Dialog open={yearOpen} onOpenChange={setYearOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="h-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-5 text-sm font-bold text-foreground cursor-pointer gap-2 transition-all hover:scale-105">
-                <Plus className="size-4" /> Add Year
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[400px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-              <DialogHeader>
-                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                  <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Academic Session</span>
-                </div>
-                <DialogTitle className="text-xl font-bold text-foreground">Create Academic Year</DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">e.g. 2026 - 2027 or 2027 - 2028</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleAddYear} className="space-y-4 pt-2">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Year Label *</label>
-                  <Input
+          {/* Wizard Progress Bar */}
+          <div className="w-full bg-muted/40 h-1">
+            <div
+              className="bg-gradient-to-r from-primary to-[#00A3FF] h-full transition-all duration-500 shadow-[0_0_12px_rgba(0,102,255,0.8)]"
+              style={{ width: "20%" }}
+            />
+          </div>
+
+          {/* Body Content */}
+          <div className="p-6 sm:p-8 space-y-7">
+            <div className="space-y-1.5 border-b border-border/50 pb-4">
+              <h3 className="text-base sm:text-lg font-bold text-foreground">
+                1. Choose Academic Year & Institution Type
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Select your institution affiliation and active academic session.
+              </p>
+            </div>
+
+            {/* Row 1: Academic Year & Institution Scheme */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Academic Year
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={academicYear}
+                    onChange={(e) => setAcademicYear(e.target.value)}
                     placeholder="2026 - 2027"
-                    value={yearName}
-                    onChange={(e) => setYearName(e.target.value)}
-                    required
-                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
+                    className="w-full h-12 px-4 text-sm font-medium rounded-xl border border-border bg-background/80 focus:ring-2 focus:ring-primary/40 focus:border-primary transition outline-none"
                   />
+                  <Calendar className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 </div>
-                {yearError && <p className="text-xs text-red-500">{yearError}</p>}
-                <DialogFooter className="pt-2">
-                  <Button type="submit" disabled={submittingYear || !yearName.trim()} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
-                    {submittingYear ? "Saving..." : "Save Year"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </div>
 
-          {/* Add Semester Dialog */}
-          <Dialog open={semOpen} onOpenChange={setSemOpen}>
-            <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
-                <Plus className="size-4" /> Add Semester
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-              <DialogHeader>
-                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                  <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Term Partition</span>
-                </div>
-                <DialogTitle className="text-xl font-bold text-foreground">Add Semester</DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">Select parent academic year and enter semester title.</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleAddSemester} className="space-y-4 pt-2">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Academic Year *</label>
-                  <select
-                    className="w-full h-11 rounded-xl bg-muted/40 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 border-0"
-                    value={selectedYearId}
-                    onChange={(e) => setSelectedYearId(Number(e.target.value))}
-                    required
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Institution Scheme
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setInstitutionType("vtu")}
+                    className={`h-12 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
+                      institutionType === "vtu"
+                        ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+                        : "border-border bg-background/50 hover:bg-muted/40 text-muted-foreground"
+                    }`}
                   >
-                    {academicYears.map((yr) => (
-                      <option key={yr.id} value={yr.id}>
-                        {yr.name}
-                      </option>
-                    ))}
-                  </select>
+                    <Building2 className="h-4 w-4 shrink-0" />
+                    <span className="truncate">VTU Affiliated College</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInstitutionType("university")}
+                    className={`h-12 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
+                      institutionType === "university"
+                        ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+                        : "border-border bg-background/50 hover:bg-muted/40 text-muted-foreground"
+                    }`}
+                  >
+                    <GraduationCap className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Autonomous University</span>
+                  </button>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Semester Name *</label>
-                  <Input
-                    placeholder="e.g. Semester 1, Odd Sem"
-                    value={semName}
-                    onChange={(e) => setSemName(e.target.value)}
-                    required
-                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                  />
-                </div>
-                {semError && <p className="text-xs text-red-500">{semError}</p>}
-                <DialogFooter className="pt-2">
-                  <Button type="submit" disabled={submittingSem || !semName.trim() || !selectedYearId} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
-                    {submittingSem ? "Saving..." : "Save Semester"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </PageHeader>
+              </div>
+            </div>
 
-        {/* Edit Year Dialog */}
-        <Dialog open={editYearOpen} onOpenChange={setEditYearOpen}>
-          <DialogContent className="sm:max-w-[400px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Session</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">Edit Academic Year</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdateYear} className="space-y-4 pt-2">
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Year Label *</label>
-                <Input
-                  value={editYearName}
-                  onChange={(e) => setEditYearName(e.target.value)}
-                  required
-                  className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                />
-              </div>
-              {editYearError && <p className="text-xs text-red-500">{editYearError}</p>}
-              <DialogFooter className="pt-2">
-                <Button type="submit" disabled={submittingEditYear || !editYearName.trim()} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
-                  {submittingEditYear ? "Updating..." : "Update Year"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Semester Dialog */}
-        <Dialog open={editSemOpen} onOpenChange={setEditSemOpen}>
-          <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Term</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">Edit Semester</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleUpdateSemester} className="space-y-4 pt-2">
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Academic Year *</label>
+            {/* Row 2: Select Year & Semester Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Select Year
+                </label>
                 <select
-                  className="w-full h-11 rounded-xl bg-muted/40 px-4 text-sm text-foreground focus:outline-none border-0"
-                  value={editSemYearId}
-                  onChange={(e) => setEditSemYearId(Number(e.target.value))}
-                  required
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full h-12 px-4 text-sm font-medium rounded-xl border border-border bg-background/80 focus:ring-2 focus:ring-primary/40 focus:border-primary transition outline-none cursor-pointer"
                 >
-                  {academicYears.map((yr) => (
-                    <option key={yr.id} value={yr.id}>
-                      {yr.name}
-                    </option>
-                  ))}
+                  <option value="1">1st Year (Physics & Chemistry Cycle)</option>
+                  <option value="2">2nd Year (3rd & 4th Sem)</option>
+                  <option value="3">3rd Year (5th & 6th Sem)</option>
+                  <option value="4">4th Year (7th & 8th Sem)</option>
                 </select>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Semester Name *</label>
-                <Input
-                  value={editSemName}
-                  onChange={(e) => setEditSemName(e.target.value)}
-                  required
-                  className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                />
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Semester Type
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSemType("odd")}
+                    className={`h-12 px-3 text-xs font-bold rounded-xl border transition cursor-pointer flex items-center justify-center ${
+                      selectedSemType === "odd"
+                        ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+                        : "border-border bg-background/50 hover:bg-muted/40 text-muted-foreground"
+                    }`}
+                  >
+                    {selectedYear === "1"
+                      ? "1st Sem"
+                      : selectedYear === "2"
+                      ? "3rd Sem"
+                      : selectedYear === "3"
+                      ? "5th Sem"
+                      : "7th Sem"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSemType("even")}
+                    className={`h-12 px-3 text-xs font-bold rounded-xl border transition cursor-pointer flex items-center justify-center ${
+                      selectedSemType === "even"
+                        ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+                        : "border-border bg-background/50 hover:bg-muted/40 text-muted-foreground"
+                    }`}
+                  >
+                    {selectedYear === "1"
+                      ? "2nd Sem"
+                      : selectedYear === "2"
+                      ? "4th Sem"
+                      : selectedYear === "3"
+                      ? "6th Sem"
+                      : "8th Sem"}
+                  </button>
+                </div>
               </div>
-              {editSemError && <p className="text-xs text-red-500">{editSemError}</p>}
-              <DialogFooter className="pt-2">
-                <Button type="submit" disabled={submittingEditSem || !editSemName.trim() || !editSemYearId} className="tt-gradient-btn h-11 rounded-2xl px-6 font-bold">
-                  {submittingEditSem ? "Updating..." : "Update Semester"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* ── Unboxed, Spread Dual Grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 pt-2">
-          {/* Academic Years Division */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-              <h3 className="text-lg font-bold text-foreground">Academic Years</h3>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {academicYears.length} Years
-              </span>
             </div>
 
-            <div>
-              {loading ? (
-                <LoadingState text="Loading academic years..." />
-              ) : academicYears.length === 0 ? (
-                <EmptyState icon={CalendarRange} title="No academic years found" />
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
-                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                      <TableHead className="text-center text-xs font-bold text-muted-foreground">Year Range</TableHead>
-                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {academicYears.map((yr, index) => (
-                      <TableRow key={yr.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
-                          #{index + 1}
-                        </TableCell>
-                        <TableCell className="text-center font-bold text-foreground py-4">{yr.name}</TableCell>
-                        <TableCell className="text-center py-4">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                              onClick={() => openEditYearModal(yr)}
-                              title="Edit year"
-                            >
-                              <Pencil className="size-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDeleteYear(yr.id)}
-                              title="Delete year"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
+            {savedSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center space-x-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Academic term preferences saved successfully!</span>
+              </div>
+            )}
           </div>
 
-          {/* Semesters Division */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-              <h3 className="text-lg font-bold text-foreground">Semesters</h3>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {semesters.length} Semesters
-              </span>
-            </div>
+          {/* Footer Controls */}
+          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
+            <Link href="/dashboard">
+              <button
+                type="button"
+                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Dashboard</span>
+              </button>
+            </Link>
 
-            <div>
-              {loading ? (
-                <LoadingState text="Loading semesters..." />
-              ) : semesters.length === 0 ? (
-                <EmptyState icon={CalendarRange} title="No semesters found" />
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
-                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                      <TableHead className="text-center text-xs font-bold text-muted-foreground">Semester Term</TableHead>
-                      <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {semesters.map((sem, index) => (
-                      <TableRow key={sem.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
-                          #{index + 1}
-                        </TableCell>
-                        <TableCell className="text-center font-bold text-foreground py-4">{sem.name}</TableCell>
-                        <TableCell className="text-center py-4">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                              onClick={() => openEditSemesterModal(sem)}
-                              title="Edit semester"
-                            >
-                              <Pencil className="size-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDeleteSemester(sem.id)}
-                              title="Delete semester"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={handleNext}
+              className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
+            >
+              <span>Next: Departments</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
+
         </div>
-        <WizardFooter nextHref="/departments" />
       </div>
     </AppShell>
   );

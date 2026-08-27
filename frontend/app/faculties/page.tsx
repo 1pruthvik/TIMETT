@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Users,
-  Sparkles,
   Upload,
   RefreshCw,
   Trash2,
@@ -13,7 +12,6 @@ import {
   Plus,
   UserCheck,
   Search,
-  Building2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -128,16 +126,11 @@ export default function FacultiesPage() {
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              Available Department Faculties
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              Provide professors and lecturers available across departments. You can enter names manually or upload departmental faculty lists / documents for automated extraction.
-            </p>
-          </div>
+        {/* Page Hero Header (No suggestions/descriptions) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            Available Department Faculties
+          </h1>
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-sm font-bold">
@@ -156,7 +149,7 @@ export default function FacultiesPage() {
         {/* Main 2-Column Expansive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left Column: Upload & Add Form (5 Cols) */}
+          {/* Left Column: Upload & Add Form */}
           <div className="lg:col-span-5 space-y-6">
             
             {/* File Upload Parser Dropzone */}
@@ -175,16 +168,11 @@ export default function FacultiesPage() {
                     <Upload className="h-6 w-6" />
                   )}
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">
-                    {parsingFaculty
-                      ? "Interpreting Faculty Document..."
-                      : "Upload Faculty Roster (PDF / DOCX / Image)"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-                    Parser extracts faculty names and departments automatically
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-foreground">
+                  {parsingFaculty
+                    ? "Extracting Faculty..."
+                    : "Upload Faculty Roster (PDF / DOCX / Image)"}
+                </p>
               </div>
             </div>
 
@@ -199,7 +187,7 @@ export default function FacultiesPage() {
               <div className="space-y-3">
                 <div>
                   <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                    Faculty Full Name
+                    Faculty Name
                   </label>
                   <input
                     type="text"
@@ -228,17 +216,17 @@ export default function FacultiesPage() {
                 className="w-full h-11 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 transition cursor-pointer flex items-center justify-center space-x-2 shadow-md"
               >
                 <Plus className="h-4 w-4" />
-                <span>Add Faculty Member</span>
+                <span>Add Faculty</span>
               </button>
             </form>
           </div>
 
-          {/* Right Column: Ingested Faculty Roster (7 Cols) */}
+          {/* Right Column: Ingested Faculty Roster */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-border/50 pb-3">
               <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
                 <Users className="h-4 w-4" />
-                <span>Ingested Faculty Roster ({facultyList.length})</span>
+                <span>Faculty Roster ({facultyList.length})</span>
               </h3>
 
               {/* Search Filter */}
@@ -256,7 +244,7 @@ export default function FacultiesPage() {
 
             {filteredFaculty.length === 0 ? (
               <div className="p-12 text-center text-xs text-muted-foreground italic rounded-2xl border border-dashed border-border bg-muted/10">
-                No faculty members found. Upload a roster file or add manually on the left.
+                No faculty members added yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">

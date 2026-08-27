@@ -5,12 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Building2,
-  Sparkles,
   RefreshCw,
   Plus,
   Search,
-  Users,
-  CheckCircle2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -126,16 +123,11 @@ export default function CoursesPage() {
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-              VTU B.E. Degree Courses & Student Intake
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              Choose the degree branches offered by your institution, enter the admitted student intake count for each program, and choose your active target course.
-            </p>
-          </div>
+        {/* Page Hero Header (No suggestions/subtitles) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            VTU B.E. Degree Courses & Student Intake
+          </h1>
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-sm font-bold">
@@ -147,7 +139,7 @@ export default function CoursesPage() {
               className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
             >
               <Plus className="h-4 w-4" />
-              <span>Add Custom Branch</span>
+              <span>Add Branch</span>
             </button>
           </div>
         </div>
@@ -159,7 +151,7 @@ export default function CoursesPage() {
             className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-primary">Add Custom Department / Branch</h3>
+              <h3 className="text-sm font-bold text-primary">Add Department / Branch</h3>
               <button
                 type="button"
                 onClick={() => setShowAddCustom(false)}
@@ -179,7 +171,7 @@ export default function CoursesPage() {
               />
               <input
                 type="text"
-                placeholder="Branch Name (e.g. Artificial Intelligence & Robotics)"
+                placeholder="Branch Name (e.g. Artificial Intelligence & Machine Learning)"
                 value={newCourseName}
                 onChange={(e) => setNewCourseName(e.target.value)}
                 className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
@@ -189,7 +181,7 @@ export default function CoursesPage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl"
+                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
               >
                 Save Branch
               </button>
@@ -197,29 +189,23 @@ export default function CoursesPage() {
           </form>
         )}
 
-        {/* Search and Filters Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:max-w-md">
-            <input
-              type="text"
-              placeholder="Search branches by code or name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 text-xs rounded-xl border border-border bg-background/80 focus:ring-2 focus:ring-primary/30 outline-none"
-            />
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          </div>
-
-          <div className="text-xs text-muted-foreground font-medium self-start sm:self-center">
-            Showing {filteredCourses.length} programs ({selectedCourses.length} active in college portfolio)
-          </div>
+        {/* Search Bar */}
+        <div className="relative w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search branches..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-11 pl-10 pr-4 text-xs rounded-xl border border-border bg-background/80 focus:ring-2 focus:ring-primary/30 outline-none"
+          />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         </div>
 
-        {/* Courses Cards Grid (Spread across the entire page) */}
+        {/* Courses Cards Grid */}
         {loading ? (
           <div className="flex items-center justify-center p-16 space-x-3 text-sm text-muted-foreground">
             <RefreshCw className="h-5 w-5 animate-spin text-primary" />
-            <span>Loading pre-fetched VTU courses from registry...</span>
+            <span>Loading pre-fetched VTU courses...</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

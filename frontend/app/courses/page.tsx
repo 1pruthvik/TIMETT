@@ -215,14 +215,15 @@ export default function CoursesPage() {
                 <div
                   key={c.code}
                   onClick={() => {
-                    if (c.selected) setActiveCourseCode(c.code);
+                    handleToggleCourse(c.code);
+                    if (!c.selected) {
+                      setActiveCourseCode(c.code);
+                    }
                   }}
-                  className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 cursor-pointer ${
-                    isActiveTarget && c.selected
-                      ? "border-primary bg-primary/5 ring-2 ring-primary/30 shadow-[0_0_24px_rgba(0,102,255,0.15)]"
-                      : c.selected
-                      ? "border-border bg-card/60 hover:border-primary/40 hover:bg-card/90"
-                      : "opacity-40 bg-muted/20 border-dashed cursor-default"
+                  className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 cursor-pointer select-none ${
+                    c.selected
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-[0_0_24px_rgba(0,102,255,0.18)]"
+                      : "border-border/60 bg-card/40 hover:border-primary/40 hover:bg-card/70 opacity-60 hover:opacity-100"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -234,7 +235,7 @@ export default function CoursesPage() {
                           e.stopPropagation();
                           handleToggleCourse(c.code);
                         }}
-                        className="h-5 w-5 rounded border-primary text-primary focus:ring-primary/40 cursor-pointer"
+                        className="h-5 w-5 rounded border-primary text-primary focus:ring-primary/40 cursor-pointer pointer-events-none"
                       />
                       <div>
                         <span className="text-xs font-mono font-bold text-primary">{c.code}</span>
@@ -242,9 +243,9 @@ export default function CoursesPage() {
                       </div>
                     </div>
 
-                    {isActiveTarget && c.selected && (
+                    {c.selected && (
                       <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-primary text-primary-foreground">
-                        Target
+                        Active
                       </span>
                     )}
                   </div>

@@ -16,6 +16,9 @@ import {
   Layers,
   BookOpen,
   X,
+  CheckSquare2,
+  Square,
+  MinusSquare,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -58,6 +61,9 @@ export default function FacultiesPage() {
   const [selectedDeptFilter, setSelectedDeptFilter] = useState("ALL");
   const [parsingFaculty, setParsingFaculty] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+
+  // Multi-selection state
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
   // Department creation modal / inline state
   const [showAddDept, setShowAddDept] = useState(false);
@@ -187,9 +193,37 @@ export default function FacultiesPage() {
     setSelectedProficientSubjects([]);
   };
 
-  const handleRemoveFaculty = (idx: number) => {
-    const updated = facultyList.filter((_, i) => i !== idx);
+  const handleRemoveFaculty = (filteredIdx: number) => {
+    const target = filteredFaculty[filteredIdx];
+    const updated = facultyList.filter((f) => f !== target);
     saveFacultyToStorage(updated);
+    setSelectedIndices((prev) =>
+      prev.filter((i) => i !== filteredIdx).map((i) => (i > filteredIdx ? i - 1 : i))
+    );
+  };
+
+  const handleToggleSelect = (filteredIdx: number) => {
+    setSelectedIndices((prev) =>
+      prev.includes(filteredIdx)
+        ? prev.filter((i) => i !== filteredIdx)
+        : [...prev, filteredIdx]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedIndices.length === filteredFaculty.length) {
+      setSelectedIndices([]);
+    } else {
+      setSelectedIndices(filteredFaculty.map((_, i) => i));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIndices.length === 0) return;
+    const targets = new Set(selectedIndices.map((i) => filteredFaculty[i]));
+    const updated = facultyList.filter((f) => !targets.has(f));
+    saveFacultyToStorage(updated);
+    setSelectedIndices([]);
   };
 
   const handleFacultyFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -511,61 +545,141 @@ export default function FacultiesPage() {
               </select>
             </div>
 
+            {/* Multi-Select Action Bar */}
+            {filteredFaculty.length > 0 && (
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-card/60 border border-border text-xs">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectAll}
+                    className="flex items-center gap-1.5 font-semibold text-foreground hover:text-primary transition cursor-pointer"
+                  >
+                    {filteredFaculty.length > 0 && selectedIndices.length === filteredFaculty.length ? (
+                      <CheckSquare2 className="h-4 w-4 text-primary" />
+                    ) : selectedIndices.length > 0 ? (
+                      <MinusSquare className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Square className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span>
+                      {selectedIndices.length === filteredFaculty.length
+                        ? "Deselect All"
+                        : `Select All (${filteredFaculty.length})`}
+                    </span>
+                  </button>
+                  {selectedIndices.length > 0 && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      {selectedIndices.length} Selected
+                    </span>
+                  )}
+                </div>
+
+                {selectedIndices.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedIndices([])}
+                      className="px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteSelected}
+                      className="h-8 px-3 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Delete Selected ({selectedIndices.length})</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {filteredFaculty.length === 0 ? (
               <div className="p-12 text-center text-xs text-muted-foreground italic rounded-2xl border border-dashed border-border bg-muted/10">
                 No faculty members found matching filter.
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 max-h-[65vh] overflow-y-auto pr-1">
-                {filteredFaculty.map((f, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-xl border border-border/60 bg-card/60 space-y-2 group hover:border-primary/40 transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 pr-2">
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-foreground text-sm truncate flex items-center space-x-1.5">
-                            <UserCheck className="h-4 w-4 text-primary shrink-0" />
-                            <span>{f.name}</span>
-                          </p>
-                          {f.designation && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-semibold border border-border/50">
-                              {f.designation}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">{f.department}</p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFaculty(idx)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    {/* Proficient Subjects Display */}
-                    {f.proficientSubjects && f.proficientSubjects.length > 0 && (
-                      <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
-                          <BookOpen className="h-3 w-3 text-primary" />
-                          <span>Proficient:</span>
-                        </span>
-                        {f.proficientSubjects.map((code) => (
-                          <span
-                            key={code}
-                            className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono font-bold"
+                {filteredFaculty.map((f, idx) => {
+                  const isSelected = selectedIndices.includes(idx);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => handleToggleSelect(idx)}
+                      className={`p-4 rounded-xl border transition cursor-pointer space-y-2 group ${
+                        isSelected
+                          ? "border-primary bg-primary/[0.06] shadow-sm ring-1 ring-primary/30"
+                          : "border-border/60 bg-card/60 hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0 pr-2">
+                          {/* Selection Checkbox */}
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSelect(idx);
+                            }}
+                            className="shrink-0"
                           >
-                            {code}
-                          </span>
-                        ))}
+                            {isSelected ? (
+                              <CheckSquare2 className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Square className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-foreground text-sm truncate flex items-center space-x-1.5">
+                                <UserCheck className="h-4 w-4 text-primary shrink-0" />
+                                <span>{f.name}</span>
+                              </p>
+                              {f.designation && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-semibold border border-border/50">
+                                  {f.designation}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{f.department}</p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFaculty(idx);
+                          }}
+                          className="p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer shrink-0"
+                          title="Delete Faculty"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* Proficient Subjects Display */}
+                      {f.proficientSubjects && f.proficientSubjects.length > 0 && (
+                        <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-1.5 pl-7">
+                          <span className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
+                            <BookOpen className="h-3 w-3 text-primary" />
+                            <span>Proficient:</span>
+                          </span>
+                          {f.proficientSubjects.map((code) => (
+                            <span
+                              key={code}
+                              className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono font-bold"
+                            >
+                              {code}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

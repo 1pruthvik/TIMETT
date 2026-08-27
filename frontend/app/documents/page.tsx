@@ -74,8 +74,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v7");
       localStorage.removeItem("vtu_course_subjects_map_v8");
       localStorage.removeItem("vtu_course_subjects_map_v9");
+      localStorage.removeItem("vtu_course_subjects_map_v10");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v10");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v11");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -395,7 +396,21 @@ export default function DocumentsPage() {
                 { code: "1BCVL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BCV401", name: "Surveying and Geospatial Techniques", category: "theory", weekly_hours: 3 },
+                { code: "1BCV402", name: "Water Supply and Sanitary Engineering", category: "theory", weekly_hours: 3 },
+                { code: "1BCV403", name: "Analysis of Structures", category: "theory", weekly_hours: 5 },
+                { code: "1BCV404", name: "Building Information Modelling (BIM)", category: "theory", weekly_hours: 3 },
+                { code: "1BCV407", name: "Biology for Civil Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1BCV409", name: "Concrete Technology", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BCV402", name: "Water Supply and Sanitary Engineering Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL405", name: "Surveying and Geospatial Engineering Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL406", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           Civil: {
             "3": {
@@ -413,7 +428,21 @@ export default function DocumentsPage() {
                 { code: "1BCVL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BCV401", name: "Surveying and Geospatial Techniques", category: "theory", weekly_hours: 3 },
+                { code: "1BCV402", name: "Water Supply and Sanitary Engineering", category: "theory", weekly_hours: 3 },
+                { code: "1BCV403", name: "Analysis of Structures", category: "theory", weekly_hours: 5 },
+                { code: "1BCV404", name: "Building Information Modelling (BIM)", category: "theory", weekly_hours: 3 },
+                { code: "1BCV407", name: "Biology for Civil Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1BCV409", name: "Concrete Technology", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BCV402", name: "Water Supply and Sanitary Engineering Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL405", name: "Surveying and Geospatial Engineering Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BCVL406", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           CH: {
             "3": {
@@ -489,7 +518,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v10", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v11", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -498,7 +527,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v10", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v11", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

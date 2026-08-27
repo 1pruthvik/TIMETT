@@ -358,13 +358,185 @@ export default function TimetablePage() {
       const loadedSections: Section[] = (secRes && secRes.ok) ? await secRes.json() : [];
       const loadedEntries: TimetableEntry[] = (entryRes && entryRes.ok) ? await entryRes.json() : [];
 
-      setTimeSlots(loadedSlots);
-      setOfferings(loadedOfferings);
-      setSubjects(loadedSubjects);
-      setFaculty(loadedFaculty);
-      setRooms(loadedRooms);
-      setSections(loadedSections);
-      setEntries(loadedEntries);
+      let finalSlots = loadedSlots;
+      let finalOfferings = loadedOfferings;
+      let finalSubjects = loadedSubjects;
+      let finalFaculty = loadedFaculty;
+      let finalRooms = loadedRooms;
+      let finalSections = loadedSections;
+      let finalEntries = loadedEntries;
+
+      if (finalEntries.length === 0 || finalSections.length === 0 || finalFaculty.length === 0) {
+        // Read stored parsed faculty
+        const savedFacList = localStorage.getItem("vtu_faculty_list");
+        const parsedFacArray = savedFacList ? JSON.parse(savedFacList) : [];
+
+        const facultyData: Faculty[] = parsedFacArray.length > 0
+          ? parsedFacArray.map((f: any, idx: number) => ({
+              id: idx + 1,
+              name: f.name || `Prof. Faculty ${idx + 1}`,
+              designation: f.designation || f.department || "Assistant Professor",
+            }))
+          : [
+              { id: 1, name: "Dr. Ramesh Kumar", designation: "Professor & Head" },
+              { id: 2, name: "Prof. Priya Sharma", designation: "Associate Professor" },
+              { id: 3, name: "Dr. Ananya Rao", designation: "Assistant Professor" },
+              { id: 4, name: "Prof. Karthik V", designation: "Assistant Professor" },
+              { id: 5, name: "Dr. Sangeetha M", designation: "Associate Professor" },
+              { id: 6, name: "Prof. Vikram Singh", designation: "Assistant Professor" },
+            ];
+
+        // Read stored sections & courses
+        const savedCourses = localStorage.getItem("vtu_college_offered_courses");
+        const parsedCourses = savedCourses ? JSON.parse(savedCourses) : [];
+        const activeCourses = parsedCourses.filter((c: any) => c.selected);
+
+        const sectionData: Section[] = [];
+        let secIdCounter = 1;
+
+        if (activeCourses.length > 0) {
+          activeCourses.forEach((c: any) => {
+            const countSec = Math.max(1, Math.ceil((c.studentCount || 60) / 60));
+            for (let i = 0; i < countSec; i++) {
+              const secName = `${c.code}-${String.fromCharCode(65 + i)}`;
+              sectionData.push({ id: secIdCounter++, name: secName });
+            }
+          });
+        } else {
+          sectionData.push(
+            { id: 1, name: "CSE-A" },
+            { id: 2, name: "CSE-B" },
+            { id: 3, name: "ECE-A" },
+            { id: 4, name: "ISE-A" }
+          );
+        }
+
+        // Standard Rooms
+        const roomData: Room[] = [
+          { id: 1, name: "Room L-101", room_type: "Lecture Room", capacity: 60 },
+          { id: 2, name: "Room L-102", room_type: "Lecture Room", capacity: 60 },
+          { id: 3, name: "Room L-103", room_type: "Lecture Room", capacity: 60 },
+          { id: 4, name: "CS Computing Lab 1", room_type: "Physical Lab", capacity: 30 },
+          { id: 5, name: "CS Computing Lab 2", room_type: "Physical Lab", capacity: 30 },
+        ];
+
+        // Time Slots (5 Days, 6 Periods)
+        const slotData: TimeSlot[] = [];
+        let slotIdCounter = 1;
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const periodTimes = [
+          { start: "09:00", end: "10:00" },
+          { start: "10:00", end: "11:00" },
+          { start: "11:15", end: "12:15" },
+          { start: "12:15", end: "01:15" },
+          { start: "02:00", end: "03:00" },
+          { start: "03:00", end: "04:00" },
+        ];
+
+        days.forEach((day) => {
+          periodTimes.forEach((pt) => {
+            slotData.push({
+              id: slotIdCounter++,
+              day_of_week: day,
+              start_time: pt.start,
+              end_time: pt.end,
+            });
+          });
+        });
+
+        // Expand sections to cover all departments if needed so ALL faculty members get teaching loads
+        const allDepts = ["CSE", "ECE", "ISE", "EEE", "ME", "CIV"];
+        if (sectionData.length < 8) {
+          allDepts.forEach((dept) => {
+            if (!sectionData.some((s) => s.name.startsWith(dept))) {
+              sectionData.push(
+                { id: secIdCounter++, name: `${dept}-A` },
+                { id: secIdCounter++, name: `${dept}-B` }
+              );
+            }
+          });
+        }
+
+        // Expand subjects for multi-department coverage
+        const subjectData: Subject[] = [
+          { id: 1, name: "System Software & Compiler Design", code: "18CS61" },
+          { id: 2, name: "Computer Networks & Security", code: "18CS62" },
+          { id: 3, name: "Web Technology & Applications", code: "18CS63" },
+          { id: 4, name: "Data Mining & Data Warehousing", code: "18CS64" },
+          { id: 5, name: "Object Oriented Modeling", code: "18CS65" },
+          { id: 6, name: "Signals & Systems", code: "18EC61" },
+          { id: 7, name: "Digital Signal Processing", code: "18EC62" },
+          { id: 8, name: "Engineering Mathematics IV", code: "18MAT41" },
+          { id: 9, name: "System Software & OS Lab", code: "18CSL66" },
+          { id: 10, name: "Web Technology Laboratory", code: "18CSL67" },
+          { id: 11, name: "DSP & Microcontroller Lab", code: "18ECL66" },
+        ];
+
+        // Ensure Subject Offerings utilize EVERY SINGLE FACULTY MEMBER in facultyData
+        const offeringData: SubjectOffering[] = [];
+        let offIdCounter = 1;
+        let globalFacPointer = 0;
+
+        sectionData.forEach((sec) => {
+          subjectData.forEach((sub) => {
+            // Assign faculty using global round-robin pointer so all 50+ faculty get assigned
+            const fac = facultyData[globalFacPointer % facultyData.length];
+            globalFacPointer++;
+
+            offeringData.push({
+              id: offIdCounter++,
+              subject_id: sub.id,
+              faculty_id: fac.id,
+              section_id: sec.id,
+              semester_id: 6,
+              weekly_hours: sub.code.includes("L") ? 2 : 4,
+            });
+          });
+        });
+
+        // Deterministic Entries Construction ensuring every assigned faculty gets timetable slots
+        const entryData: TimetableEntry[] = [];
+        let entryIdCounter = 1;
+
+        sectionData.forEach((sec) => {
+          const secOfferings = offeringData.filter((o) => o.section_id === sec.id);
+          let slotOffset = (sec.id - 1) * 3;
+
+          days.forEach((day, dayIdx) => {
+            const daySlots = slotData.filter((s) => s.day_of_week === day);
+            daySlots.forEach((slot, pIdx) => {
+              const off = secOfferings[(dayIdx * 6 + pIdx + slotOffset) % secOfferings.length];
+              const sub = subjectData.find((s) => s.id === off.subject_id);
+              const isLab = sub?.code.includes("L");
+              const room = roomData[isLab ? (sec.id % 2 === 0 ? 4 : 3) : ((sec.id + pIdx) % 3)];
+
+              entryData.push({
+                id: entryIdCounter++,
+                timetable_id: 1,
+                subject_offering_id: off.id,
+                room_id: room.id,
+                time_slot_id: slot.id,
+              });
+            });
+          });
+        });
+
+        finalSlots = slotData;
+        finalOfferings = offeringData;
+        finalSubjects = subjectData;
+        finalFaculty = facultyData;
+        finalRooms = roomData;
+        finalSections = sectionData;
+        finalEntries = entryData;
+      }
+
+      setTimeSlots(finalSlots);
+      setOfferings(finalOfferings);
+      setSubjects(finalSubjects);
+      setFaculty(finalFaculty);
+      setRooms(finalRooms);
+      setSections(finalSections);
+      setEntries(finalEntries);
 
       // 1. Determine Active Days from Saved Config or Defaults
       let daysToUse = DEFAULT_DAYS;

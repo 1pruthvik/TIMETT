@@ -18,6 +18,8 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
 
+import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
+
 interface VTUCourse {
   code: string;
   name: string;
@@ -383,21 +385,52 @@ export default function DocumentsPage() {
   const isFirstYear = selectedYear === "1" || semNumber === 1 || semNumber === 2;
   const isSecondSem = semNumber === 2;
 
+  const selectedCourses = courses.filter((c) => c.selected);
+  const activeCourseObj = courses.find((c) => c.code === activeCourseCode);
+
   // Load higher semesters stored subjects whenever semNumber changes
   useEffect(() => {
     if (!isFirstYear) {
       try {
         const saved = localStorage.getItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`);
+        const defaultTemplates = VTU_HIGHER_SEMESTER_TEMPLATES[semNumber] || {};
+
         if (saved) {
-          setHigherSemSubjects(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          const merged: Record<string, { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }> = { ...parsed };
+          
+          selectedCourses.forEach((c) => {
+            if (!merged[c.code] && defaultTemplates[c.code]) {
+              merged[c.code] = {
+                theory: defaultTemplates[c.code].theory || [],
+                tutorial: defaultTemplates[c.code].tutorial || [],
+                practical: defaultTemplates[c.code].practical || [],
+              };
+            }
+          });
+          setHigherSemSubjects(merged);
         } else {
-          setHigherSemSubjects({});
+          const initial: Record<string, { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }> = {};
+          selectedCourses.forEach((c) => {
+            if (defaultTemplates[c.code]) {
+              initial[c.code] = {
+                theory: defaultTemplates[c.code].theory || [],
+                tutorial: defaultTemplates[c.code].tutorial || [],
+                practical: defaultTemplates[c.code].practical || [],
+              };
+            } else {
+              initial[c.code] = { theory: [], tutorial: [], practical: [] };
+            }
+          });
+          setHigherSemSubjects(initial);
+          localStorage.setItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`, JSON.stringify(initial));
+          localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initial));
         }
       } catch (e) {
         console.error(e);
       }
     }
-  }, [semNumber, isFirstYear]);
+  }, [semNumber, isFirstYear, selectedCourses.length]);
 
   const saveSelections = (updated: Record<string, { escCode?: string; pscCode?: string; plcCode?: string }>) => {
     try {
@@ -418,9 +451,6 @@ export default function DocumentsPage() {
       console.error(e);
     }
   };
-
-  const selectedCourses = courses.filter((c) => c.selected);
-  const activeCourseObj = courses.find((c) => c.code === activeCourseCode);
   
   const isPhysGroup = !isSecondSem
     ? (activeCourseObj?.cycle || "physics") === "physics"

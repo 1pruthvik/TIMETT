@@ -62,7 +62,13 @@ export default function SectionsPage() {
         setTotalStudents(total || 180);
       }
 
-      const savedSubjs = localStorage.getItem("vtu_course_subjects_map");
+      const savedSubjs =
+        localStorage.getItem("vtu_course_subjects_map_v14") ||
+        localStorage.getItem("vtu_course_subjects_map_v13") ||
+        localStorage.getItem("vtu_course_subjects_map_v12") ||
+        localStorage.getItem("vtu_course_subjects_map_v11") ||
+        localStorage.getItem("vtu_course_subjects_map_v10") ||
+        localStorage.getItem("vtu_course_subjects_map");
       if (savedSubjs) {
         const parsedSubjs = JSON.parse(savedSubjs);
         let count = 0;

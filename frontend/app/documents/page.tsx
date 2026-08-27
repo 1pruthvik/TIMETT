@@ -21,7 +21,96 @@ interface Subject {
   name: string;
   category: "theory" | "practical";
   weekly_hours: number;
+  teaching_dept?: string;
 }
+
+const getTeachingDeptForSubject = (code: string, name: string, courseCode: string): string => {
+  const codeUpper = code.toUpperCase();
+  const nameUpper = name.toUpperCase();
+
+  // 1. Math courses
+  if (
+    codeUpper.includes("BMAT") ||
+    codeUpper.includes("1MAT") ||
+    nameUpper.includes("PROBABILITY") ||
+    nameUpper.includes("STATISTICS") ||
+    nameUpper.includes("DIFFERENTIAL") ||
+    nameUpper.includes("FOURIER") ||
+    nameUpper.includes("COMPLEX ANALYSIS")
+  ) {
+    return "Mathematics Department";
+  }
+
+  // 2. Biology courses
+  if (nameUpper.includes("BIOLOGY") || nameUpper.includes("BIOMEDICAL") || codeUpper.startsWith("1BRM")) {
+    if (courseCode === "CSE" || courseCode === "CSE-AIML" || courseCode === "CSE-DS" || courseCode === "ISE" || courseCode.includes("AI")) {
+      return "Biology for Computer Engineers";
+    }
+    if (courseCode === "ECE" || courseCode === "EEE") {
+      return "Biology for Electrical/Electronics Engineers";
+    }
+    if (courseCode === "CIV" || courseCode === "Civil") {
+      return "Biology for Civil Engineers";
+    }
+    if (courseCode === "CH" || courseCode === "Chemical") {
+      return "Program Specific Biology";
+    }
+    return "Biology Department";
+  }
+
+  // 3. Other stream specific defaults
+  if (
+    codeUpper.startsWith("1BCS") ||
+    codeUpper.startsWith("1BAI") ||
+    codeUpper.startsWith("1BAIL") ||
+    codeUpper.startsWith("1BXX")
+  ) {
+    return "Computer Science & Engineering";
+  }
+  if (codeUpper.startsWith("1BEC") || codeUpper.startsWith("1BECL")) {
+    return "Electronics & Communication Engineering";
+  }
+  if (codeUpper.startsWith("1BEE") || codeUpper.startsWith("1BEEL")) {
+    return "Electrical & Electronics Engineering";
+  }
+  if (codeUpper.startsWith("1BME") || codeUpper.startsWith("1BMEL")) {
+    return "Mechanical Engineering";
+  }
+  if (codeUpper.startsWith("1BCV") || codeUpper.startsWith("1BCVL")) {
+    return "Civil Engineering";
+  }
+  if (codeUpper.startsWith("1BCH") || codeUpper.startsWith("1BCHL")) {
+    return "Chemical Engineering";
+  }
+  if (codeUpper.startsWith("1BBM") || codeUpper.startsWith("1BBML")) {
+    return "Biomedical Engineering";
+  }
+
+  // 4. Default based on course code
+  if (courseCode === "CSE" || courseCode === "CSE-AIML" || courseCode === "CSE-DS" || courseCode === "ISE" || courseCode.includes("AI")) {
+    return "Computer Science & Engineering";
+  }
+  if (courseCode === "ECE") {
+    return "Electronics & Communication Engineering";
+  }
+  if (courseCode === "EEE") {
+    return "Electrical & Electronics Engineering";
+  }
+  if (courseCode === "ME") {
+    return "Mechanical Engineering";
+  }
+  if (courseCode === "CIV" || courseCode === "Civil") {
+    return "Civil Engineering";
+  }
+  if (courseCode === "CH" || courseCode === "Chemical") {
+    return "Chemical Engineering";
+  }
+  if (courseCode === "BME" || courseCode === "Biomedical") {
+    return "Biomedical Engineering";
+  }
+
+  return "Respective Engg Dept";
+};
 
 interface VTUCourse {
   code: string;
@@ -48,6 +137,7 @@ export default function DocumentsPage() {
   const [newSubjName, setNewSubjName] = useState("");
   const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "practical">("theory");
   const [newSubjHours, setNewSubjHours] = useState(4);
+  const [newSubjDept, setNewSubjDept] = useState("");
 
   useEffect(() => {
     try {
@@ -75,11 +165,33 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v8");
       localStorage.removeItem("vtu_course_subjects_map_v9");
       localStorage.removeItem("vtu_course_subjects_map_v10");
+      localStorage.removeItem("vtu_course_subjects_map_v11");
       localStorage.removeItem("vtu_course_subjects_map_v12");
+      localStorage.removeItem("vtu_course_subjects_map_v13");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v13");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v14");
       if (savedSubjects) {
-        setCourseSubjectsMap(JSON.parse(savedSubjects));
+        const parsed = JSON.parse(savedSubjects);
+        // Ensure all loaded subjects have teaching_dept if not already present
+        const enriched = { ...parsed };
+        Object.keys(enriched).forEach((courseCode) => {
+          Object.keys(enriched[courseCode]).forEach((semKey) => {
+            const sem = enriched[courseCode][semKey];
+            if (sem.theory) {
+              sem.theory = sem.theory.map((s: any) => ({
+                ...s,
+                teaching_dept: s.teaching_dept || getTeachingDeptForSubject(s.code, s.name, courseCode),
+              }));
+            }
+            if (sem.practical) {
+              sem.practical = sem.practical.map((s: any) => ({
+                ...s,
+                teaching_dept: s.teaching_dept || getTeachingDeptForSubject(s.code, s.name, courseCode),
+              }));
+            }
+          });
+        });
+        setCourseSubjectsMap(enriched);
       } else {
         const initialMap = {
           CSE: {
@@ -574,8 +686,28 @@ export default function DocumentsPage() {
             }
           },
         };
-        setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v13", JSON.stringify(initialMap));
+
+        const enrichedInitialMap = { ...initialMap };
+        Object.keys(enrichedInitialMap).forEach((courseCode) => {
+          Object.keys(enrichedInitialMap[courseCode]).forEach((semKey) => {
+            const sem = enrichedInitialMap[courseCode][semKey];
+            if (sem.theory) {
+              sem.theory = sem.theory.map((s: any) => ({
+                ...s,
+                teaching_dept: s.teaching_dept || getTeachingDeptForSubject(s.code, s.name, courseCode),
+              }));
+            }
+            if (sem.practical) {
+              sem.practical = sem.practical.map((s: any) => ({
+                ...s,
+                teaching_dept: s.teaching_dept || getTeachingDeptForSubject(s.code, s.name, courseCode),
+              }));
+            }
+          });
+        });
+
+        setCourseSubjectsMap(enrichedInitialMap as any);
+        localStorage.setItem("vtu_course_subjects_map_v14", JSON.stringify(enrichedInitialMap));
       }
     } catch (e) {
       console.error(e);
@@ -584,7 +716,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v13", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v14", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }
@@ -606,8 +738,17 @@ export default function DocumentsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        const tSubjs = data.theory_subjects || [];
-        const pSubjs = data.practical_subjects || [];
+        const rawTheory = data.theory_subjects || [];
+        const rawPractical = data.practical_subjects || [];
+
+        const tSubjs = rawTheory.map((s: any) => ({
+          ...s,
+          teaching_dept: getTeachingDeptForSubject(s.code, s.name, activeCourseCode),
+        }));
+        const pSubjs = rawPractical.map((s: any) => ({
+          ...s,
+          teaching_dept: getTeachingDeptForSubject(s.code, s.name, activeCourseCode),
+        }));
 
         setCourseSubjectsMap((prev) => {
           const currentCourse = prev[activeCourseCode] || {};
@@ -639,6 +780,7 @@ export default function DocumentsPage() {
       name: newSubjName.trim(),
       category: newSubjCategory,
       weekly_hours: Number(newSubjHours) || 4,
+      teaching_dept: newSubjDept.trim() || getTeachingDeptForSubject(newSubjCode, newSubjName, activeCourseCode),
     };
 
     setCourseSubjectsMap((prev) => {
@@ -666,6 +808,7 @@ export default function DocumentsPage() {
 
     setNewSubjCode("");
     setNewSubjName("");
+    setNewSubjDept("");
     setShowAddSubj(false);
   };
 
@@ -792,7 +935,7 @@ export default function DocumentsPage() {
                 Close
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
               <input
                 type="text"
                 placeholder="Code (e.g. 1BCS304)"
@@ -808,6 +951,13 @@ export default function DocumentsPage() {
                 onChange={(e) => setNewSubjName(e.target.value)}
                 className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
                 required
+              />
+              <input
+                type="text"
+                placeholder="Teaching Dept (e.g. Mathematics)"
+                value={newSubjDept}
+                onChange={(e) => setNewSubjDept(e.target.value)}
+                className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
               />
               <select
                 value={newSubjCategory}
@@ -887,11 +1037,16 @@ export default function DocumentsPage() {
                     key={idx}
                     className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-primary/40 transition"
                   >
-                    <div className="min-w-0 pr-3">
+                    <div className="min-w-0 pr-3 flex-1">
                       <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                     </div>
                     <div className="flex items-center space-x-3 shrink-0">
+                      {s.teaching_dept && (
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium hidden sm:inline max-w-[150px] truncate">
+                          {s.teaching_dept}
+                        </span>
+                      )}
                       <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
                         <Clock className="h-3 w-3" />
                         <span>{s.weekly_hours} hrs/wk</span>
@@ -931,11 +1086,16 @@ export default function DocumentsPage() {
                     key={idx}
                     className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-[#00A3FF]/40 transition"
                   >
-                    <div className="min-w-0 pr-3">
+                    <div className="min-w-0 pr-3 flex-1">
                       <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                     </div>
                     <div className="flex items-center space-x-3 shrink-0">
+                      {s.teaching_dept && (
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium hidden sm:inline max-w-[150px] truncate">
+                          {s.teaching_dept}
+                        </span>
+                      )}
                       <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
                         <Clock className="h-3 w-3" />
                         <span>{s.weekly_hours} hrs/wk</span>

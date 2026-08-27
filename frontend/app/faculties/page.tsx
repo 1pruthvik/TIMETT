@@ -12,6 +12,8 @@ import {
   Plus,
   UserCheck,
   Search,
+  Building2,
+  Layers,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -21,18 +23,53 @@ interface FacultyItem {
   department: string;
 }
 
+const DEFAULT_DEPARTMENTS = [
+  "Computer Science & Engineering",
+  "Electronics & Communication Engineering",
+  "Information Science & Engineering",
+  "Mechanical Engineering",
+  "Artificial Intelligence & Machine Learning",
+  "Civil Engineering",
+  "Electrical & Electronics Engineering",
+];
+
 export default function FacultiesPage() {
   const router = useRouter();
 
   const [facultyList, setFacultyList] = useState<FacultyItem[]>([]);
+  const [departments, setDepartments] = useState<string[]>(DEFAULT_DEPARTMENTS);
   const [manualName, setManualName] = useState("");
   const [manualDept, setManualDept] = useState("Computer Science & Engineering");
   const [searchQuery, setSearchQuery] = useState("");
   const [parsingFaculty, setParsingFaculty] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
+  // Department creation modal / inline state
+  const [showAddDept, setShowAddDept] = useState(false);
+  const [newDeptName, setNewDeptName] = useState("");
+
   useEffect(() => {
     try {
+      // 1. Load departments from storage or courses
+      const savedDepts = localStorage.getItem("vtu_college_departments");
+      if (savedDepts) {
+        setDepartments(JSON.parse(savedDepts));
+      } else {
+        const savedCourses = localStorage.getItem("vtu_college_offered_courses");
+        if (savedCourses) {
+          const parsedCourses = JSON.parse(savedCourses);
+          const courseNames = parsedCourses
+            .filter((c: any) => c.selected && c.name)
+            .map((c: any) => c.name);
+          const merged = Array.from(new Set([...courseNames, ...DEFAULT_DEPARTMENTS]));
+          setDepartments(merged);
+          localStorage.setItem("vtu_college_departments", JSON.stringify(merged));
+        } else {
+          localStorage.setItem("vtu_college_departments", JSON.stringify(DEFAULT_DEPARTMENTS));
+        }
+      }
+
+      // 2. Load faculties
       const saved = localStorage.getItem("vtu_faculty_list");
       if (saved) {
         setFacultyList(JSON.parse(saved));
@@ -51,12 +88,36 @@ export default function FacultiesPage() {
     }
   }, []);
 
+  const saveDepartmentsToStorage = (updated: string[]) => {
+    try {
+      localStorage.setItem("vtu_college_departments", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const saveFacultyToStorage = (updated: FacultyItem[]) => {
     try {
       localStorage.setItem("vtu_faculty_list", JSON.stringify(updated));
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleAddDepartment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newDeptName.trim();
+    if (!trimmed) return;
+
+    if (!departments.includes(trimmed)) {
+      const updated = [...departments, trimmed];
+      setDepartments(updated);
+      saveDepartmentsToStorage(updated);
+    }
+
+    setManualDept(trimmed);
+    setNewDeptName("");
+    setShowAddDept(false);
   };
 
   const handleFacultyFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +137,13 @@ export default function FacultiesPage() {
       if (res.ok) {
         const data = await res.json();
         const extracted: FacultyItem[] = data.faculties || [];
+        
+        // Also auto-add any new departments extracted from file
+        const extractedDepts = extracted.map((f) => f.department).filter(Boolean);
+        const mergedDepts = Array.from(new Set([...departments, ...extractedDepts]));
+        setDepartments(mergedDepts);
+        saveDepartmentsToStorage(mergedDepts);
+
         setFacultyList((prev) => {
           const updated = [...prev, ...extracted];
           saveFacultyToStorage(updated);
@@ -96,7 +164,7 @@ export default function FacultiesPage() {
 
     const newFac: FacultyItem = {
       name: manualName.trim(),
-      department: manualDept.trim() || "Computer Science & Engineering",
+      department: manualDept.trim() || departments[0] || "Computer Science & Engineering",
     };
 
     setFacultyList((prev) => {
@@ -133,11 +201,57 @@ export default function FacultiesPage() {
           </h1>
 
           <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowAddDept(!showAddDept)}
+              className="px-4 py-2 rounded-xl bg-card border border-border text-foreground text-xs font-bold hover:bg-muted/80 transition cursor-pointer flex items-center space-x-1.5"
+            >
+              <Building2 className="h-4 w-4 text-primary" />
+              <span>Add Department</span>
+            </button>
             <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-sm font-bold">
               Total Faculty: {facultyList.length}
             </div>
           </div>
         </div>
+
+        {/* Add Department Form Modal / Card */}
+        {showAddDept && (
+          <form
+            onSubmit={handleAddDepartment}
+            className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-primary flex items-center space-x-2">
+                <Building2 className="h-4 w-4" />
+                <span>Add Institutional Department</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowAddDept(false)}
+                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <input
+                type="text"
+                placeholder="Department Name (e.g. Artificial Intelligence & Data Science)"
+                value={newDeptName}
+                onChange={(e) => setNewDeptName(e.target.value)}
+                className="w-full sm:flex-1 h-11 px-4 text-xs font-semibold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/30"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-6 h-11 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer hover:opacity-90 transition shrink-0"
+              >
+                Save Department
+              </button>
+            </div>
+          </form>
+        )}
 
         {uploadSuccess && (
           <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-semibold flex items-center space-x-3 tt-animate-fade">
@@ -199,16 +313,39 @@ export default function FacultiesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                    Department
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Computer Science & Engineering"
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-muted-foreground block">
+                      Department
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddDept(true)}
+                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center space-x-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>New Dept</span>
+                    </button>
+                  </div>
+                  
+                  {/* Department Dropdown */}
+                  <select
                     value={manualDept}
-                    onChange={(e) => setManualDept(e.target.value)}
-                    className="w-full h-11 px-4 text-xs font-semibold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/30"
-                  />
+                    onChange={(e) => {
+                      if (e.target.value === "__add_new__") {
+                        setShowAddDept(true);
+                      } else {
+                        setManualDept(e.target.value);
+                      }
+                    }}
+                    className="w-full h-11 px-4 text-xs font-semibold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                  >
+                    {departments.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                    <option value="__add_new__">+ Add Custom Department...</option>
+                  </select>
                 </div>
               </div>
               <button

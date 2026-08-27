@@ -35,9 +35,19 @@ export default function DocumentsPage() {
 
   const [courses, setCourses] = useState<VTUCourse[]>([]);
   const [activeCourseCode, setActiveCourseCode] = useState<string>("CSE");
+  const [semKey, setSemKey] = useState<string>("sem_7");
+  const [semesterTitle, setSemesterTitle] = useState<string>("4th Year • 7th Semester (Odd)");
+  
+  // Master map partitioned by semester: { [semKey: string]: { [courseCode: string]: { theory: Subject[]; practical: Subject[] } } }
+  const [allSemMap, setAllSemMap] = useState<
+    Record<string, Record<string, { theory: Subject[]; practical: Subject[] }>>
+  >({});
+
+  // Active semester subjects map: { [courseCode: string]: { theory: Subject[]; practical: Subject[] } }
   const [courseSubjectsMap, setCourseSubjectsMap] = useState<
     Record<string, { theory: Subject[]; practical: Subject[] }>
   >({});
+
   const [parsingScheme, setParsingScheme] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
@@ -48,8 +58,45 @@ export default function DocumentsPage() {
   const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "practical">("theory");
   const [newSubjHours, setNewSubjHours] = useState(4);
 
+  const getComputedSemKey = (parsedSetup: any): { key: string; label: string } => {
+    if (parsedSetup.semKey && parsedSetup.semesterLabel) {
+      const yr = parsedSetup.yearLevelLabel || "4th Year";
+      const sem = parsedSetup.semesterLabel || "7th Semester";
+      const type = parsedSetup.selectedSemType === "even" ? "Even" : "Odd";
+      return {
+        key: parsedSetup.semKey,
+        label: `${yr} • ${sem} (${type})`,
+      };
+    }
+    const y = Number(parsedSetup.selectedYear) || 4;
+    const semNum = (y - 1) * 2 + (parsedSetup.selectedSemType === "even" ? 2 : 1);
+    const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
+    const yrLabel = `${ordinals[y - 1] || `${y}th`} Year`;
+    const semLabel = `${ordinals[semNum - 1] || `${semNum}th`} Semester`;
+    const typeLabel = parsedSetup.selectedSemType === "even" ? "Even" : "Odd";
+    return {
+      key: `sem_${semNum}`,
+      label: `${yrLabel} • ${semLabel} (${typeLabel})`,
+    };
+  };
+
   useEffect(() => {
     try {
+      // 1. Read active academic setup
+      let currentSemKey = "sem_7";
+      let currentSemLabel = "4th Year • 7th Semester (Odd)";
+
+      const savedSetup = localStorage.getItem("vtu_academic_setup");
+      if (savedSetup) {
+        const parsedSetup = JSON.parse(savedSetup);
+        const info = getComputedSemKey(parsedSetup);
+        currentSemKey = info.key;
+        currentSemLabel = info.label;
+      }
+      setSemKey(currentSemKey);
+      setSemesterTitle(currentSemLabel);
+
+      // 2. Load courses
       const savedCourses = localStorage.getItem("vtu_college_offered_courses");
       if (savedCourses) {
         const parsed = JSON.parse(savedCourses);
@@ -63,11 +110,145 @@ export default function DocumentsPage() {
         ]);
       }
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
-      if (savedSubjects) {
-        setCourseSubjectsMap(JSON.parse(savedSubjects));
-      } else {
-        const initialMap = {
+      // 3. Base semester templates
+      const defaultSemesterTemplates: Record<
+        string,
+        Record<string, { theory: Subject[]; practical: Subject[] }>
+      > = {
+        sem_7: {
+          CSE: {
+            theory: [
+              { code: "1BCS701", name: "Big Data Analytics", category: "theory", weekly_hours: 3 },
+              { code: "1BCS702", name: "Professional Elective Course - III", category: "theory", weekly_hours: 3 },
+              { code: "1BCS703", name: "Professional Elective Course - IV", category: "theory", weekly_hours: 3 },
+              { code: "1BCS704", name: "Open Elective Course - I", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "1BCSL701", name: "Big Data Analytics Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          "CSE-AIML": {
+            theory: [
+              { code: "1BCD701", name: "Deep Learning", category: "theory", weekly_hours: 3 },
+              { code: "1BAI702", name: "Professional Elective Course - III", category: "theory", weekly_hours: 3 },
+              { code: "1BAI703", name: "Professional Elective Course - IV", category: "theory", weekly_hours: 3 },
+              { code: "1BAI704", name: "Open Elective Course - I", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "1BCDL701", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          "CSE-DS": {
+            theory: [
+              { code: "1BCD701", name: "Deep Learning", category: "theory", weekly_hours: 3 },
+              { code: "1BDS702", name: "Professional Elective Course - III", category: "theory", weekly_hours: 3 },
+              { code: "1BDS703", name: "Professional Elective Course - IV", category: "theory", weekly_hours: 3 },
+              { code: "1BDS704", name: "Open Elective Course - I", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "1BCDL701", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          ISE: {
+            theory: [
+              { code: "1BIS701", name: "High Performance Computing", category: "theory", weekly_hours: 3 },
+              { code: "1BIS702", name: "Professional Elective Course - III", category: "theory", weekly_hours: 3 },
+              { code: "1BIS703", name: "Professional Elective Course - IV", category: "theory", weekly_hours: 3 },
+              { code: "1BIS704", name: "Open Elective Course - I", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "1BISL701", name: "High Performance Computing Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          "AI&DS": {
+            theory: [
+              { code: "1BAD701", name: "High Performance Computing in Artificial Intelligence", category: "theory", weekly_hours: 3 },
+              { code: "1BAD702", name: "Professional Elective Course - III", category: "theory", weekly_hours: 3 },
+              { code: "1BAD703", name: "Professional Elective Course - IV", category: "theory", weekly_hours: 3 },
+              { code: "1BAD704", name: "Open Elective Course - I", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "1BADL701", name: "High Performance Computing in AI Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          ECE: {
+            theory: [
+              { code: "BEC701", name: "Microwave Engineering and Antenna Theory", category: "theory", weekly_hours: 3 },
+              { code: "BEC702", name: "Computer Networks and Protocols", category: "theory", weekly_hours: 3 },
+              { code: "BEC703", name: "Wireless Communication Systems", category: "theory", weekly_hours: 4 },
+              { code: "BEC714", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+              { code: "BEC755", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "BECL701", name: "Microwave Engineering & Antenna Laboratory", category: "practical", weekly_hours: 2 },
+              { code: "BECL702", name: "Computer Networks & Protocols Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          EEE: {
+            theory: [
+              { code: "BEE701", name: "Switchgear and Protection", category: "theory", weekly_hours: 3 },
+              { code: "BEE702", name: "Industrial Drives and Applications", category: "theory", weekly_hours: 4 },
+              { code: "BEE703", name: "Power System Analysis - II", category: "theory", weekly_hours: 3 },
+              { code: "BEE714", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+              { code: "BEE755", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "BEEL701", name: "Switchgear & Protection Laboratory", category: "practical", weekly_hours: 2 },
+              { code: "BEEL703", name: "Power System Analysis - II Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          ME: {
+            theory: [
+              { code: "BME701", name: "Finite Element Methods", category: "theory", weekly_hours: 3 },
+              { code: "BME702", name: "Hydraulics and Pneumatics", category: "theory", weekly_hours: 3 },
+              { code: "BME703", name: "Control Engineering", category: "theory", weekly_hours: 4 },
+              { code: "BME714", name: "Professional Elective - III", category: "theory", weekly_hours: 3 },
+              { code: "BME755", name: "Open Elective - II", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "BMEL701", name: "Finite Element Methods Laboratory", category: "practical", weekly_hours: 2 },
+              { code: "BMEL702", name: "Hydraulics & Pneumatics Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          CIV: {
+            theory: [
+              { code: "1BCV701", name: "Design & Detailing of Steel Structures", category: "theory", weekly_hours: 3 },
+              { code: "1BCV702", name: "Professional Elective Course - III", category: "theory", weekly_hours: 3 },
+              { code: "1BCV703", name: "Professional Elective Course - IV", category: "theory", weekly_hours: 3 },
+              { code: "1BCV704", name: "Open Elective Course - I", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "1BCVL701", name: "Design & Detailing of Steel Structures Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          BME: {
+            theory: [
+              { code: "BBM701", name: "Biomechanics and Biodynamics", category: "theory", weekly_hours: 3 },
+              { code: "BBM702", name: "ARM Processor", category: "theory", weekly_hours: 3 },
+              { code: "BBM703", name: "Biometric System", category: "theory", weekly_hours: 4 },
+              { code: "BBM714", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+              { code: "BBM755", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "BBML701", name: "Biomechanics & Biodynamics Laboratory", category: "practical", weekly_hours: 2 },
+              { code: "BBML702", name: "ARM Processor Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+          CH: {
+            theory: [
+              { code: "BCH701", name: "Process Modeling and Simulation", category: "theory", weekly_hours: 3 },
+              { code: "BCH702", name: "Process Control and Industrial IoT", category: "theory", weekly_hours: 3 },
+              { code: "BCH703", name: "Process Engineering Economics and Management", category: "theory", weekly_hours: 4 },
+              { code: "BCH714", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+              { code: "BCH755", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [
+              { code: "BCHL701", name: "Process Modeling & Simulation Laboratory", category: "practical", weekly_hours: 2 },
+              { code: "BCHL702", name: "Process Control & Industrial IoT Laboratory", category: "practical", weekly_hours: 2 },
+            ],
+          },
+        },
+        sem_3: {
           CSE: {
             theory: [
               { code: "1BMATCS301", name: "Mathematics for Computer Science", category: "theory", weekly_hours: 4 },
@@ -80,18 +261,57 @@ export default function DocumentsPage() {
               { code: "1BCSL306", name: "Object Oriented Java Lab", category: "practical", weekly_hours: 3 },
             ],
           },
-        };
-        setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
+        },
+      };
+
+      // 4. Load master semester subjects map
+      let masterMap = defaultSemesterTemplates;
+      const savedMasterMap = localStorage.getItem("vtu_semester_course_subjects_map");
+      if (savedMasterMap) {
+        masterMap = { ...defaultSemesterTemplates, ...JSON.parse(savedMasterMap) };
       }
+      
+      // Ensure sem_7 contains CSE, CSE-AIML, CSE-DS, ISE, AI&DS, ECE, EEE, ME, CIV, BME, and CH
+      if (!masterMap.sem_7) masterMap.sem_7 = defaultSemesterTemplates.sem_7;
+      if (!masterMap.sem_7.CSE) masterMap.sem_7.CSE = defaultSemesterTemplates.sem_7.CSE;
+      masterMap.sem_7["CSE-AIML"] = defaultSemesterTemplates.sem_7["CSE-AIML"];
+      masterMap.sem_7["CSE-DS"] = defaultSemesterTemplates.sem_7["CSE-DS"];
+      masterMap.sem_7.ISE = defaultSemesterTemplates.sem_7.ISE;
+      masterMap.sem_7["AI&DS"] = defaultSemesterTemplates.sem_7["AI&DS"];
+      masterMap.sem_7.ECE = defaultSemesterTemplates.sem_7.ECE;
+      masterMap.sem_7.EEE = defaultSemesterTemplates.sem_7.EEE;
+      masterMap.sem_7.ME = defaultSemesterTemplates.sem_7.ME;
+      masterMap.sem_7.CIV = defaultSemesterTemplates.sem_7.CIV;
+      masterMap.sem_7.BME = defaultSemesterTemplates.sem_7.BME;
+      masterMap.sem_7.CH = defaultSemesterTemplates.sem_7.CH;
+      
+      if (!masterMap.sem_3) masterMap.sem_3 = defaultSemesterTemplates.sem_3;
+
+      setAllSemMap(masterMap);
+      localStorage.setItem("vtu_semester_course_subjects_map", JSON.stringify(masterMap));
+
+      // 5. Set active semester subjects
+      const activeSemSubjects = masterMap[currentSemKey] || {};
+      setCourseSubjectsMap(activeSemSubjects);
+      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(activeSemSubjects));
     } catch (e) {
       console.error(e);
     }
   }, []);
 
-  const saveSubjectsToStorage = (updatedMap: any) => {
+  const saveSubjectsToStorage = (updatedActiveMap: Record<string, { theory: Subject[]; practical: Subject[] }>) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedMap));
+      setCourseSubjectsMap(updatedActiveMap);
+      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedActiveMap));
+
+      setAllSemMap((prevMaster) => {
+        const newMaster = {
+          ...prevMaster,
+          [semKey]: updatedActiveMap,
+        };
+        localStorage.setItem("vtu_semester_course_subjects_map", JSON.stringify(newMaster));
+        return newMaster;
+      });
     } catch (e) {
       console.error(e);
     }
@@ -196,11 +416,21 @@ export default function DocumentsPage() {
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header (No suggestions/descriptions) */}
+        {/* Page Hero Header with Academic Year & 7th Sem Badge */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            VTU Scheme Document Upload & Subject Ingestion
-          </h1>
+          <div>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold tracking-wide uppercase bg-primary/10 text-primary border border-primary/20">
+                {semesterTitle}
+              </span>
+              <span className="text-xs text-muted-foreground font-mono">
+                VTU 2025 Scheme
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+              VTU Scheme Document Upload & Subject Ingestion
+            </h1>
+          </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <button

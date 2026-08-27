@@ -17,9 +17,23 @@ export default function AcademicYearPage() {
 
   const [academicYear, setAcademicYear] = useState("2026 - 2027");
   const [institutionType, setInstitutionType] = useState<"vtu" | "university">("vtu");
-  const [selectedYear, setSelectedYear] = useState("2");
+  const [selectedYear, setSelectedYear] = useState("4");
   const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const getSemesterInfo = (year: string, semType: "odd" | "even") => {
+    const y = Number(year) || 1;
+    const semNum = (y - 1) * 2 + (semType === "odd" ? 1 : 2);
+    const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
+    const semLabel = `${ordinals[semNum - 1] || `${semNum}th`} Semester`;
+    const yearLabel = `${ordinals[y - 1] || `${y}th`} Year`;
+    return {
+      semesterNumber: semNum,
+      semesterLabel: semLabel,
+      yearLevelLabel: yearLabel,
+      semKey: `sem_${semNum}`,
+    };
+  };
 
   useEffect(() => {
     try {
@@ -30,6 +44,16 @@ export default function AcademicYearPage() {
         if (parsed.institutionType) setInstitutionType(parsed.institutionType);
         if (parsed.selectedYear) setSelectedYear(parsed.selectedYear);
         if (parsed.selectedSemType) setSelectedSemType(parsed.selectedSemType);
+      } else {
+        const semInfo = getSemesterInfo("4", "odd");
+        const initialSetup = {
+          academicYear: "2026 - 2027",
+          institutionType: "vtu",
+          selectedYear: "4",
+          selectedSemType: "odd",
+          ...semInfo,
+        };
+        localStorage.setItem("vtu_academic_setup", JSON.stringify(initialSetup));
       }
     } catch (e) {
       console.error(e);
@@ -42,11 +66,13 @@ export default function AcademicYearPage() {
   useEffect(() => {
     if (!isLoaded) return;
     try {
+      const semInfo = getSemesterInfo(selectedYear, selectedSemType);
       const config = {
         academicYear,
         institutionType,
         selectedYear,
         selectedSemType,
+        ...semInfo,
       };
       localStorage.setItem("vtu_academic_setup", JSON.stringify(config));
     } catch (e) {

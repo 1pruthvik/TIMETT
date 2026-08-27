@@ -56,13 +56,27 @@ export default function CoursesPage() {
         return;
       }
 
+      const defaultStudentCounts: Record<string, number> = {
+        CSE: 180,
+        "CSE-AIML": 128,
+        "CSE-DS": 60,
+        ECE: 60,
+        EEE: 60,
+        ISE: 45,
+        "AI&DS": 60,
+        ME: 60,
+        CIV: 60,
+        CH: 60,
+        BME: 60,
+      };
+
       const res = await fetch("http://127.0.0.1:8000/vtu/courses");
       if (res.ok) {
         const data = await res.json();
         const initial = data.map((c: any) => ({
           ...c,
-          selected: c.code === "CSE" || c.code === "ECE" || c.code === "ME" || c.code === "ISE",
-          studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
+          selected: true,
+          studentCount: defaultStudentCounts[c.code] ?? 60,
         }));
         setCourses(initial);
         saveCoursesToStorage(initial);

@@ -274,6 +274,19 @@ export default function DocumentsPage() {
         { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    ECE: {
+      theory: [
+        { code: "BEC601", name: "Embedded System Design", category: "theory", weekly_hours: 3 },
+        { code: "BEC602", name: "VLSI Design and Testing", category: "theory", weekly_hours: 4 },
+        { code: "BEC613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BEC654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "BECL606", name: "VLSI Design and Testing Lab", category: "practical", weekly_hours: 2 },
+        { code: "BEC657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BEC601L", name: "Embedded System Design Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

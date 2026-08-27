@@ -204,13 +204,14 @@ export default function FacultiesPage() {
             <button
               type="button"
               onClick={() => setShowAddDept(!showAddDept)}
-              className="px-4 py-2 rounded-xl bg-card border border-border text-foreground text-xs font-bold hover:bg-muted/80 transition cursor-pointer flex items-center space-x-1.5"
+              className="h-10 px-4 rounded-xl bg-card border border-border text-foreground text-xs font-bold hover:bg-muted/80 transition cursor-pointer flex items-center space-x-2"
             >
               <Building2 className="h-4 w-4 text-primary" />
               <span>Add Department</span>
             </button>
-            <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-sm font-bold">
-              Total Faculty: {facultyList.length}
+            <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
+              <span>Total Faculty:</span>
+              <span className="text-primary font-extrabold">{facultyList.length}</span>
             </div>
           </div>
         </div>

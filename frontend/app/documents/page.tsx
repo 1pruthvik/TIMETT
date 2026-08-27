@@ -206,7 +206,7 @@ export default function DocumentsPage() {
             <button
               type="button"
               onClick={() => setShowAddSubj(!showAddSubj)}
-              className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
             >
               <Plus className="h-4 w-4" />
               <span>Add Subject</span>

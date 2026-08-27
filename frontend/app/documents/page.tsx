@@ -314,6 +314,34 @@ export default function DocumentsPage() {
         { code: "1BIS601L", name: "Big Data Analytics Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    "AI&DS": {
+      theory: [
+        { code: "1BAD601", name: "Natural Language Processing", category: "theory", weekly_hours: 3 },
+        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3 },
+        { code: "1BAI603", name: "Deep Learning", category: "theory", weekly_hours: 3 },
+        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3 },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "1BAIL606", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
+    AIDS: {
+      theory: [
+        { code: "1BAD601", name: "Natural Language Processing", category: "theory", weekly_hours: 3 },
+        { code: "1BAD602", name: "Data Security & Privacy", category: "theory", weekly_hours: 3 },
+        { code: "1BAI603", name: "Deep Learning", category: "theory", weekly_hours: 3 },
+        { code: "1BAD604", name: "Big Data Analytics", category: "theory", weekly_hours: 3 },
+        { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "1BAIL606", name: "Deep Learning Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+        { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

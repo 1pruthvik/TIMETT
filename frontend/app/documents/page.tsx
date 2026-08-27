@@ -118,18 +118,33 @@ export default function DocumentsPage() {
             { code: "BEC502L", name: "Digital Signal Processing Laboratory", category: "practical", weekly_hours: 2 },
           ],
         },
+        EEE: {
+          theory: [
+            { code: "BEE501", name: "Engineering Management and Entrepreneurship", category: "theory", weekly_hours: 3 },
+            { code: "BEE502", name: "Signals & DSP", category: "theory", weekly_hours: 3 },
+            { code: "BEE503", name: "Power Electronics", category: "theory", weekly_hours: 4 },
+            { code: "BEE515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+            { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
+            { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+          ],
+          practical: [
+            { code: "BEEL504", name: "Power Electronics Lab", category: "practical", weekly_hours: 2 },
+            { code: "BEE502L", name: "Signals & DSP Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
       };
 
       if (savedSubjects) {
         try {
           const parsed = JSON.parse(savedSubjects);
-          // Ensure CSE, CSE-AIML, CSE-DS, and ECE are set to 5th semester subjects
+          // Ensure CSE, CSE-AIML, CSE-DS, ECE, and EEE are set to 5th semester subjects
           const merged = {
             ...parsed,
             CSE: initialMap.CSE,
             "CSE-AIML": initialMap["CSE-AIML"],
             "CSE-DS": initialMap["CSE-DS"],
             ECE: initialMap.ECE,
+            EEE: initialMap.EEE,
           };
           setCourseSubjectsMap(merged);
           localStorage.setItem("vtu_course_subjects_map", JSON.stringify(merged));

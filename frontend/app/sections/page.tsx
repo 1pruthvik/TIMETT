@@ -48,9 +48,15 @@ export default function SectionsPage() {
   const [coincidedLabGroup, setCoincidedLabGroup] = useState("CS Central Lab Facility");
   const [labRotationMode, setLabRotationMode] = useState<"synchronous_parallel" | "independent">("synchronous_parallel");
 
-  // Slot Durations
+  // Slot Durations & Operational Hours
   const [theoryMin, setTheoryMin] = useState(50);
   const [labMin, setLabMin] = useState(100);
+  const [minStartTime, setMinStartTime] = useState("09:00");
+  const [maxStayTime, setMaxStayTime] = useState("17:00");
+
+  // Tea-Break & Lunch break
+  const [teaBreakStart, setTeaBreakStart] = useState("10:40");
+  const [teaBreakDuration, setTeaBreakDuration] = useState(15);
   const [lunchBreakStart, setLunchBreakStart] = useState("13:00");
   const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
 
@@ -81,6 +87,12 @@ export default function SectionsPage() {
         const parsed = JSON.parse(savedSlot);
         if (parsed.theoryMin && parsed.theoryMin > 0) setTheoryMin(parsed.theoryMin);
         if (parsed.labMin && parsed.labMin > 0) setLabMin(parsed.labMin);
+        if (parsed.minStartTime) setMinStartTime(parsed.minStartTime);
+        if (parsed.maxStayTime) setMaxStayTime(parsed.maxStayTime);
+        if (parsed.teaBreakStart) setTeaBreakStart(parsed.teaBreakStart);
+        if (parsed.teaBreakDuration !== undefined) setTeaBreakDuration(parsed.teaBreakDuration);
+        if (parsed.lunchBreakStart) setLunchBreakStart(parsed.lunchBreakStart);
+        if (parsed.lunchBreakDuration !== undefined) setLunchBreakDuration(parsed.lunchBreakDuration);
       }
 
       // 2. Load active semester
@@ -230,7 +242,17 @@ export default function SectionsPage() {
       );
       localStorage.setItem(
         "vtu_slot_duration_config",
-        JSON.stringify({ theoryMin, labMin, lunchBreakStart, lunchBreakDuration })
+        JSON.stringify({
+          theoryMin,
+          labMin,
+          minStartTime,
+          maxStayTime,
+          teaBreakStart,
+          teaBreakDuration,
+          lunchBreakStart,
+          lunchBreakDuration,
+          workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        })
       );
     } catch (e) {
       console.error(e);
@@ -241,6 +263,10 @@ export default function SectionsPage() {
     labRotationMode,
     theoryMin,
     labMin,
+    minStartTime,
+    maxStayTime,
+    teaBreakStart,
+    teaBreakDuration,
     lunchBreakStart,
     lunchBreakDuration,
     activeMetrics,
@@ -532,16 +558,17 @@ export default function SectionsPage() {
             </div>
           </div>
 
-          {/* Right Column: Period Durations & Timings */}
+          {/* Right Column: Period Durations & Operating Hours */}
           <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-8 space-y-6">
             <div className="border-b border-border/50 pb-3">
               <h2 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
                 <Clock className="h-4 w-4" />
-                <span>Period Durations & Schedule Grid</span>
+                <span>Period Durations & Operating Hours</span>
               </h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
+              {/* Theory & Practical Durations */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
@@ -594,39 +621,100 @@ export default function SectionsPage() {
                 </div>
               </div>
 
-              {/* Daily Timings Grid */}
-              <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-2.5">
-                <p className="text-xs font-bold text-foreground flex items-center space-x-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-primary" />
-                  <span>College Daily Operational Timetable Structure</span>
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
-                    <span className="text-[10px] text-muted-foreground block">Period 1</span>
-                    <span className="font-mono font-bold text-foreground">09:00 - 09:50</span>
+              {/* College Daily Operational Range: Min Start Time & Max Stay Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                    Min Start Time
+                  </label>
+                  <input
+                    type="time"
+                    value={minStartTime}
+                    onChange={(e) => setMinStartTime(e.target.value)}
+                    className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                    Max Stay Time
+                  </label>
+                  <input
+                    type="time"
+                    value={maxStayTime}
+                    onChange={(e) => setMaxStayTime(e.target.value)}
+                    className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Tea-Break & Lunch break (Side-by-Side) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                {/* Tea-Break Section */}
+                <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-3">
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
+                    Tea-Break
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold text-muted-foreground block mb-1">Start Time</label>
+                      <input
+                        type="time"
+                        value={teaBreakStart}
+                        onChange={(e) => setTeaBreakStart(e.target.value)}
+                        className="w-full h-10 px-2.5 text-xs font-mono font-bold rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-muted-foreground block mb-1">Duration (min)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={teaBreakDuration === 0 || (teaBreakDuration as any) === "" ? "" : teaBreakDuration}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "") setTeaBreakDuration("" as any);
+                          else setTeaBreakDuration(Math.max(0, parseInt(val, 10) || 0));
+                        }}
+                        className="w-full h-10 px-2.5 text-xs font-mono font-bold rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
                   </div>
-                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
-                    <span className="text-[10px] text-muted-foreground block">Period 2</span>
-                    <span className="font-mono font-bold text-foreground">09:50 - 10:40</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
-                    <span className="text-[10px] text-muted-foreground block">Tea Break</span>
-                    <span className="font-mono text-muted-foreground">10:40 - 10:55</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
-                    <span className="text-[10px] text-muted-foreground block">Period 3</span>
-                    <span className="font-mono font-bold text-foreground">10:55 - 11:45</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
-                    <span className="text-[10px] text-muted-foreground block">Period 4 (Lab 1)</span>
-                    <span className="font-mono font-bold text-primary">11:45 - 12:35</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
-                    <span className="text-[10px] text-muted-foreground block">Period 5 (Lab 2)</span>
-                    <span className="font-mono font-bold text-primary">12:35 - 13:25</span>
+                </div>
+
+                {/* Lunch break Section */}
+                <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-3">
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
+                    Lunch break
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold text-muted-foreground block mb-1">Start Time</label>
+                      <input
+                        type="time"
+                        value={lunchBreakStart}
+                        onChange={(e) => setLunchBreakStart(e.target.value)}
+                        className="w-full h-10 px-2.5 text-xs font-mono font-bold rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-muted-foreground block mb-1">Duration (min)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={lunchBreakDuration === 0 || (lunchBreakDuration as any) === "" ? "" : lunchBreakDuration}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "") setLunchBreakDuration("" as any);
+                          else setLunchBreakDuration(Math.max(0, parseInt(val, 10) || 0));
+                        }}
+                        className="w-full h-10 px-2.5 text-xs font-mono font-bold rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
 

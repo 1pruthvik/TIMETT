@@ -652,6 +652,7 @@ export default function DocumentsPage() {
     saveHigherSemSubjects(updated);
     setNewSubjCode("");
     setNewSubjName("");
+    setNewSubjDept("");
     setShowAddSubject(false);
   };
 
@@ -1367,7 +1368,7 @@ export default function DocumentsPage() {
                     Close
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <input
                     type="text"
                     placeholder={`Code (e.g. 21${activeCourseCode}${semNumber}1)`}
@@ -1381,46 +1382,64 @@ export default function DocumentsPage() {
                     placeholder="Subject Name"
                     value={newSubjName}
                     onChange={(e) => setNewSubjName(e.target.value)}
-                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Teaching Dept (e.g. CSE Dept)"
-                    value={newSubjDept}
-                    onChange={(e) => setNewSubjDept(e.target.value)}
                     className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
                     required
                   />
                   <select
-                    value={newSubjCategory}
+                    value={`${newSubjCategory}-${newSubjHours}`}
                     onChange={(e) => {
-                      const cat = e.target.value as "theory" | "tutorial" | "practical";
-                      setNewSubjCategory(cat);
-                      setNewSubjHours(cat === "theory" ? 4 : 2);
+                      const [cat, hrs] = e.target.value.split("-");
+                      setNewSubjCategory(cat as "theory" | "tutorial" | "practical");
+                      setNewSubjHours(Number(hrs));
                     }}
-                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer"
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
                   >
-                    <option value="theory">Theory Subject (Lecture)</option>
-                    <option value="tutorial">Tutorial Session</option>
-                    <option value="practical">Practical / Lab Session</option>
+                    <optgroup label="Theory Combinations">
+                      <option value="theory-4">Theory — 4 hrs/wk (Core / 4-Credit IPCC)</option>
+                      <option value="theory-3">Theory — 3 hrs/wk (Lecture / PEC / OEC)</option>
+                      <option value="theory-2">Theory — 2 hrs/wk (AEC / SDC / Env Studies)</option>
+                      <option value="theory-1">Theory — 1 hr/wk (Audit / IKS)</option>
+                    </optgroup>
+                    <optgroup label="Tutorial Sessions">
+                      <option value="tutorial-2">Tutorial — 2 hrs/wk (Standard Tutorial)</option>
+                      <option value="tutorial-1">Tutorial — 1 hr/wk (Remedial Tutorial)</option>
+                    </optgroup>
+                    <optgroup label="Practical & Lab Combinations">
+                      <option value="practical-2">Practical / Lab — 2 hrs/wk (Standard Lab Session)</option>
+                      <option value="practical-3">Practical / Lab — 3 hrs/wk (Extended / Project Lab)</option>
+                      <option value="practical-4">Practical / Lab — 4 hrs/wk (Advanced Practical)</option>
+                    </optgroup>
                   </select>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={newSubjHours}
-                      onChange={(e) => setNewSubjHours(Number(e.target.value))}
-                      className="h-11 w-24 px-3 text-xs font-mono rounded-xl border border-border bg-background text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">hrs/week</span>
-                  </div>
+                  <select
+                    value={newSubjDept}
+                    onChange={(e) => setNewSubjDept(e.target.value)}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
+                  >
+                    <option value="">Teaching Dept: Default ({activeCourseCode} Dept)</option>
+                    <option value="CSE Dept">CSE Dept (CS Allied)</option>
+                    <option value="ECE Dept">ECE Dept (Electronics)</option>
+                    <option value="EEE Dept">EEE Dept (Electrical)</option>
+                    <option value="ME Dept">ME Dept (Mechanical)</option>
+                    <option value="Civil Dept">Civil Dept (Civil Engg)</option>
+                    <option value="Chem Dept">Chem Dept (Chemical Engg)</option>
+                    <option value="Biomedical Dept">Biomedical Dept (Biomedical Engg)</option>
+                    <option value="Maths Dept">Maths Dept (Mathematics)</option>
+                    <option value="Physics Dept">Physics Dept</option>
+                    <option value="Chemistry Dept">Chemistry Dept</option>
+                    <option value="Humanities Dept">Humanities Dept</option>
+                  </select>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubject(false)}
+                    className="px-5 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
+                    className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer hover:opacity-90 transition"
                   >
                     Save Subject
                   </button>

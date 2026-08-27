@@ -13,6 +13,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 export default function AcademicTermsPage() {
   const router = useRouter();
@@ -56,7 +57,6 @@ export default function AcademicTermsPage() {
 
   const handleNext = () => {
     saveSetup();
-    router.push("/departments");
   };
 
   return (
@@ -225,27 +225,13 @@ export default function AcademicTermsPage() {
             )}
           </div>
 
-          {/* Footer Controls */}
-          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
-            <Link href="/dashboard">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Dashboard</span>
-              </button>
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleNext}
-              className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
-            >
-              <span>Next: Departments</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          {/* Footer Navigation with Scrolling Overscroll Transition */}
+          <WizardFooter
+            prevHref="/dashboard"
+            nextHref="/departments"
+            nextLabel="Next: Departments"
+            onNext={handleNext}
+          />
 
         </div>
       </div>

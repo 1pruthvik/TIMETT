@@ -8,15 +8,13 @@ import {
   BookOpen,
   Layers,
   Sparkles,
-  ArrowRight,
-  ArrowLeft,
   RefreshCw,
   Plus,
   Trash2,
-  FileText,
   CheckCircle2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 interface Subject {
   code: string;
@@ -429,28 +427,12 @@ export default function DocumentsPage() {
             </div>
           </div>
 
-          {/* Footer Controls */}
-          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
-            <Link href="/departments">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Previous: Departments</span>
-              </button>
-            </Link>
-
-            <Link href="/faculty">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
-              >
-                <span>Next: Faculty</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </Link>
-          </div>
+          {/* Footer Navigation with Scrolling Overscroll Transition */}
+          <WizardFooter
+            prevHref="/departments"
+            nextHref="/subjects"
+            nextLabel="Next: Subjects"
+          />
 
         </div>
       </div>

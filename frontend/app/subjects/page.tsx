@@ -7,16 +7,12 @@ import {
   BookOpen,
   Layers,
   Sparkles,
-  ArrowRight,
-  ArrowLeft,
   Plus,
   Trash2,
-  Upload,
-  RefreshCw,
-  CheckCircle2,
   Search,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 interface Subject {
   code: string;
@@ -41,8 +37,6 @@ export default function SubjectsPage() {
     Record<string, { theory: Subject[]; practical: Subject[] }>
   >({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [parsingScheme, setParsingScheme] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   // Manual Add Subject
   const [showAddSubj, setShowAddSubj] = useState(false);
@@ -97,42 +91,6 @@ export default function SubjectsPage() {
       localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
-    }
-  };
-
-  const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setParsingScheme(true);
-    setUploadSuccess(null);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/vtu/parse-scheme", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const tSubjs = data.theory_subjects || [];
-        const pSubjs = data.practical_subjects || [];
-
-        setCourseSubjectsMap((prev) => {
-          const updated = {
-            ...prev,
-            [activeCourseCode]: { theory: tSubjs, practical: pSubjs },
-          };
-          saveSubjectsToStorage(updated);
-          return updated;
-        });
-        setUploadSuccess(`Extracted ${tSubjs.length} Theory & ${pSubjs.length} Lab subjects for ${activeCourseCode}!`);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setParsingScheme(false);
     }
   };
 
@@ -431,28 +389,12 @@ export default function SubjectsPage() {
             </div>
           </div>
 
-          {/* Footer Controls */}
-          <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
-            <Link href="/documents">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold rounded-xl border border-border bg-background/60 hover:bg-muted transition cursor-pointer text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Document Ingestion</span>
-              </button>
-            </Link>
-
-            <Link href="/faculty">
-              <button
-                type="button"
-                className="flex items-center space-x-2 px-6 py-2.5 text-xs font-bold rounded-xl tt-gradient-btn text-white shadow-lg hover:scale-105 transition cursor-pointer"
-              >
-                <span>Faculty Setup</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </Link>
-          </div>
+          {/* Footer Navigation with Scrolling Overscroll Transition */}
+          <WizardFooter
+            prevHref="/documents"
+            nextHref="/faculty"
+            nextLabel="Next: Faculty"
+          />
 
         </div>
       </div>

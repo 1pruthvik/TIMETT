@@ -215,12 +215,26 @@ export default function DocumentsPage() {
             { code: "BCV503L", name: "Concrete Technology Laboratory", category: "practical", weekly_hours: 2 },
           ],
         },
+        CH: {
+          theory: [
+            { code: "BCH501", name: "Industrial Process Management", category: "theory", weekly_hours: 3 },
+            { code: "BCH502", name: "Chemical Reaction Engineering", category: "theory", weekly_hours: 3 },
+            { code: "BCH503", name: "Mass Transfer Operations-I", category: "theory", weekly_hours: 4 },
+            { code: "BCH515x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+            { code: "BRMK557", name: "Research Methodology and IPR", category: "theory", weekly_hours: 3 },
+            { code: "BESK508", name: "Environmental Studies", category: "theory", weekly_hours: 2 },
+          ],
+          practical: [
+            { code: "BCHL504", name: "Mass Transfer Operations Lab-1", category: "practical", weekly_hours: 2 },
+            { code: "BCH502L", name: "Chemical Reaction Engineering Laboratory", category: "practical", weekly_hours: 2 },
+          ],
+        },
       };
 
       if (savedSubjects) {
         try {
           const parsed = JSON.parse(savedSubjects);
-          // Ensure CSE, CSE-AIML, CSE-DS, ECE, EEE, ISE, AI&DS, ME, and CIV are set to 5th semester subjects
+          // Ensure CSE, CSE-AIML, CSE-DS, ECE, EEE, ISE, AI&DS, ME, CIV, and CH are set to 5th semester subjects
           const merged = {
             ...parsed,
             CSE: initialMap.CSE,
@@ -235,6 +249,9 @@ export default function DocumentsPage() {
             CIV: initialMap.CIV,
             CIVIL: initialMap.CIVIL,
             CV: initialMap.CIV,
+            CH: initialMap.CH,
+            CHE: initialMap.CH,
+            CHEMICAL: initialMap.CH,
           };
           setCourseSubjectsMap(merged);
           localStorage.setItem("vtu_course_subjects_map", JSON.stringify(merged));

@@ -222,41 +222,120 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
 
     # 1. Handle CSV / Excel file uploads (.csv, .xlsx, .xls)
     if ext in ["csv", "xlsx", "xls"]:
-        try:
-            import pandas as pd
-            if ext == "csv":
+        records: list[dict] = []
+        if ext == "csv":
+            try:
+                import pandas as pd
                 df = pd.read_csv(io.BytesIO(content))
-            else:
+                records = df.to_dict(orient="records")
+            except Exception:
+                csv_text = content.decode("utf-8", errors="ignore")
+                csv_lines = [l.strip() for l in csv_text.splitlines() if l.strip()]
+                if csv_lines:
+                    headers = [h.strip().lower() for h in csv_lines[0].split(",")]
+                    for l in csv_lines[1:]:
+                        vals = [v.strip() for v in l.split(",")]
+                        records.append({headers[i]: vals[i] if i < len(vals) else "" for i in range(len(headers))})
+        else:
+            # Excel (.xlsx, .xls)
+            # Try 1: pandas read_excel
+            try:
+                import pandas as pd
                 df = pd.read_excel(io.BytesIO(content))
-            
-            cols = {str(c).lower().strip(): c for c in df.columns}
-            name_col = next((cols[k] for k in cols if "name" in k or "faculty" in k or "teacher" in k), df.columns[0])
-            dept_col = next((cols[k] for k in cols if "dept" in k or "department" in k or "branch" in k), None)
-            desg_col = next((cols[k] for k in cols if "desg" in k or "designation" in k or "role" in k or "title" in k), None)
-            subj_col = next((cols[k] for k in cols if "subj" in k or "course" in k or "proficien" in k or "special" in k), None)
+                records = df.to_dict(orient="records")
+            except Exception as e1:
+                print("pandas read_excel error:", e1)
+                # Try 2: openpyxl
+                try:
+                    import openpyxl
+                    wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+                    ws = wb.active
+                    rows = list(ws.iter_rows(values_only=True))
+                    if rows:
+                        headers = [str(h).strip() if h is not None else f"col_{i}" for i, h in enumerate(rows[0])]
+                        for r in rows[1:]:
+                            records.append({headers[i]: r[i] if i < len(r) else "" for i in range(len(headers))})
+                except Exception as e2:
+                    print("openpyxl load_workbook error:", e2)
+                    # Try 3: native zipfile + XML parse for .xlsx
+                    try:
+                        import zipfile
+                        import xml.etree.ElementTree as ET
+
+                        with zipfile.ZipFile(io.BytesIO(content)) as z:
+                            shared_strings = []
+                            if "xl/sharedStrings.xml" in z.namelist():
+                                ss_tree = ET.fromstring(z.read("xl/sharedStrings.xml"))
+                                for si in ss_tree.findall("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}si"):
+                                    t_el = si.find("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}t")
+                                    if t_el is not None and t_el.text:
+                                        shared_strings.append(t_el.text)
+                                    else:
+                                        texts = [t.text for t in si.findall(".//{http://schemas.openxmlformats.org/spreadsheetml/2006/main}t") if t.text]
+                                        shared_strings.append("".join(texts))
+
+                            sheet_name = "xl/worksheets/sheet1.xml"
+                            if sheet_name not in z.namelist():
+                                sheet_names = [n for n in z.namelist() if n.startswith("xl/worksheets/sheet")]
+                                sheet_name = sheet_names[0] if sheet_names else ""
+
+                            if sheet_name:
+                                sheet_tree = ET.fromstring(z.read(sheet_name))
+                                rows_data = []
+                                for row_el in sheet_tree.findall(".//{http://schemas.openxmlformats.org/spreadsheetml/2006/main}row"):
+                                    row_vals = []
+                                    for cell_el in row_el.findall("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}c"):
+                                        val_type = cell_el.get("t")
+                                        v_el = cell_el.find("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}v")
+                                        val = v_el.text if v_el is not None else ""
+                                        if val_type == "s" and val and val.isdigit():
+                                            idx = int(val)
+                                            val = shared_strings[idx] if idx < len(shared_strings) else val
+                                        row_vals.append(str(val))
+                                    if any(row_vals):
+                                        rows_data.append(row_vals)
+
+                                if rows_data:
+                                    headers = [str(h).strip() for h in rows_data[0]]
+                                    for r in rows_data[1:]:
+                                        records.append({headers[i]: r[i] if i < len(r) else "" for i in range(len(headers))})
+                    except Exception as e3:
+                        print("zipfile XML parse error:", e3)
+
+        if records:
+            key_map = {str(k).lower().strip(): k for k in records[0].keys()}
+
+            name_key = next((key_map[k] for k in key_map if "name" in k or "faculty" in k or "teacher" in k or "prof" in k), list(records[0].keys())[0])
+            dept_key = next((key_map[k] for k in key_map if "dept" in k or "department" in k or "branch" in k), None)
+            desg_key = next((key_map[k] for k in key_map if "desg" in k or "designation" in k or "role" in k or "title" in k), None)
+            subj_key = next((key_map[k] for k in key_map if "subj" in k or "course" in k or "proficien" in k or "special" in k), None)
 
             faculties_list: list[FacultyItemModel] = []
-            for _, row in df.iterrows():
-                val_name = str(row[name_col]).strip() if pd.notna(row[name_col]) else ""
-                if not val_name or val_name.lower() in ["nan", "none", "name", "faculty name"]:
+            for row in records:
+                raw_name = str(row.get(name_key, "")).strip()
+                if not raw_name or raw_name.lower() in ["nan", "none", "name", "faculty name", "sl.no", "sl no", "s.no"]:
                     continue
                 
-                val_dept = str(row[dept_col]).strip() if dept_col and pd.notna(row[dept_col]) else "Computer Science & Engineering"
-                val_desg = str(row[desg_col]).strip() if desg_col and pd.notna(row[desg_col]) else "Assistant Professor"
-                val_subjs_raw = str(row[subj_col]).strip() if subj_col and pd.notna(row[subj_col]) else ""
-                
-                subjs = [s.strip() for s in re.split(r"[,;|]", val_subjs_raw) if s.strip() and s.strip().lower() != "nan"]
-                
+                raw_dept = str(row.get(dept_key, "")).strip() if dept_key and row.get(dept_key) is not None else "Computer Science & Engineering"
+                if not raw_dept or raw_dept.lower() in ["nan", "none"]:
+                    raw_dept = "Computer Science & Engineering"
+
+                raw_desg = str(row.get(desg_key, "")).strip() if desg_key and row.get(desg_key) is not None else "Assistant Professor"
+                if not raw_desg or raw_desg.lower() in ["nan", "none"]:
+                    raw_desg = "Assistant Professor"
+
+                raw_subjs = str(row.get(subj_key, "")).strip() if subj_key and row.get(subj_key) is not None else ""
+                subjs = [s.strip() for s in re.split(r"[,;|]", raw_subjs) if s.strip() and s.strip().lower() not in ["nan", "none"]]
+
                 faculties_list.append(FacultyItemModel(
-                    name=val_name,
-                    department=val_dept,
-                    designation=val_desg,
+                    name=raw_name,
+                    department=raw_dept,
+                    designation=raw_desg,
                     proficient_subjects=subjs
                 ))
+
             if faculties_list:
                 return ParsedFacultyResponse(faculties=faculties_list)
-        except Exception as err:
-            print("Excel/CSV parse fallback:", err)
 
     # 2. Text/PDF/Image Parsing Fallback
     extracted_text = ""
@@ -304,6 +383,9 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
     for line in lines:
         line_clean = line.strip()
         if not line_clean or len(line_clean) < 3:
+            continue
+
+        if re.search(r"(\.xml|\[content_types\]|xl/worksheets|rels/|\bPK\b)", line_clean, re.IGNORECASE):
             continue
 
         if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or len(line_clean.split()) <= 6:

@@ -248,6 +248,85 @@ export default function DocumentsPage() {
             ],
           },
         },
+        sem_8: {
+          CSE: {
+            theory: [
+              { code: "1BCS801", name: "Professional Elective-V (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+              { code: "1BCS802", name: "Open Elective-II (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          "CSE-AIML": {
+            theory: [
+              { code: "1BAI801", name: "Professional Elective-V (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+              { code: "1BAI802", name: "Open Elective-II (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          "CSE-DS": {
+            theory: [
+              { code: "1BDS801", name: "Professional Elective-V (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+              { code: "1BDS802", name: "Open Elective-II (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          ECE: {
+            theory: [
+              { code: "BEC801", name: "Professional Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+              { code: "BEC802", name: "Open Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          EEE: {
+            theory: [
+              { code: "BEE801", name: "Professional Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+              { code: "BEE802", name: "Open Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          ME: {
+            theory: [
+              { code: "BME811", name: "Professional Elective -IV (Online Courses)", category: "theory", weekly_hours: 3 },
+              { code: "BME852", name: "Open Elective - III (Online Courses)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          CIV: {
+            theory: [
+              { code: "BCV801", name: "Professional Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+              { code: "BCV802", name: "Open Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          BME: {
+            theory: [
+              { code: "BBM801", name: "Professional Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+              { code: "BBM802", name: "Open Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          CH: {
+            theory: [
+              { code: "BCH801", name: "Professional Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+              { code: "BCH802", name: "Open Elective (Online Courses)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          "AI&DS": {
+            theory: [
+              { code: "1BAD801", name: "Professional Elective-V (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+              { code: "1BAD802", name: "Open Elective-II (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+          ISE: {
+            theory: [
+              { code: "1BIS801", name: "Professional Elective-V (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+              { code: "1BIS802", name: "Open Elective-II (NPTEL/VTU Online Course)", category: "theory", weekly_hours: 3 },
+            ],
+            practical: [],
+          },
+        },
         sem_3: {
           CSE: {
             theory: [
@@ -285,6 +364,20 @@ export default function DocumentsPage() {
       masterMap.sem_7.BME = defaultSemesterTemplates.sem_7.BME;
       masterMap.sem_7.CH = defaultSemesterTemplates.sem_7.CH;
       
+      // Ensure sem_8 contains all 11 streams
+      if (!masterMap.sem_8) masterMap.sem_8 = defaultSemesterTemplates.sem_8;
+      masterMap.sem_8.CSE = defaultSemesterTemplates.sem_8.CSE;
+      masterMap.sem_8["CSE-AIML"] = defaultSemesterTemplates.sem_8["CSE-AIML"];
+      masterMap.sem_8["CSE-DS"] = defaultSemesterTemplates.sem_8["CSE-DS"];
+      masterMap.sem_8.ECE = defaultSemesterTemplates.sem_8.ECE;
+      masterMap.sem_8.EEE = defaultSemesterTemplates.sem_8.EEE;
+      masterMap.sem_8.ME = defaultSemesterTemplates.sem_8.ME;
+      masterMap.sem_8.CIV = defaultSemesterTemplates.sem_8.CIV;
+      masterMap.sem_8.BME = defaultSemesterTemplates.sem_8.BME;
+      masterMap.sem_8.CH = defaultSemesterTemplates.sem_8.CH;
+      masterMap.sem_8["AI&DS"] = defaultSemesterTemplates.sem_8["AI&DS"];
+      masterMap.sem_8.ISE = defaultSemesterTemplates.sem_8.ISE;
+
       if (!masterMap.sem_3) masterMap.sem_3 = defaultSemesterTemplates.sem_3;
 
       setAllSemMap(masterMap);

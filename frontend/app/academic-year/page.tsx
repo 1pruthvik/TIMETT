@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
+import { YearScrollPicker } from "@/components/ui/year-scroll-picker";
 
 export default function AcademicYearPage() {
   const router = useRouter();
@@ -116,21 +117,15 @@ export default function AcademicYearPage() {
 
         {/* Session & Term Details (No suggestion text) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Academic Year */}
+          {/* Academic Year with Scroll Wheel Animation */}
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
               Academic Year
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
-                placeholder="2026 - 2027"
-                className="w-full h-12 px-4 text-base font-semibold rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition"
-              />
-              <Calendar className="absolute right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-            </div>
+            <YearScrollPicker
+              value={academicYear}
+              onChange={(newYear) => setAcademicYear(newYear)}
+            />
           </div>
 
           {/* Academic Level */}

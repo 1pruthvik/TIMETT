@@ -82,6 +82,50 @@ const VTU_PSC_100_OPTIONS = [
   },
 ];
 
+// ── Official VTU Physics Cycle PSC <-> PSCL Pairs (200 Series) ──
+const VTU_PSC_200_OPTIONS = [
+  {
+    psc: { code: "1BCIV205", name: "Engineering Mechanics", dept: "Civil Dept", weekly_hours: 3 },
+    pscl: { code: "1BMEML207", name: "Mechanics and Materials Lab", dept: "Civil Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BBEE205", name: "Basics of Electrical Engineering", dept: "EEE Dept", weekly_hours: 3 },
+    pscl: { code: "1BBEEL207", name: "Basic Electrical Lab", dept: "EEE Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BECE205", name: "Fundamentals of Electronics & Communication Engineering", dept: "ECE Dept", weekly_hours: 3 },
+    pscl: { code: "1BECEL207", name: "Fundamentals of Electronics & Communication Engineering Lab", dept: "ECE Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEME205", name: "Elements of Mechanical Engineering", dept: "ME Dept", weekly_hours: 3 },
+    pscl: { code: "1BEMEL207", name: "Elements of Mechanical Engineering Lab", dept: "ME Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEIT205", name: "Programming in C", dept: "CSE Dept", weekly_hours: 3 },
+    pscl: { code: "1BPOPL207", name: "C Programming Lab", dept: "CSE Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEBT205", name: "Elements of Biotechnology and Biomimetics", dept: "BT Dept", weekly_hours: 3 },
+    pscl: { code: "1BEBTL207", name: "Elements of Biotechnology Lab", dept: "BT Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BSSA205", name: "Principles of Soil Science and Agronomy", dept: "Agri Dept", weekly_hours: 3 },
+    pscl: { code: "1BSSAL207", name: "Soil Science and Agronomy Field Lab", dept: "Agri Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BEAE205", name: "Elements of Aeronautical Engineering", dept: "Aero Dept", weekly_hours: 3 },
+    pscl: { code: "1BEAEL207", name: "Elements of Aeronautical Engineering Lab", dept: "Aero Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BECHE205", name: "Elements of Chemical Engineering", dept: "Chem Dept", weekly_hours: 3 },
+    pscl: { code: "1BECHEL207", name: "Elements of Chemical Engineering Lab", dept: "Chem Dept", weekly_hours: 2 },
+  },
+  {
+    psc: { code: "1BETX205", name: "Technology of Textile", dept: "Textile Dept", weekly_hours: 3 },
+    pscl: { code: "1BETXL207", name: "Technology of Textile Lab", dept: "Textile Dept", weekly_hours: 2 },
+  },
+];
+
 // ── Official VTU Programming Language Courses (100 Series & 200 Series) ──
 const VTU_PLC_100_OPTIONS = [
   {
@@ -125,15 +169,15 @@ function getStreamSpecificSubjects(courseCode: string, isSecondSem: boolean) {
     // ── II SEMESTER (200 Series) ──
     if (upper.includes("EC") || upper === "ECE") {
       return {
-        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform And Numerical Techniques: EEE/ECE stream", l: 3, t: 2 },
+        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE/ECE stream", l: 3, t: 2 },
         chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
-        physics: { code: "1BPHEC202", name: "Quantum Physics and Electronics Sensors (ECE stream)", l: 3, p: 2 },
+        physics: { code: "1BPHEC202", name: "Quantum Physics and Electronic Sensors (ECE stream)", l: 3, p: 2 },
         caed: { code: "1BCEDEC203", name: "Computer-Aided Engineering Drawing for ECE stream", l: 2, p: 2 },
       };
     }
     if (upper === "EEE" || upper.includes("EE")) {
       return {
-        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform And Numerical Techniques: EEE stream", l: 3, t: 2 },
+        maths: { code: "1BMATE201", name: "Calculus, Laplace Transform and Numerical Techniques: EEE stream", l: 3, t: 2 },
         chemistry: { code: "1BCHEE202", name: "Applied Chemistry for Emerging Electronics and Futuristic Devices (EEE, ECE)", l: 3, p: 2 },
         physics: { code: "1BPHEE202", name: "Physics of Electrical Engineering Materials (EEE stream)", l: 3, p: 2 },
         caed: { code: "1BCEDE203", name: "Computer-Aided Engineering Drawing for EEE stream", l: 2, p: 2 },
@@ -311,11 +355,125 @@ export default function DocumentsPage() {
   }, [activeCourseCode, isSecondSem]);
 
   const escOptions = isSecondSem ? VTU_ESC_200_OPTIONS : VTU_ESC_100_OPTIONS;
+  const pscOptions = isSecondSem ? VTU_PSC_200_OPTIONS : VTU_PSC_100_OPTIONS;
   const plcOptions = isSecondSem ? VTU_PLC_200_OPTIONS : VTU_PLC_100_OPTIONS;
 
   const chosenESC = escOptions.find((e) => e.code === currentSelection.escCode);
-  const chosenPSCPair = VTU_PSC_100_OPTIONS.find((p) => p.psc.code === currentSelection.pscCode);
+  const chosenPSCPair = pscOptions.find((p) => p.psc.code === currentSelection.pscCode);
   const chosenPLC = plcOptions.find((p) => p.code === currentSelection.plcCode);
+
+  // Synchronize compiled subjects map for downstream sections & CP-SAT solver
+  useEffect(() => {
+    if (selectedCourses.length === 0) return;
+    const map: Record<string, { theory: any[]; tutorial: any[]; practical: any[] }> = {};
+
+    selectedCourses.forEach((c) => {
+      const isPhys = !isSecondSem
+        ? (c.cycle || "physics") === "physics"
+        : (c.cycle || "physics") === "chemistry";
+
+      const stream = getStreamSpecificSubjects(c.code, isSecondSem);
+      const sel = courseSelections[c.code] || {};
+      const esc = escOptions.find((e) => e.code === sel.escCode);
+      const pscPair = pscOptions.find((p) => p.psc.code === sel.pscCode);
+      const plc = plcOptions.find((p) => p.code === sel.plcCode);
+
+      if (isPhys) {
+        // Physics Group Subjects
+        const theory = [
+          { code: stream.maths.code, name: stream.maths.name, category: "theory", weekly_hours: 3 },
+          { code: stream.physics.code, name: stream.physics.name, category: "theory", weekly_hours: 3 },
+          { code: stream.caed.code, name: stream.caed.name, category: "theory", weekly_hours: 2 },
+          {
+            code: esc ? esc.code : isSecondSem ? "1BESC204x" : "1BESC104x",
+            name: esc ? esc.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)",
+            category: "theory",
+            weekly_hours: 3,
+          },
+          {
+            code: pscPair ? pscPair.psc.code : isSecondSem ? "1Bxxx205x" : "1Bxxx105x",
+            name: pscPair ? pscPair.psc.name : "Programme Specific Course (PSC)",
+            category: "theory",
+            weekly_hours: 3,
+          },
+          { code: isSecondSem ? "1BSKS206" : "1BSKS106", name: "Soft Skills", category: "theory", weekly_hours: 1 },
+          { code: isSecondSem ? "1BKSK209" : "1BKSK109", name: "Samskrutika Kannada / Balake Kannada", category: "theory", weekly_hours: 1 },
+        ];
+
+        const tutorial = [
+          { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, category: "tutorial", weekly_hours: 2 },
+        ];
+
+        const practical = [
+          { code: `${stream.physics.code}-LAB`, name: "Applied Physics Practical Sessions", category: "practical", weekly_hours: 2 },
+          { code: `${stream.caed.code}-LAB`, name: "Computer-Aided Engineering Drawing Lab", category: "practical", weekly_hours: 2 },
+          {
+            code: pscPair ? pscPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x",
+            name: pscPair ? pscPair.pscl.name : "Programme-Specific Course Lab (PSCL)",
+            category: "practical",
+            weekly_hours: 2,
+          },
+          {
+            code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
+            name: isSecondSem ? "Interdisciplinary Project-Based Learning" : "Innovation and Design Thinking Lab (Project-based)",
+            category: "practical",
+            weekly_hours: 2,
+          },
+        ];
+
+        map[c.code] = { theory, tutorial, practical };
+      } else {
+        // Chemistry Group Subjects
+        const theory = [
+          { code: stream.maths.code, name: stream.maths.name, category: "theory", weekly_hours: 3 },
+          { code: stream.chemistry.code, name: stream.chemistry.name, category: "theory", weekly_hours: 3 },
+          { code: isSecondSem ? "1BAIA203" : "1BAIA103", name: "Introduction to AI and Applications", category: "theory", weekly_hours: 3 },
+          {
+            code: esc ? esc.code : isSecondSem ? "1BESC204x" : "1BESC104x",
+            name: esc ? esc.name : isSecondSem ? "Engineering Science Course-II (ESC-II)" : "Engineering Science Course-I (ESC-I)",
+            category: "theory",
+            weekly_hours: 3,
+          },
+          {
+            code: plc ? plc.code : isSecondSem ? "1BPLC205x" : "1BPLC105x",
+            name: plc ? plc.name : "Programming Language Course (PLC)",
+            category: "theory",
+            weekly_hours: 3,
+          },
+          { code: isSecondSem ? "1BENG206" : "1BENG106", name: "Communication Skills", category: "theory", weekly_hours: 1 },
+          { code: isSecondSem ? "1BICO207" : "1BICO107", name: "Indian Constitution & Engineering Ethics", category: "theory", weekly_hours: 1 },
+        ];
+
+        const tutorial = [
+          { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, category: "tutorial", weekly_hours: 2 },
+        ];
+
+        const practical = [
+          { code: `${stream.chemistry.code}-LAB`, name: "Applied Chemistry Laboratory", category: "practical", weekly_hours: 2 },
+          {
+            code: plc ? plc.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB",
+            name: plc ? plc.labName : "Programming Language Practice Lab",
+            category: "practical",
+            weekly_hours: 2,
+          },
+          {
+            code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
+            name: isSecondSem ? "Interdisciplinary Project-Based Learning" : "Innovation and Design Thinking Lab (Project-based)",
+            category: "practical",
+            weekly_hours: 2,
+          },
+        ];
+
+        map[c.code] = { theory, tutorial, practical };
+      }
+    });
+
+    try {
+      localStorage.setItem("vtu_course_subjects_map", JSON.stringify(map));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [selectedCourses, courseSelections, isSecondSem]);
 
   return (
     <AppShell>
@@ -518,7 +676,7 @@ export default function DocumentsPage() {
                     className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-primary/30 bg-background outline-none cursor-pointer focus:ring-1 focus:ring-primary"
                   >
                     <option value="">-- Choose PSC Course --</option>
-                    {VTU_PSC_100_OPTIONS.map((opt) => (
+                    {pscOptions.map((opt) => (
                       <option key={opt.psc.code} value={opt.psc.code}>
                         {opt.psc.code} — {opt.psc.name} ({opt.psc.dept})
                       </option>

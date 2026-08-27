@@ -67,15 +67,16 @@ export default function DocumentsPage() {
       const initialMap = {
         CSE: {
           theory: [
-            { code: "1BCS501", name: "Software Engineering and Project Management", category: "theory", weekly_hours: 3 },
-            { code: "1BCS502", name: "Machine Learning", category: "theory", weekly_hours: 3 },
-            { code: "1BCS503", name: "Theory of Computation", category: "theory", weekly_hours: 4 },
-            { code: "1BCS504", name: "Computer Vision", category: "theory", weekly_hours: 3 },
-            { code: "1BXX505x", name: "Professional Elective Course-I", category: "theory", weekly_hours: 3 },
+            { code: "1BCS601", name: "Advanced Java Programming", category: "theory", weekly_hours: 3 },
+            { code: "1BCS602", name: "Cryptography and Network Security", category: "theory", weekly_hours: 3 },
+            { code: "1BCS603", name: "High Performance Computing", category: "theory", weekly_hours: 3 },
+            { code: "1BCS604", name: "Internet of Things", category: "theory", weekly_hours: 3 },
+            { code: "1BXX605x", name: "Professional Elective Courses-II", category: "theory", weekly_hours: 3 },
           ],
           practical: [
-            { code: "1BCSL507", name: "Web Technology Laboratory", category: "practical", weekly_hours: 2 },
-            { code: "1BCS502L", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "1BCSL606", name: "IoT laboratory", category: "practical", weekly_hours: 2 },
+            { code: "1BXXL607x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+            { code: "1BCS601L", name: "Advanced Java Programming Laboratory", category: "practical", weekly_hours: 2 },
           ],
         },
         "CSE-AIML": {

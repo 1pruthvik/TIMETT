@@ -28,13 +28,11 @@ import { TimettLogo } from "@/components/ui/timett-logo";
 import { cn } from "@/lib/utils";
 
 const RESOURCE_SUB_NAV = [
-  { label: "Document Ingestion", href: "/documents", icon: FileText },
-  { label: "Academic Terms", href: "/academic-terms", icon: CalendarRange },
-  { label: "Departments", href: "/departments", icon: Building2 },
-  { label: "Rooms & Labs", href: "/rooms", icon: DoorOpen },
-  { label: "Subjects", href: "/subjects", icon: BookOpen },
-  { label: "Faculty", href: "/faculty", icon: Users },
-  { label: "Time Slots", href: "/time-slots", icon: Clock },
+  { label: "1. Academic Year & Type", href: "/academic-year", icon: CalendarRange },
+  { label: "2. Courses & Intake", href: "/courses", icon: Building2 },
+  { label: "3. Scheme & Subjects", href: "/documents", icon: FileText },
+  { label: "4. Department Faculties", href: "/faculties", icon: Users },
+  { label: "5. Sections & Durations", href: "/sections", icon: Layers3 },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -53,13 +51,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isResourcePage = [
+    "/academic-year",
+    "/courses",
     "/documents",
-    "/academic-terms",
-    "/departments",
-    "/rooms",
-    "/subjects",
-    "/faculty",
-    "/time-slots",
+    "/faculties",
+    "/sections",
   ].some((p) => pathname.startsWith(p));
 
   const handleMouseEnter = () => {
@@ -175,7 +171,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => {
                   setResDropdownOpen((v) => !v);
-                  if (!isResourcePage) router.push("/academic-terms");
+                  if (!isResourcePage) router.push("/academic-year");
                 }}
                 className={cn(
                   "flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap cursor-pointer",

@@ -2,508 +2,375 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { useRouter } from "next/navigation";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  GraduationCap,
-  RefreshCw,
+  Layers3,
+  Clock,
   Sparkles,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
   Building2,
-  DoorOpen,
-  Sliders,
+  Users,
+  Calendar,
   Layers,
-  FlaskConical,
 } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-interface Section {
-  id: number;
-  name: string;
-  department_id: number;
-  student_count?: number;
-}
-
-interface Department {
-  id: number;
-  name: string;
-}
-
-interface Room {
-  id: number;
-  name: string;
-  room_type?: string;
-}
+import { AppShell } from "@/components/layout/app-shell";
+import { WizardFooter } from "@/components/ui/wizard-footer";
 
 export default function SectionsPage() {
-  const [sections, setSections] = useState<Section[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [sectionRoomMap, setSectionRoomMap] = useState<Record<number, number>>({});
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Create Modal
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [departmentId, setDepartmentId] = useState<number | "">("");
-  const [studentCount, setStudentCount] = useState("60");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  // Section & Room Capacities
+  const [roomCapacity, setRoomCapacity] = useState(60);
+  const [labCapacity, setLabCapacity] = useState(30);
+  const [coincidedLabGroup, setCoincidedLabGroup] = useState("CS Central Lab Facility");
 
-  // Edit Modal
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingSection, setEditingSection] = useState<Section | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
-  const [editStudentCount, setEditStudentCount] = useState("60");
-  const [submittingEdit, setSubmittingEdit] = useState(false);
-  const [editError, setEditError] = useState("");
+  // Slot Durations
+  const [theoryMin, setTheoryMin] = useState(50);
+  const [labMin, setLabMin] = useState(100);
+  const [lunchBreakStart, setLunchBreakStart] = useState("13:00");
+  const [lunchBreakDuration, setLunchBreakDuration] = useState(60);
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const storedUser = localStorage.getItem("user");
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      const userInstId = user?.institution_id || 1;
+  // Computed data
+  const [totalStudents, setTotalStudents] = useState(180);
+  const [activeSubjectsCount, setActiveSubjectsCount] = useState(6);
 
-      const [deptRes, secRes, roomRes] = await Promise.all([
-        fetch(`${API_BASE}/departments/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/sections/?institution_id=${userInstId}`).catch(() => null),
-        fetch(`${API_BASE}/rooms/?institution_id=${userInstId}`).catch(() => null),
-      ]);
-
-      if (deptRes && deptRes.ok) {
-        const depts = await deptRes.json();
-        setDepartments(depts);
-        if (depts.length > 0 && !departmentId) {
-          setDepartmentId(depts[0].id);
-        }
-      }
-
-      if (secRes && secRes.ok) {
-        setSections(await secRes.json());
-      }
-
-      if (roomRes && roomRes.ok) {
-        setRooms(await roomRes.json());
-      }
-
-      const savedMap = localStorage.getItem(`timett_room_mapping_${userInstId}`);
-      if (savedMap) {
-        setSectionRoomMap(JSON.parse(savedMap));
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to connect to backend API.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Generator State
+  const [generating, setGenerating] = useState(false);
+  const [genStatus, setGenStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
+    try {
+      const savedCap = localStorage.getItem("vtu_room_capacity_config");
+      if (savedCap) {
+        const parsed = JSON.parse(savedCap);
+        if (parsed.roomCapacity) setRoomCapacity(parsed.roomCapacity);
+        if (parsed.labCapacity) setLabCapacity(parsed.labCapacity);
+        if (parsed.coincidedLabGroup) setCoincidedLabGroup(parsed.coincidedLabGroup);
+      }
+
+      const savedSlot = localStorage.getItem("vtu_slot_duration_config");
+      if (savedSlot) {
+        const parsed = JSON.parse(savedSlot);
+        if (parsed.theoryMin) setTheoryMin(parsed.theoryMin);
+        if (parsed.labMin) setLabMin(parsed.labMin);
+      }
+
+      const savedCourses = localStorage.getItem("vtu_college_offered_courses");
+      if (savedCourses) {
+        const parsed = JSON.parse(savedCourses);
+        const selected = parsed.filter((c: any) => c.selected);
+        const total = selected.reduce((sum: number, c: any) => sum + (c.studentCount || 0), 0);
+        setTotalStudents(total || 180);
+      }
+
+      const savedSubjs = localStorage.getItem("vtu_course_subjects_map");
+      if (savedSubjs) {
+        const parsed = JSON.parse(savedSubjs);
+        let count = 0;
+        Object.values(parsed).forEach((val: any) => {
+          count += (val.theory?.length || 0) + (val.practical?.length || 0);
+        });
+        if (count > 0) setActiveSubjectsCount(count);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
-  const handleAddSection = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !departmentId) return;
+  const saveAllConfigs = () => {
+    try {
+      localStorage.setItem(
+        "vtu_room_capacity_config",
+        JSON.stringify({ roomCapacity, labCapacity, coincidedLabGroup })
+      );
+      localStorage.setItem(
+        "vtu_slot_duration_config",
+        JSON.stringify({ theoryMin, labMin, lunchBreakStart, lunchBreakDuration })
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-    setSubmitting(true);
-    setError("");
+  const calculatedSections = Math.ceil(totalStudents / Math.max(1, roomCapacity));
+  const calculatedBatchesPerSec = Math.ceil((roomCapacity || 60) / Math.max(1, labCapacity));
+
+  const handleRunGenerator = async () => {
+    saveAllConfigs();
+    setGenerating(true);
+    setGenStatus(null);
 
     try {
-      const res = await fetch(`${API_BASE}/sections/`, {
+      const res = await fetch("http://127.0.0.1:8000/generator/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          department_id: Number(departmentId),
-          student_count: parseInt(studentCount) || 60,
-        }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to add section");
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        setGenStatus("Timetable successfully generated with 0 hard conflicts! Redirecting to studio...");
+        setTimeout(() => {
+          router.push("/timetable");
+        }, 1200);
+      } else {
+        setGenStatus(`Optimization message: ${data.message || "Solver finished"}`);
       }
-
-      setName("");
-      setStudentCount("60");
-      setOpen(false);
-      await fetchData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error creating section");
+      setGenStatus("Solver initiated. Opening studio view...");
+      setTimeout(() => {
+        router.push("/timetable");
+      }, 1500);
     } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const openEditModal = (section: Section) => {
-    setEditingSection(section);
-    setEditName(section.name);
-    setEditDepartmentId(section.department_id);
-    setEditStudentCount((section.student_count || 60).toString());
-    setEditError("");
-    setEditOpen(true);
-  };
-
-  const handleUpdateSection = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSection || !editName.trim() || !editDepartmentId) return;
-
-    setSubmittingEdit(true);
-    setEditError("");
-
-    try {
-      const res = await fetch(`${API_BASE}/sections/${editingSection.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          department_id: Number(editDepartmentId),
-          student_count: parseInt(editStudentCount) || 60,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to update section");
-      }
-
-      setEditOpen(false);
-      await fetchData();
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Error updating section");
-    } finally {
-      setSubmittingEdit(false);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this section?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/sections/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setSections((prev) => prev.filter((s) => s.id !== id));
-      }
-    } catch (err) {
-      console.error("Failed to delete section", err);
+      setGenerating(false);
     }
   };
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-7xl mx-auto tt-animate-fade">
-        <PageHeader
-          title="Student Sections & Lab Cohorts"
-          icon={GraduationCap}
-        >
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={fetchData}
-            className="size-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-foreground cursor-pointer"
-            title="Refresh sections"
-          >
-            <RefreshCw className={`size-4 ${loading ? "animate-spin text-[#0070F3]" : ""}`} />
-          </Button>
-
-          <Link href="/departments">
-            <Button variant="outline" className="h-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-5 text-sm font-bold text-foreground cursor-pointer gap-2 transition-all hover:scale-105">
-              <Building2 className="size-4 text-[#0070F3]" />
-              Manage via Department
-            </Button>
-          </Link>
-
-          <Link href="/rooms">
-            <Button variant="outline" className="h-11 rounded-2xl border border-black/[0.08] dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-5 text-sm font-bold text-foreground cursor-pointer gap-2 transition-all hover:scale-105">
-              <DoorOpen className="size-4 text-[#0070F3]" />
-              Facility Mapping
-            </Button>
-          </Link>
-
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="tt-gradient-btn h-11 rounded-2xl gap-2 font-bold px-5 text-sm cursor-pointer shadow-lg hover:scale-105 transition-all">
-                <Plus className="size-4" /> Add Custom Cohort
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-              <DialogHeader>
-                <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                  <Sparkles className="size-4" />
-                  <span className="tt-eyebrow">Cohort Identifier</span>
-                </div>
-                <DialogTitle className="text-xl font-bold text-foreground">
-                  Add Section / Cohort
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Create a custom division or cohort within a department.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleAddSection} className="space-y-4 pt-2">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Section / Cohort Identifier *
-                  </label>
-                  <Input
-                    placeholder="e.g. CSE 6A, ME 4B, or Lab Batch 1"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Department *
-                  </label>
-                  <select
-                    className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(Number(e.target.value))}
-                    required
-                  >
-                    {departments.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Student Strength / Count
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={studentCount}
-                    onChange={(e) => setStudentCount(e.target.value)}
-                    className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
-                  />
-                </div>
-
-                {error && <p className="text-xs text-red-500">{error}</p>}
-
-                <DialogFooter className="pt-2">
-                  <Button
-                    type="submit"
-                    disabled={submitting || !name.trim() || !departmentId}
-                    className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
-                  >
-                    {submitting ? "Adding..." : "Save Cohort"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </PageHeader>
-
-        {/* Edit Section Modal */}
-        <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent className="sm:max-w-[420px] rounded-3xl bg-card/95 backdrop-blur-2xl p-6 border-0">
-            <DialogHeader>
-              <div className="flex items-center gap-2 text-[#0070F3] mb-1">
-                <Pencil className="size-4" />
-                <span className="tt-eyebrow">Modify Cohort</span>
-              </div>
-              <DialogTitle className="text-xl font-bold text-foreground">
-                Edit Section
-              </DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleUpdateSection} className="space-y-4 pt-2">
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Cohort Identifier *
-                </label>
-                <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  required
-                  className="h-11 px-4 rounded-xl bg-muted/40 border-0"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Department *
-                </label>
-                <select
-                  className="w-full h-11 rounded-xl bg-muted/40 px-3 text-sm text-foreground focus:outline-none cursor-pointer border-0"
-                  value={editDepartmentId}
-                  onChange={(e) => setEditDepartmentId(Number(e.target.value))}
-                  required
-                >
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Student Strength
-                </label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={editStudentCount}
-                  onChange={(e) => setEditStudentCount(e.target.value)}
-                  className="h-11 px-4 rounded-xl bg-muted/40 font-mono border-0 text-center"
-                />
-              </div>
-
-              {editError && <p className="text-xs text-red-500">{editError}</p>}
-
-              <DialogFooter className="pt-2">
-                <Button
-                  type="submit"
-                  disabled={submittingEdit || !editName.trim() || !editDepartmentId}
-                  className="tt-gradient-btn h-11 rounded-2xl font-bold w-full"
-                >
-                  {submittingEdit ? "Updating..." : "Update Section"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* ── Unboxed, Spread Cohort Layout ── */}
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
-            <h3 className="text-lg font-bold text-foreground">Active Cohort Roster</h3>
-            <span className="text-xs font-semibold text-muted-foreground">
-              {sections.length} Sections
-            </span>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
+        
+        {/* Page Hero Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center space-x-2.5">
+              <span className="px-3 py-1 text-xs font-mono font-bold rounded-full bg-primary/10 text-primary border border-primary/20">
+                Step 5 of 5
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                VTU Institutional Flow
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+              Section Calculation, Lab Coinciding & Period Durations
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-3xl">
+              Configure room capacities, parallel practical lab sub-batches ($B_1, B_2$), shared coincided facilities, and standard daily period durations.
+            </p>
           </div>
 
-          <div>
-            {loading ? (
-              <LoadingState text="Loading sections database..." />
-            ) : sections.length === 0 ? (
-              <EmptyState
-                icon={GraduationCap}
-                title="No sections found"
-                description='Use the "Manage via Department" button above to auto-generate sections & labs per semester.'
-              />
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b border-black/[0.06] dark:border-white/[0.06] hover:bg-transparent">
-                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-20">Sl. No.</TableHead>
-                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Section / Cohort Identifier</TableHead>
-                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Category</TableHead>
-                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Department</TableHead>
-                    <TableHead className="text-center text-xs font-bold text-muted-foreground">Designated Facility</TableHead>
-                    <TableHead className="text-center text-xs font-bold text-muted-foreground w-28">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sections.map((sec, index) => {
-                    const deptName =
-                      departments.find((d) => d.id === sec.department_id)?.name ||
-                      `Dept #${sec.department_id}`;
-                    const isLab = sec.name.toLowerCase().includes("lab");
-                    const mappedRoomId = sectionRoomMap[sec.id];
-                    const mappedRoom = rooms.find((r) => r.id === mappedRoomId);
-
-                    return (
-                      <TableRow key={sec.id} className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground py-4">
-                          #{index + 1}
-                        </TableCell>
-                        <TableCell className="text-center font-bold text-sm text-foreground py-4">
-                          {sec.name}
-                        </TableCell>
-                        <TableCell className="text-center py-4">
-                          {isLab ? (
-                            <span className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-amber-400">
-                              <FlaskConical className="size-3.5" /> Practical Lab
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-[#0070F3]">
-                              <GraduationCap className="size-3.5" /> Theory Section
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center text-xs font-medium text-muted-foreground py-4">
-                          {deptName}
-                        </TableCell>
-                        <TableCell className="text-center py-4">
-                          {mappedRoom ? (
-                            <span className="font-mono text-xs font-bold text-foreground">
-                              {mappedRoom.name}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">Dynamic Allocation</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center py-4">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
-                              onClick={() => openEditModal(sec)}
-                              title="Edit section"
-                            >
-                              <Pencil className="size-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
-                              onClick={() => handleDelete(sec.id)}
-                              title="Delete section"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={handleRunGenerator}
+              disabled={generating}
+              className="px-7 py-3 text-sm font-extrabold rounded-2xl bg-gradient-to-r from-primary via-[#00A3FF] to-primary text-white shadow-xl hover:scale-105 disabled:opacity-50 transition cursor-pointer flex items-center space-x-2.5"
+            >
+              {generating ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              <span>{generating ? "Solving Constraints..." : "Generate Conflict-Free Timetable"}</span>
+            </button>
           </div>
         </div>
+
+        {/* Live Capacity Metrics Grid (Spread Across the Entire Page) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Total Enrolled Students
+            </p>
+            <p className="text-3xl font-extrabold text-primary font-mono">{totalStudents}</p>
+            <p className="text-[11px] text-muted-foreground">Across all active programs</p>
+          </div>
+
+          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Computed Class Sections
+            </p>
+            <p className="text-3xl font-extrabold text-primary font-mono">{calculatedSections}</p>
+            <p className="text-[11px] text-muted-foreground">Section A, B, C...</p>
+          </div>
+
+          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Lab Batches / Section
+            </p>
+            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{calculatedBatchesPerSec}</p>
+            <p className="text-[11px] text-muted-foreground">Batches B1, B2 (Coinciding)</p>
+          </div>
+
+          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Active Curriculum Subjects
+            </p>
+            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{activeSubjectsCount}</p>
+            <p className="text-[11px] text-muted-foreground">Extracted from VTU Scheme</p>
+          </div>
+        </div>
+
+        {genStatus && (
+          <div
+            className={`p-4 rounded-2xl flex items-center space-x-3 text-sm font-semibold tt-animate-fade ${
+              genStatus.includes("successfully") || genStatus.includes("0 hard conflicts")
+                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-md"
+                : "bg-primary/10 text-primary border border-primary/20"
+            }`}
+          >
+            {genStatus.includes("successfully") || genStatus.includes("0 hard conflicts") ? (
+              <CheckCircle2 className="h-5 w-5 shrink-0" />
+            ) : (
+              <Sparkles className="h-5 w-5 shrink-0" />
+            )}
+            <span>{genStatus}</span>
+          </div>
+        )}
+
+        {/* 2-Column Wide Configuration Settings */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Room & Lab Architecture */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-8 space-y-6">
+            <div className="border-b border-border/50 pb-3">
+              <h2 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
+                <Building2 className="h-4 w-4" />
+                <span>Classroom & Lab Capacity Architecture</span>
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                  Classroom Capacity (Students per Section)
+                </label>
+                <input
+                  type="number"
+                  value={roomCapacity}
+                  onChange={(e) => setRoomCapacity(Number(e.target.value))}
+                  className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <span className="text-[11px] text-muted-foreground block">
+                  VTU standard: 60 students per classroom section
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                  Lab Batch Capacity ($C$ Students per Lab Batch)
+                </label>
+                <input
+                  type="number"
+                  value={labCapacity}
+                  onChange={(e) => setLabCapacity(Number(e.target.value))}
+                  className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <span className="text-[11px] text-muted-foreground block">
+                  VTU standard: 30 students per practical batch (B1 & B2 run in parallel)
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                  Coinciding / Shared Lab Facility Name
+                </label>
+                <input
+                  type="text"
+                  value={coincidedLabGroup}
+                  onChange={(e) => setCoincidedLabGroup(e.target.value)}
+                  placeholder="e.g. CS Central Computing Lab"
+                  className="w-full h-12 px-4 text-sm font-medium rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <span className="text-[11px] text-muted-foreground block">
+                  Assigns parallel batches to synchronized or specialized laboratory facilities.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Period Durations & Timings */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-8 space-y-6">
+            <div className="border-b border-border/50 pb-3">
+              <h2 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
+                <Clock className="h-4 w-4" />
+                <span>Period Durations & Schedule Grid</span>
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                    Theory Duration
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={theoryMin}
+                      onChange={(e) => setTheoryMin(Number(e.target.value))}
+                      className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                      min
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground block">50 min standard period</span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                    Practical Lab Duration
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={labMin}
+                      onChange={(e) => setLabMin(Number(e.target.value))}
+                      className="w-full h-12 px-4 text-sm font-mono font-bold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                      min
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground block">100 min double-block</span>
+                </div>
+              </div>
+
+              {/* Standard Daily Timings Grid */}
+              <div className="p-4 rounded-xl border border-border/60 bg-muted/20 space-y-2.5">
+                <p className="text-xs font-bold text-foreground flex items-center space-x-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
+                  <span>College Daily Operational Timetable Structure</span>
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
+                    <span className="text-[10px] text-muted-foreground block">Period 1</span>
+                    <span className="font-mono font-bold text-foreground">09:00 - 09:50</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
+                    <span className="text-[10px] text-muted-foreground block">Period 2</span>
+                    <span className="font-mono font-bold text-foreground">09:50 - 10:40</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
+                    <span className="text-[10px] text-muted-foreground block">Tea Break</span>
+                    <span className="font-mono text-muted-foreground">10:40 - 10:55</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
+                    <span className="text-[10px] text-muted-foreground block">Period 3</span>
+                    <span className="font-mono font-bold text-foreground">10:55 - 11:45</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
+                    <span className="text-[10px] text-muted-foreground block">Period 4 (Lab 1)</span>
+                    <span className="font-mono font-bold text-primary">11:45 - 12:35</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-background border border-border/50 text-center">
+                    <span className="text-[10px] text-muted-foreground block">Period 5 (Lab 2)</span>
+                    <span className="font-mono font-bold text-primary">12:35 - 13:25</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Footer Navigation with Scrolling Overscroll Transition */}
+        <WizardFooter
+          prevHref="/faculties"
+          onGenerate={handleRunGenerator}
+          generating={generating}
+        />
+
       </div>
     </AppShell>
   );

@@ -12,6 +12,8 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  FileText,
+  Clock,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -66,6 +68,23 @@ export default function DocumentsPage() {
       const savedSubjects = localStorage.getItem("vtu_course_subjects_map");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
+      } else {
+        const initialMap = {
+          CSE: {
+            theory: [
+              { code: "1BMATCS301", name: "Mathematics for Computer Science", category: "theory", weekly_hours: 4 },
+              { code: "1BCS302", name: "Digital Design & Computer Organization", category: "theory", weekly_hours: 4 },
+              { code: "1BCS303", name: "Operating Systems Architecture", category: "theory", weekly_hours: 4 },
+              { code: "1BCS304", name: "Data Structures and Applications", category: "theory", weekly_hours: 4 },
+            ],
+            practical: [
+              { code: "1BCSL305", name: "Data Structures Laboratory", category: "practical", weekly_hours: 3 },
+              { code: "1BCSL306", name: "Object Oriented Java Lab", category: "practical", weekly_hours: 3 },
+            ],
+          },
+        };
+        setCourseSubjectsMap(initialMap as any);
+        localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -177,264 +196,260 @@ export default function DocumentsPage() {
 
   return (
     <AppShell>
-      <div className="min-h-[calc(100vh-140px)] w-full flex flex-col items-center justify-center p-4 sm:p-6 tt-animate-fade">
-        <div className="relative w-full max-w-4xl rounded-2xl border border-border bg-card/85 backdrop-blur-xl shadow-2xl overflow-hidden my-4">
-          
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-border px-6 py-5 bg-muted/20">
-            <div className="flex items-center space-x-3.5">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-xs">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
-                  Automated Timetable Setup Wizard
-                </h2>
-                <p className="text-xs text-muted-foreground font-medium">
-                  Step 3 of 5 — VTU Institutional Flow
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono px-3 py-1 rounded-full bg-primary/10 text-primary font-bold">
-                Document Ingestion
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
+        
+        {/* Page Hero Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center space-x-2.5">
+              <span className="px-3 py-1 text-xs font-mono font-bold rounded-full bg-primary/10 text-primary border border-primary/20">
+                Step 3 of 5
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                VTU Institutional Flow
               </span>
             </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+              VTU Scheme Document Upload & Subject Ingestion
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-3xl">
+              Upload official VTU syllabus scheme files or snapshots. The OCR pipeline extracts subject codes, courses, and automatically separates them into Theory and Practical laboratory classes.
+            </p>
           </div>
 
-          {/* Wizard Progress Bar */}
-          <div className="w-full bg-muted/40 h-1">
-            <div
-              className="bg-gradient-to-r from-primary to-[#00A3FF] h-full transition-all duration-500 shadow-[0_0_12px_rgba(0,102,255,0.8)]"
-              style={{ width: "60%" }}
-            />
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowAddSubj(!showAddSubj)}
+              className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Subject Manually</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Course Selector Tabs Bar */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Select Active Course Scheme
+            </h2>
+            <span className="text-xs font-mono text-primary font-bold">
+              {activeData.theory.length} Theory + {activeData.practical.length} Practical Labs
+            </span>
           </div>
 
-          {/* Body Content */}
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
-              <div>
-                <h3 className="text-base sm:text-lg font-bold text-foreground">
-                  3. VTU Scheme Document Upload & Subject Ingestion
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Upload VTU Scheme PDF/DOCX or photos. Subjects are auto-segregated into Theory & Practical Labs.
-                </p>
-              </div>
+          <div className="flex flex-wrap gap-2.5 pb-2">
+            {selectedCourses.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => setActiveCourseCode(c.code)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
+                  activeCourseCode === c.code
+                    ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30"
+                    : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <span>{c.code}</span>
+                <span className="text-[10px] opacity-75 font-mono">({c.studentCount} students)</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Manual Subject Form */}
+        {showAddSubj && (
+          <form
+            onSubmit={handleAddManualSubject}
+            className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-primary">Add Subject for {activeCourseCode}</h3>
               <button
                 type="button"
-                onClick={() => setShowAddSubj(!showAddSubj)}
-                className="px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/15 text-primary text-xs font-bold flex items-center space-x-1.5 self-start cursor-pointer transition"
+                onClick={() => setShowAddSubj(false)}
+                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span>Add Subject</span>
+                Close
               </button>
             </div>
-
-            {/* Course Selection Tabs */}
-            <div className="flex flex-wrap gap-2 pb-1 border-b border-border/40">
-              {selectedCourses.map((c) => (
-                <button
-                  key={c.code}
-                  type="button"
-                  onClick={() => setActiveCourseCode(c.code)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
-                    activeCourseCode === c.code
-                      ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30"
-                      : "bg-muted/40 text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <span>{c.code}</span>
-                  <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Manual Subject Form */}
-            {showAddSubj && (
-              <form
-                onSubmit={handleAddManualSubject}
-                className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 tt-animate-fade"
-              >
-                <p className="text-xs font-bold text-primary">Add Subject for {activeCourseCode}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Code (e.g. 1BCS304)"
-                    value={newSubjCode}
-                    onChange={(e) => setNewSubjCode(e.target.value)}
-                    className="h-10 px-3 text-xs rounded-lg border bg-background"
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Subject Name"
-                    value={newSubjName}
-                    onChange={(e) => setNewSubjName(e.target.value)}
-                    className="h-10 px-3 text-xs rounded-lg border bg-background sm:col-span-2"
-                    required
-                  />
-                  <select
-                    value={newSubjCategory}
-                    onChange={(e) => {
-                      const cat = e.target.value as "theory" | "practical";
-                      setNewSubjCategory(cat);
-                      setNewSubjHours(cat === "practical" ? 3 : 4);
-                    }}
-                    className="h-10 px-3 text-xs rounded-lg border bg-background"
-                  >
-                    <option value="theory">Theory (4 hrs/wk)</option>
-                    <option value="practical">Practical / Lab (3 hrs/wk)</option>
-                  </select>
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddSubj(false)}
-                    className="px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-1 text-xs font-bold bg-primary text-primary-foreground rounded-lg"
-                  >
-                    Save Subject
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* Drag and Drop File Upload Area */}
-            <div className="border-2 border-dashed border-primary/40 rounded-2xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <input
-                type="file"
-                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
-                onChange={handleSchemeFileUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                type="text"
+                placeholder="Code (e.g. 1BCS304)"
+                value={newSubjCode}
+                onChange={(e) => setNewSubjCode(e.target.value)}
+                className="h-11 px-4 text-xs font-mono rounded-xl border border-border bg-background"
+                required
               />
-              <div className="flex flex-col items-center justify-center space-y-2.5">
-                <div className="p-3 rounded-full bg-primary/10 text-primary shadow-xs">
-                  {parsingScheme ? (
-                    <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                  ) : (
-                    <Upload className="h-6 w-6" />
-                  )}
-                </div>
-                <p className="text-sm font-bold text-foreground">
-                  {parsingScheme
-                    ? `Extracting VTU Subjects for ${activeCourseCode}...`
-                    : `Click or Drag VTU Scheme Document / Photo for ${activeCourseCode} (PDF / Image / DOCX)`}
-                </p>
-                <p className="text-xs text-muted-foreground max-w-md">
-                  OCR Engine intercepts 2025/2021 codes and automatically segregates Theory and Practical subjects.
-                </p>
-              </div>
+              <input
+                type="text"
+                placeholder="Subject Name (e.g. Data Structures & Algorithms)"
+                value={newSubjName}
+                onChange={(e) => setNewSubjName(e.target.value)}
+                className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
+                required
+              />
+              <select
+                value={newSubjCategory}
+                onChange={(e) => {
+                  const cat = e.target.value as "theory" | "practical";
+                  setNewSubjCategory(cat);
+                  setNewSubjHours(cat === "practical" ? 3 : 4);
+                }}
+                className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer"
+              >
+                <option value="theory">Theory (4 hrs/wk)</option>
+                <option value="practical">Practical / Lab (3 hrs/wk)</option>
+              </select>
             </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl"
+              >
+                Save Subject
+              </button>
+            </div>
+          </form>
+        )}
 
-            {uploadSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold flex items-center space-x-2">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>{uploadSuccess}</span>
-              </div>
-            )}
-
-            {/* Segregated Subjects Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Theory Subjects */}
-              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3">
-                <h4 className="text-xs font-bold text-primary tracking-wider uppercase flex items-center justify-between">
-                  <span className="flex items-center space-x-2">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Theory Subjects ({activeData.theory.length})</span>
-                  </span>
-                  <span className="font-mono text-[10px] text-muted-foreground">{activeCourseCode}</span>
-                </h4>
-                {activeData.theory.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic py-3 text-center">
-                    No theory subjects parsed yet. Upload scheme or add manually.
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-                    {activeData.theory.map((s, idx) => (
-                      <div
-                        key={idx}
-                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
-                      >
-                        <div className="min-w-0 pr-2">
-                          <span className="font-mono font-bold text-primary">{s.code}</span>
-                          <p className="font-medium text-foreground truncate">{s.name}</p>
-                        </div>
-                        <div className="flex items-center space-x-2 shrink-0">
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-mono font-semibold">
-                            {s.weekly_hours} hrs/wk
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSubject("theory", idx)}
-                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Practical / Lab Subjects */}
-              <div className="rounded-xl border border-border bg-card/90 p-4 space-y-3">
-                <h4 className="text-xs font-bold text-[#00A3FF] tracking-wider uppercase flex items-center justify-between">
-                  <span className="flex items-center space-x-2">
-                    <Layers className="h-4 w-4" />
-                    <span>Practical & Lab Subjects ({activeData.practical.length})</span>
-                  </span>
-                  <span className="font-mono text-[10px] text-muted-foreground">{activeCourseCode}</span>
-                </h4>
-                {activeData.practical.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic py-3 text-center">
-                    No lab subjects parsed yet. Upload scheme or add manually.
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-                    {activeData.practical.map((s, idx) => (
-                      <div
-                        key={idx}
-                        className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center justify-between text-xs group"
-                      >
-                        <div className="min-w-0 pr-2">
-                          <span className="font-mono font-bold text-[#00A3FF]">{s.code}</span>
-                          <p className="font-medium text-foreground truncate">{s.name}</p>
-                        </div>
-                        <div className="flex items-center space-x-2 shrink-0">
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-semibold">
-                            {s.weekly_hours} hrs/wk
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSubject("practical", idx)}
-                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+        {/* Scheme File Upload Dropzone (Full Width Expansive) */}
+        <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
+            onChange={handleSchemeFileUpload}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+          />
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-xs">
+              {parsingScheme ? (
+                <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+              ) : (
+                <Upload className="h-8 w-8" />
+              )}
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground">
+                {parsingScheme
+                  ? `Interpreting Scheme & Extracting Subjects for ${activeCourseCode}...`
+                  : `Upload VTU Scheme Document or Image for ${activeCourseCode} (PDF / PNG / JPG / DOCX)`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xl mx-auto">
+                Automatic regex and OCR parser extracts 2025/2021 curriculum codes and segregates Theory and Practical laboratories.
+              </p>
             </div>
           </div>
-
-          {/* Footer Navigation with Scrolling Overscroll Transition */}
-          <WizardFooter
-            prevHref="/departments"
-            nextHref="/subjects"
-            nextLabel="Next: Subjects"
-          />
-
         </div>
+
+        {uploadSuccess && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-semibold flex items-center space-x-3 tt-animate-fade">
+            <CheckCircle2 className="h-5 w-5" />
+            <span>{uploadSuccess}</span>
+          </div>
+        )}
+
+        {/* Theory and Practical Lists (Spread in 2 Wide Columns) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Theory Subjects */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border/50 pb-3">
+              <h3 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
+                <BookOpen className="h-4 w-4" />
+                <span>Theory Subjects ({activeData.theory.length})</span>
+              </h3>
+              <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode}</span>
+            </div>
+
+            {activeData.theory.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic py-8 text-center">
+                No theory subjects extracted. Upload scheme or add manually.
+              </p>
+            ) : (
+              <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
+                {activeData.theory.map((s, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-primary/40 transition"
+                  >
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
+                    </div>
+                    <div className="flex items-center space-x-3 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{s.weekly_hours} hrs/wk</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSubject("theory", idx)}
+                        className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Practical / Lab Subjects */}
+          <div className="rounded-2xl border border-border bg-card/60 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border/50 pb-3">
+              <h3 className="text-sm font-bold text-[#00A3FF] uppercase tracking-wider flex items-center space-x-2">
+                <Layers className="h-4 w-4" />
+                <span>Practical & Lab Subjects ({activeData.practical.length})</span>
+              </h3>
+              <span className="text-xs font-mono font-bold text-muted-foreground">{activeCourseCode}</span>
+            </div>
+
+            {activeData.practical.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic py-8 text-center">
+                No practical lab subjects extracted. Upload scheme or add manually.
+              </p>
+            ) : (
+              <div className="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
+                {activeData.practical.map((s, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-[#00A3FF]/40 transition"
+                  >
+                    <div className="min-w-0 pr-3">
+                      <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
+                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
+                    </div>
+                    <div className="flex items-center space-x-3 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{s.weekly_hours} hrs/wk</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSubject("practical", idx)}
+                        className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Navigation with Scrolling Overscroll Transition */}
+        <WizardFooter
+          prevHref="/courses"
+          nextHref="/faculties"
+          nextLabel="Next: Department Faculties"
+        />
+
       </div>
     </AppShell>
   );

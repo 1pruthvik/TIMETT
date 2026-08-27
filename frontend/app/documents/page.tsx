@@ -463,7 +463,25 @@ export default function DocumentsPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const merged = { ...defaults, ...parsed };
+        const merged: any = { ...defaults };
+        Object.keys(defaults).forEach((cCode) => {
+          const defCourse = defaults[cCode];
+          const savedCourse = parsed[cCode];
+          if (savedCourse) {
+            merged[cCode] = {
+              theory: (savedCourse.theory || []).map((s: Subject, idx: number) => ({
+                ...s,
+                department: s.department || defCourse?.theory?.[idx]?.department || (cCode === "ECE" ? "ECE" : cCode === "EEE" ? "EEE" : cCode === "ME" ? "ME" : cCode.includes("CIV") ? "CIVIL" : cCode.includes("CH") ? "CHEMICAL" : cCode.includes("BM") ? "BIOMEDICAL" : "CS Allied"),
+              })),
+              practical: (savedCourse.practical || []).map((s: Subject, idx: number) => ({
+                ...s,
+                department: s.department || defCourse?.practical?.[idx]?.department || (cCode === "ECE" ? "ECE" : cCode === "EEE" ? "EEE" : cCode === "ME" ? "ME" : cCode.includes("CIV") ? "CIVIL" : cCode.includes("CH") ? "CHEMICAL" : cCode.includes("BM") ? "BIOMEDICAL" : "CS Allied"),
+              })),
+            };
+          } else {
+            merged[cCode] = defCourse;
+          }
+        });
         setCourseSubjectsMap(merged);
         localStorage.setItem(key, JSON.stringify(merged));
       } catch {
@@ -799,17 +817,13 @@ export default function DocumentsPage() {
                     className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-primary/40 transition"
                   >
                     <div className="min-w-0 pr-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
-                        {s.department && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono font-bold">
-                            TD: {s.department}
-                          </span>
-                        )}
-                      </div>
+                      <span className="font-mono font-bold text-primary text-xs">{s.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                     </div>
-                    <div className="flex items-center space-x-3 shrink-0">
+                    <div className="flex items-center space-x-2.5 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold">
+                        TD: {s.department || (activeCourseCode === "ECE" ? "ECE" : activeCourseCode === "EEE" ? "EEE" : activeCourseCode === "ME" ? "ME" : activeCourseCode.includes("CIV") ? "CIVIL" : activeCourseCode.includes("CH") ? "CHEMICAL" : activeCourseCode.includes("BM") ? "BIOMEDICAL" : "CS Allied")}
+                      </span>
                       <span className="text-[11px] px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono font-bold flex items-center space-x-1">
                         <Clock className="h-3 w-3" />
                         <span>{s.weekly_hours} hrs/wk</span>
@@ -850,17 +864,13 @@ export default function DocumentsPage() {
                     className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between text-xs group hover:border-[#00A3FF]/40 transition"
                   >
                     <div className="min-w-0 pr-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
-                        {s.department && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold">
-                            TD: {s.department}
-                          </span>
-                        )}
-                      </div>
+                      <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
                       <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
                     </div>
-                    <div className="flex items-center space-x-3 shrink-0">
+                    <div className="flex items-center space-x-2.5 shrink-0">
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold">
+                        TD: {s.department || (activeCourseCode === "ECE" ? "ECE" : activeCourseCode === "EEE" ? "EEE" : activeCourseCode === "ME" ? "ME" : activeCourseCode.includes("CIV") ? "CIVIL" : activeCourseCode.includes("CH") ? "CHEMICAL" : activeCourseCode.includes("BM") ? "BIOMEDICAL" : "CS Allied")}
+                      </span>
                       <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
                         <Clock className="h-3 w-3" />
                         <span>{s.weekly_hours} hrs/wk</span>

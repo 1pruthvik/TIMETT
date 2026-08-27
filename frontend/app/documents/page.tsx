@@ -72,8 +72,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v5");
       localStorage.removeItem("vtu_course_subjects_map_v6");
       localStorage.removeItem("vtu_course_subjects_map_v7");
+      localStorage.removeItem("vtu_course_subjects_map_v8");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v8");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v9");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -268,7 +269,20 @@ export default function DocumentsPage() {
                 { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BAI401", name: "Discrete Mathematics and Optimization Techniques", category: "theory", weekly_hours: 5 },
+                { code: "1BAI402", name: "Design and Analysis of Algorithms", category: "theory", weekly_hours: 3 },
+                { code: "1BAI403", name: "Database Management Systems", category: "theory", weekly_hours: 5 },
+                { code: "1BAI404", name: "Machine Learning", category: "theory", weekly_hours: 5 },
+                { code: "1BCS407", name: "Biology for Computer Engineers", category: "theory", weekly_hours: 2 },
+              ],
+              practical: [
+                { code: "1BAI402", name: "Design and Analysis of Algorithms Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BAIL405", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL406x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           "AI&DS": {
             "3": {
@@ -286,7 +300,20 @@ export default function DocumentsPage() {
                 { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BAI401", name: "Discrete Mathematics and Optimization Techniques", category: "theory", weekly_hours: 5 },
+                { code: "1BAI402", name: "Design and Analysis of Algorithms", category: "theory", weekly_hours: 3 },
+                { code: "1BAI403", name: "Database Management Systems", category: "theory", weekly_hours: 5 },
+                { code: "1BAI404", name: "Machine Learning", category: "theory", weekly_hours: 5 },
+                { code: "1BCS407", name: "Biology for Computer Engineers", category: "theory", weekly_hours: 2 },
+              ],
+              practical: [
+                { code: "1BAI402", name: "Design and Analysis of Algorithms Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BAIL405", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL406x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           AIDS: {
             "3": {
@@ -304,8 +331,22 @@ export default function DocumentsPage() {
                 { code: "1BXXL307x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BAI401", name: "Discrete Mathematics and Optimization Techniques", category: "theory", weekly_hours: 5 },
+                { code: "1BAI402", name: "Design and Analysis of Algorithms", category: "theory", weekly_hours: 3 },
+                { code: "1BAI403", name: "Database Management Systems", category: "theory", weekly_hours: 5 },
+                { code: "1BAI404", name: "Machine Learning", category: "theory", weekly_hours: 5 },
+                { code: "1BCS407", name: "Biology for Computer Engineers", category: "theory", weekly_hours: 2 },
+              ],
+              practical: [
+                { code: "1BAI402", name: "Design and Analysis of Algorithms Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BAIL405", name: "Machine Learning Laboratory", category: "practical", weekly_hours: 2 },
+                { code: "1BXXL406x", name: "Ability Enhancement Course", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
+
           ME: {
             "3": {
               theory: [
@@ -434,7 +475,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v8", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v9", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -443,7 +484,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v8", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v9", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

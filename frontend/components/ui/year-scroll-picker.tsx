@@ -224,10 +224,14 @@ export function YearScrollPicker({ value, onChange }: YearScrollPickerProps) {
               return (
                 <div
                   key={yr}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedYear(yr);
                     onChange(yr);
                     scrollToIndex(idx, true);
+                    setTimeout(() => {
+                      setIsOpen(false);
+                    }, 120);
                   }}
                   className={cn(
                     "snap-center flex items-center justify-between px-4 cursor-pointer font-mono transition-colors duration-150",

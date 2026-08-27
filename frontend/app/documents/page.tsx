@@ -73,8 +73,9 @@ export default function DocumentsPage() {
       localStorage.removeItem("vtu_course_subjects_map_v6");
       localStorage.removeItem("vtu_course_subjects_map_v7");
       localStorage.removeItem("vtu_course_subjects_map_v8");
+      localStorage.removeItem("vtu_course_subjects_map_v9");
 
-      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v9");
+      const savedSubjects = localStorage.getItem("vtu_course_subjects_map_v10");
       if (savedSubjects) {
         setCourseSubjectsMap(JSON.parse(savedSubjects));
       } else {
@@ -346,7 +347,6 @@ export default function DocumentsPage() {
               ],
             }
           },
-
           ME: {
             "3": {
               theory: [
@@ -363,7 +363,21 @@ export default function DocumentsPage() {
                 { code: "1BMEL307x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
               ],
             },
-            "4": { theory: [], practical: [] }
+            "4": {
+              theory: [
+                { code: "1BMATM401", name: "Complex Analysis and Probability Distributions", category: "theory", weekly_hours: 3 },
+                { code: "1BME402", name: "Manufacturing Technology - II", category: "theory", weekly_hours: 3 },
+                { code: "1BME403", name: "Applied Thermodynamics", category: "theory", weekly_hours: 5 },
+                { code: "1BME404", name: "Fluid Mechanics", category: "theory", weekly_hours: 3 },
+                { code: "1BME407", name: "Biology for Engineers", category: "theory", weekly_hours: 2 },
+                { code: "1BME409", name: "Kinematics of Machines", category: "theory", weekly_hours: 3 },
+              ],
+              practical: [
+                { code: "1BME402", name: "Manufacturing Technology - II Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BMEL405", name: "Mechanical Measurements and Metrology Lab", category: "practical", weekly_hours: 2 },
+                { code: "1BMEL406x", name: "Ability Enhancement Course Laboratory", category: "practical", weekly_hours: 2 },
+              ],
+            }
           },
           CIV: {
             "3": {
@@ -475,7 +489,7 @@ export default function DocumentsPage() {
           },
         };
         setCourseSubjectsMap(initialMap as any);
-        localStorage.setItem("vtu_course_subjects_map_v9", JSON.stringify(initialMap));
+        localStorage.setItem("vtu_course_subjects_map_v10", JSON.stringify(initialMap));
       }
     } catch (e) {
       console.error(e);
@@ -484,7 +498,7 @@ export default function DocumentsPage() {
 
   const saveSubjectsToStorage = (updatedMap: any) => {
     try {
-      localStorage.setItem("vtu_course_subjects_map_v9", JSON.stringify(updatedMap));
+      localStorage.setItem("vtu_course_subjects_map_v10", JSON.stringify(updatedMap));
     } catch (e) {
       console.error(e);
     }

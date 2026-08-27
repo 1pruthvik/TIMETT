@@ -423,6 +423,34 @@ export default function DocumentsPage() {
         { code: "BCH601L", name: "Process Equipment Design and Drawing Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    BME: {
+      theory: [
+        { code: "BBM601", name: "Medical Image Processing", category: "theory", weekly_hours: 3 },
+        { code: "BBM602", name: "Biomedical Digital Signal Processing", category: "theory", weekly_hours: 4 },
+        { code: "BBM613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BBM654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+      ],
+      practical: [
+        { code: "BBML606", name: "Biomedical DSP Lab", category: "practical", weekly_hours: 2 },
+        { code: "BEI657", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BBM601L", name: "Medical Image Processing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
+    BIOMEDICAL: {
+      theory: [
+        { code: "BBM601", name: "Medical Image Processing", category: "theory", weekly_hours: 3 },
+        { code: "BBM602", name: "Biomedical Digital Signal Processing", category: "theory", weekly_hours: 4 },
+        { code: "BBM613x", name: "Professional Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BBM654x", name: "Open Elective Course", category: "theory", weekly_hours: 3 },
+        { code: "BIKS609", name: "Indian Knowledge System", category: "theory", weekly_hours: 1 },
+      ],
+      practical: [
+        { code: "BBML606", name: "Biomedical DSP Lab", category: "practical", weekly_hours: 2 },
+        { code: "BEI657", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BBM601L", name: "Medical Image Processing Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

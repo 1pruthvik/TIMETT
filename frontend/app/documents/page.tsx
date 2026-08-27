@@ -342,6 +342,19 @@ export default function DocumentsPage() {
         { code: "1BAD601L", name: "Natural Language Processing Laboratory", category: "practical", weekly_hours: 2 },
       ],
     },
+    ME: {
+      theory: [
+        { code: "BME601", name: "Heat Transfer", category: "theory", weekly_hours: 3 },
+        { code: "BME602", name: "Machine Design", category: "theory", weekly_hours: 4 },
+        { code: "BME613x", name: "Professional Elective - II", category: "theory", weekly_hours: 3 },
+        { code: "BME654x", name: "Open Elective - I", category: "theory", weekly_hours: 3 },
+      ],
+      practical: [
+        { code: "BMEL606L", name: "Design lab", category: "practical", weekly_hours: 2 },
+        { code: "BME657x", name: "Ability Enhancement Course/Skill Development Course V", category: "practical", weekly_hours: 2 },
+        { code: "BME601L", name: "Heat Transfer Laboratory", category: "practical", weekly_hours: 2 },
+      ],
+    },
   };
 
   // Helper to load subject map for active semester

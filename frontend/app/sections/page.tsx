@@ -52,7 +52,7 @@ export default function SectionsPage() {
   const [theoryMin, setTheoryMin] = useState(50);
   const [labMin, setLabMin] = useState(100);
   const [minStartTime, setMinStartTime] = useState("09:00");
-  const [maxStayTime, setMaxStayTime] = useState("17:00");
+  const [maxStayTime, setMaxStayTime] = useState("16:00");
 
   // Tea-Break & Lunch break
   const [teaBreakStart, setTeaBreakStart] = useState("10:40");

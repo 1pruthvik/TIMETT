@@ -49,6 +49,7 @@ import {
   Plus,
   UserCheck,
 } from "lucide-react";
+import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -367,9 +368,8 @@ export default function TimetablePage() {
       let finalEntries = loadedEntries;
 
       if (finalEntries.length === 0 || finalSections.length === 0 || finalFaculty.length === 0) {
-        // Read stored parsed faculty
-        const savedFacList = localStorage.getItem("vtu_faculty_list");
-        const parsedFacArray = savedFacList ? JSON.parse(savedFacList) : [];
+        // Read stored parsed faculty from user-scoped storage
+        const parsedFacArray = getItemUserScoped<any[]>("vtu_faculty_list") || [];
 
         const facultyData: Faculty[] = parsedFacArray.length > 0
           ? parsedFacArray.map((f: any, idx: number) => ({
@@ -386,9 +386,8 @@ export default function TimetablePage() {
               { id: 6, name: "Prof. Vikram Singh", designation: "Assistant Professor" },
             ];
 
-        // Read stored sections & courses
-        const savedCourses = localStorage.getItem("vtu_college_offered_courses");
-        const parsedCourses = savedCourses ? JSON.parse(savedCourses) : [];
+        // Read stored sections & courses from user-scoped storage
+        const parsedCourses = getItemUserScoped<any[]>("vtu_college_offered_courses") || [];
         const activeCourses = parsedCourses.filter((c: any) => c.selected);
 
         const sectionData: Section[] = [];

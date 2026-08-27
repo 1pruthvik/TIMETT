@@ -18,6 +18,7 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
 import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
+import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 
 interface VTUCourse {
   code: string;
@@ -42,11 +43,11 @@ interface DeptBreakdown {
 export default function SectionsPage() {
   const router = useRouter();
 
-  // Section & Room Capacities
+  // Facility & Section Capacity State
   const [roomCapacity, setRoomCapacity] = useState(60);
   const [labCapacity, setLabCapacity] = useState(30);
-  const [coincidedLabGroup, setCoincidedLabGroup] = useState("CS Central Lab Facility");
-  const [labRotationMode, setLabRotationMode] = useState<"synchronous_parallel" | "independent">("synchronous_parallel");
+  const [coincidedLabGroup, setCoincidedLabGroup] = useState("");
+  const [labRotationMode, setLabRotationMode] = useState<"synchronous_parallel" | "subbatch_rotation">("synchronous_parallel");
 
   // Slot Durations & Operational Hours
   const [theoryMin, setTheoryMin] = useState(50);
@@ -73,47 +74,44 @@ export default function SectionsPage() {
   useEffect(() => {
     try {
       // 1. Load room & slot configs
-      const savedCap = localStorage.getItem("vtu_room_capacity_config");
+      const savedCap = getItemUserScoped<any>("vtu_room_capacity_config");
       if (savedCap) {
-        const parsed = JSON.parse(savedCap);
-        if (parsed.roomCapacity) setRoomCapacity(parsed.roomCapacity);
-        if (parsed.labCapacity) setLabCapacity(parsed.labCapacity);
-        if (parsed.coincidedLabGroup) setCoincidedLabGroup(parsed.coincidedLabGroup);
-        if (parsed.labRotationMode) setLabRotationMode(parsed.labRotationMode);
+        if (savedCap.roomCapacity) setRoomCapacity(savedCap.roomCapacity);
+        if (savedCap.labCapacity) setLabCapacity(savedCap.labCapacity);
+        if (savedCap.coincidedLabGroup) setCoincidedLabGroup(savedCap.coincidedLabGroup);
+        if (savedCap.labRotationMode) setLabRotationMode(savedCap.labRotationMode);
       }
 
-      const savedSlot = localStorage.getItem("vtu_slot_duration_config");
+      const savedSlot = getItemUserScoped<any>("vtu_slot_duration_config");
       if (savedSlot) {
-        const parsed = JSON.parse(savedSlot);
-        if (parsed.theoryMin && parsed.theoryMin > 0) setTheoryMin(parsed.theoryMin);
-        if (parsed.labMin && parsed.labMin > 0) setLabMin(parsed.labMin);
-        if (parsed.minStartTime) setMinStartTime(parsed.minStartTime);
-        if (parsed.maxStayTime) setMaxStayTime(parsed.maxStayTime);
-        if (parsed.teaBreakStart) setTeaBreakStart(parsed.teaBreakStart);
-        if (parsed.teaBreakDuration !== undefined) setTeaBreakDuration(parsed.teaBreakDuration);
-        if (parsed.lunchBreakStart) setLunchBreakStart(parsed.lunchBreakStart);
-        if (parsed.lunchBreakDuration !== undefined) setLunchBreakDuration(parsed.lunchBreakDuration);
+        if (savedSlot.theoryMin && savedSlot.theoryMin > 0) setTheoryMin(savedSlot.theoryMin);
+        if (savedSlot.labMin && savedSlot.labMin > 0) setLabMin(savedSlot.labMin);
+        if (savedSlot.minStartTime) setMinStartTime(savedSlot.minStartTime);
+        if (savedSlot.maxStayTime) setMaxStayTime(savedSlot.maxStayTime);
+        if (savedSlot.teaBreakStart) setTeaBreakStart(savedSlot.teaBreakStart);
+        if (savedSlot.teaBreakDuration !== undefined) setTeaBreakDuration(savedSlot.teaBreakDuration);
+        if (savedSlot.lunchBreakStart) setLunchBreakStart(savedSlot.lunchBreakStart);
+        if (savedSlot.lunchBreakDuration !== undefined) setLunchBreakDuration(savedSlot.lunchBreakDuration);
       }
 
       // 2. Load active semester
-      const activeSemStr = localStorage.getItem("vtu_active_sem");
+      const activeSemStr = getItemUserScoped<string>("vtu_active_sem");
       if (activeSemStr) {
         setActiveSemNumber(Number(activeSemStr) || 6);
       } else {
-        const savedSetup = localStorage.getItem("vtu_academic_setup");
+        const savedSetup = getItemUserScoped<any>("vtu_academic_setup");
         if (savedSetup) {
-          const parsed = JSON.parse(savedSetup);
-          const y = parseInt(parsed.selectedYear) || 3;
-          const isOdd = parsed.selectedSemType === "odd";
+          const y = parseInt(savedSetup.selectedYear) || 3;
+          const isOdd = savedSetup.selectedSemType === "odd";
           const sem = (y - 1) * 2 + (isOdd ? 1 : 2);
           setActiveSemNumber(sem);
         }
       }
 
-      // 3. Load offered courses
-      const savedCourses = localStorage.getItem("vtu_college_offered_courses");
-      if (savedCourses) {
-        setOfferedCourses(JSON.parse(savedCourses));
+      // 3. Load offered courses from user-scoped storage
+      const savedCourses = getItemUserScoped<VTUCourse[]>("vtu_college_offered_courses");
+      if (savedCourses && Array.isArray(savedCourses)) {
+        setOfferedCourses(savedCourses);
       } else {
         setOfferedCourses([
           { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180 },

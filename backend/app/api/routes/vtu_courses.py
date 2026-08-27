@@ -253,27 +253,44 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
 
         if records:
             key_map = {str(k).lower().strip(): k for k in records[0].keys()}
-            name_key = next((key_map[k] for k in key_map if "name" in k or "faculty" in k or "teacher" in k or "prof" in k), list(records[0].keys())[0])
-            dept_key = next((key_map[k] for k in key_map if "dept" in k or "department" in k or "branch" in k), None)
-            desg_key = next((key_map[k] for k in key_map if "desg" in k or "designation" in k or "role" in k or "title" in k), None)
-            subj_key = next((key_map[k] for k in key_map if "subj" in k or "course" in k or "proficien" in k or "special" in k), None)
+
+            # Match Name Column Header
+            name_key = next((key_map[k] for k in key_map if any(term in k for term in ["name", "faculty", "teacher", "prof", "instructor", "staff", "employee", "member"])), None)
+            if not name_key:
+                # Find first column that is non-numeric in first row
+                for k, orig_k in key_map.items():
+                    val = str(records[0].get(orig_k, "")).strip()
+                    if val and not val.isdigit() and k not in ["sl.no", "sl no", "s.no", "id", "no", "#"]:
+                        name_key = orig_k
+                        break
+            if not name_key:
+                name_key = list(records[0].keys())[0]
+
+            # Match Department Column Header
+            dept_key = next((key_map[k] for k in key_map if any(term in k for term in ["dept", "department", "branch", "stream", "discipline"])), None)
+
+            # Match Designation Column Header
+            desg_key = next((key_map[k] for k in key_map if any(term in k for term in ["desg", "designation", "role", "title", "post", "rank"])), None)
+
+            # Match Proficient Subjects Column Header
+            subj_key = next((key_map[k] for k in key_map if any(term in k for term in ["subj", "course", "proficien", "special", "vtu", "code"])), None)
 
             faculties_list: list[FacultyItemModel] = []
             for row in records:
                 raw_name = str(row.get(name_key, "")).strip()
-                if not raw_name or not is_valid_faculty_string(raw_name) or raw_name.lower() in ["nan", "none", "name", "faculty name", "sl.no", "sl no", "s.no"]:
+                if not raw_name or raw_name.lower() in ["nan", "none", "null", "name", "faculty name", "sl.no", "sl no", "s.no", "id"]:
                     continue
 
-                raw_dept = str(row.get(dept_key, "")).strip() if dept_key and row.get(dept_key) is not None else "Computer Science & Engineering"
-                if not raw_dept or not is_valid_faculty_string(raw_dept) or raw_dept.lower() in ["nan", "none"]:
-                    raw_dept = "Computer Science & Engineering"
+                raw_dept = str(row.get(dept_key, "")).strip() if dept_key and row.get(dept_key) is not None else "Humanities & Social Sciences"
+                if not raw_dept or raw_dept.lower() in ["nan", "none"]:
+                    raw_dept = "Humanities & Social Sciences"
 
                 raw_desg = str(row.get(desg_key, "")).strip() if desg_key and row.get(desg_key) is not None else "Assistant Professor"
-                if not raw_desg or not is_valid_faculty_string(raw_desg) or raw_desg.lower() in ["nan", "none"]:
+                if not raw_desg or raw_desg.lower() in ["nan", "none"]:
                     raw_desg = "Assistant Professor"
 
                 raw_subjs = str(row.get(subj_key, "")).strip() if subj_key and row.get(subj_key) is not None else ""
-                subjs = [s.strip() for s in re.split(r"[,;|]", raw_subjs) if s.strip() and is_valid_faculty_string(s) and s.strip().lower() not in ["nan", "none"]]
+                subjs = [s.strip() for s in re.split(r"[,;|]", raw_subjs) if s.strip() and s.strip().lower() not in ["nan", "none"]]
 
                 faculties_list.append(FacultyItemModel(
                     name=raw_name,

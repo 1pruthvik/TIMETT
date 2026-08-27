@@ -44,11 +44,11 @@ export default function StreamsPage() {
     setLoading(true);
     try {
       const [resS, resC] = await Promise.all([
-        fetch("http://127.0.0.1:8000/streams"),
-        fetch("http://127.0.0.1:8000/cycle-groups"),
+        fetch("http://127.0.0.1:8000/streams").catch(() => null),
+        fetch("http://127.0.0.1:8000/cycle-groups").catch(() => null),
       ]);
-      if (resS.ok) setStreams(await resS.json());
-      if (resC.ok) setCycleGroups(await resC.json());
+      if (resS && resS.ok) setStreams(await resS.json().catch(() => []));
+      if (resC && resC.ok) setCycleGroups(await resC.json().catch(() => []));
     } catch (e) {
       console.error(e);
     } finally {
@@ -64,8 +64,8 @@ export default function StreamsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: streamName, code: streamCode, description: streamDesc }),
-      });
-      if (res.ok) {
+      }).catch(() => null);
+      if (res && res.ok) {
         setStreamName("");
         setStreamCode("");
         setStreamDesc("");
@@ -84,8 +84,8 @@ export default function StreamsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: cycleName, cycle_type: cycleType, stream_id: selectedStreamId }),
-      });
-      if (res.ok) {
+      }).catch(() => null);
+      if (res && res.ok) {
         setCycleName("");
         fetchData();
       }
@@ -96,7 +96,7 @@ export default function StreamsPage() {
 
   const handleDeleteStream = async (id: number) => {
     try {
-      await fetch(`http://127.0.0.1:8000/streams/${id}`, { method: "DELETE" });
+      await fetch(`http://127.0.0.1:8000/streams/${id}`, { method: "DELETE" }).catch(() => null);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -110,9 +110,9 @@ export default function StreamsPage() {
       const res = await fetch(
         `http://127.0.0.1:8000/generator/generate-joint?sem1_id=${jointSem1}&sem2_id=${jointSem2}`,
         { method: "POST" }
-      );
-      const data = await res.json();
-      if (res.ok && data.status === "success") {
+      ).catch(() => null);
+      const data = res ? await res.json().catch(() => null) : null;
+      if (res && res.ok && data?.status === "success") {
         setJointStatus(`Success! Joint timetables created for Semester ${jointSem1} and Semester ${jointSem2}.`);
       } else {
         setJointStatus(`Generation infeasible or failed: ${data.message || "Unknown error"}`);

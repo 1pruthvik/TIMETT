@@ -15,6 +15,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
 import { cn } from "@/lib/utils";
 
+import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
+
 interface VTUCourse {
   code: string;
   name: string;
@@ -38,10 +40,9 @@ export default function CoursesPage() {
 
   useEffect(() => {
     try {
-      const savedSetup = localStorage.getItem("vtu_academic_setup");
+      const savedSetup = getItemUserScoped<any>("vtu_academic_setup");
       if (savedSetup) {
-        const parsed = JSON.parse(savedSetup);
-        setIsFirstYear(parsed.selectedYear === "1" || !parsed.selectedYear);
+        setIsFirstYear(savedSetup.selectedYear === "1" || !savedSetup.selectedYear);
       }
     } catch (e) {
       console.error(e);
@@ -51,7 +52,7 @@ export default function CoursesPage() {
 
   const saveCoursesToStorage = (updatedCourses: VTUCourse[]) => {
     try {
-      localStorage.setItem("vtu_college_offered_courses", JSON.stringify(updatedCourses));
+      setItemUserScoped("vtu_college_offered_courses", updatedCourses);
     } catch (e) {
       console.error(e);
     }
@@ -60,11 +61,9 @@ export default function CoursesPage() {
   const fetchCourses = async () => {
     setLoading(true);
     try {
-      const saved = localStorage.getItem("vtu_college_offered_courses");
-      if (saved) {
-        const parsed: VTUCourse[] = JSON.parse(saved);
-        // Ensure default cycle if missing
-        const withCycles = parsed.map((c, idx) => ({
+      const saved = getItemUserScoped<VTUCourse[]>("vtu_college_offered_courses");
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        const withCycles = saved.map((c, idx) => ({
           ...c,
           cycle: c.cycle || (idx % 2 === 0 ? "physics" : "chemistry"),
         }));
@@ -75,17 +74,28 @@ export default function CoursesPage() {
         return;
       }
 
-      const res = await fetch("http://127.0.0.1:8000/vtu/courses");
-      if (res.ok) {
-        const data = await res.json();
-        const initial = data.map((c: any, idx: number) => ({
-          ...c,
-          selected: c.code === "CSE" || c.code === "ECE" || c.code === "ME" || c.code === "ISE",
-          studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
-          cycle: idx % 2 === 0 ? "physics" : "chemistry",
-        }));
-        setCourses(initial);
-        saveCoursesToStorage(initial);
+      const res = await fetch("http://127.0.0.1:8000/vtu/courses").catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && Array.isArray(data)) {
+          const initial = data.map((c: any, idx: number) => ({
+            ...c,
+            selected: c.code === "CSE" || c.code === "ECE" || c.code === "ME" || c.code === "ISE",
+            studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
+            cycle: idx % 2 === 0 ? "physics" : "chemistry",
+          }));
+          setCourses(initial);
+          saveCoursesToStorage(initial);
+        }
+      } else {
+        const defaultCourses: VTUCourse[] = [
+          { code: "CSE", name: "Computer Science & Engineering", is_vtu_standard: true, selected: true, studentCount: 180, cycle: "physics" },
+          { code: "ECE", name: "Electronics & Communication Engineering", is_vtu_standard: true, selected: true, studentCount: 120, cycle: "chemistry" },
+          { code: "ISE", name: "Information Science & Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
+          { code: "ME", name: "Mechanical Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
+        ];
+        setCourses(defaultCourses);
+        saveCoursesToStorage(defaultCourses);
       }
     } catch (e) {
       console.error(e);

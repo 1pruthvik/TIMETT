@@ -201,6 +201,15 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
     )
 
 
+class FacultyItemModel(BaseModel):
+    name: str
+    department: str
+    designation: str | None = None
+    proficient_subjects: list[str] = []
+
+
+class ParsedFacultyResponse(BaseModel):
+    faculties: list[FacultyItemModel]
 
 
 @router.post("/parse-faculty", response_model=ParsedFacultyResponse)
@@ -209,9 +218,48 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="No file uploaded")
 
     content = await file.read()
-    extracted_text = ""
-
     ext = file.filename.lower().split(".")[-1]
+
+    # 1. Handle CSV / Excel file uploads (.csv, .xlsx, .xls)
+    if ext in ["csv", "xlsx", "xls"]:
+        try:
+            import pandas as pd
+            if ext == "csv":
+                df = pd.read_csv(io.BytesIO(content))
+            else:
+                df = pd.read_excel(io.BytesIO(content))
+            
+            cols = {str(c).lower().strip(): c for c in df.columns}
+            name_col = next((cols[k] for k in cols if "name" in k or "faculty" in k or "teacher" in k), df.columns[0])
+            dept_col = next((cols[k] for k in cols if "dept" in k or "department" in k or "branch" in k), None)
+            desg_col = next((cols[k] for k in cols if "desg" in k or "designation" in k or "role" in k or "title" in k), None)
+            subj_col = next((cols[k] for k in cols if "subj" in k or "course" in k or "proficien" in k or "special" in k), None)
+
+            faculties_list: list[FacultyItemModel] = []
+            for _, row in df.iterrows():
+                val_name = str(row[name_col]).strip() if pd.notna(row[name_col]) else ""
+                if not val_name or val_name.lower() in ["nan", "none", "name", "faculty name"]:
+                    continue
+                
+                val_dept = str(row[dept_col]).strip() if dept_col and pd.notna(row[dept_col]) else "Computer Science & Engineering"
+                val_desg = str(row[desg_col]).strip() if desg_col and pd.notna(row[desg_col]) else "Assistant Professor"
+                val_subjs_raw = str(row[subj_col]).strip() if subj_col and pd.notna(row[subj_col]) else ""
+                
+                subjs = [s.strip() for s in re.split(r"[,;|]", val_subjs_raw) if s.strip() and s.strip().lower() != "nan"]
+                
+                faculties_list.append(FacultyItemModel(
+                    name=val_name,
+                    department=val_dept,
+                    designation=val_desg,
+                    proficient_subjects=subjs
+                ))
+            if faculties_list:
+                return ParsedFacultyResponse(faculties=faculties_list)
+        except Exception as err:
+            print("Excel/CSV parse fallback:", err)
+
+    # 2. Text/PDF/Image Parsing Fallback
+    extracted_text = ""
 
     if ext == "pdf":
         try:
@@ -236,8 +284,7 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
     else:
         extracted_text = content.decode("utf-8", errors="ignore")
 
-
-    faculties: list[dict[str, str]] = []
+    faculties: list[FacultyItemModel] = []
     lines = extracted_text.splitlines()
 
     for line in lines:
@@ -245,19 +292,28 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
         if not line_clean or len(line_clean) < 3:
             continue
 
-        # Look for titles (Dr., Prof., Mr., Mrs., Ms.) or names
-        if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or len(line_clean.split()) <= 4:
+        if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or len(line_clean.split()) <= 6:
             parts = line_clean.split(",")
             name = parts[0].strip()
             dept = parts[1].strip() if len(parts) > 1 else "Computer Science & Engineering"
-            faculties.append({"name": name, "department": dept})
+            subjs_raw = parts[2].strip() if len(parts) > 2 else ""
+            subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip()]
+            
+            desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
+
+            faculties.append(FacultyItemModel(
+                name=name,
+                department=dept,
+                designation=desg,
+                proficient_subjects=subjs
+            ))
 
     if not faculties:
         faculties = [
-            {"name": "Dr. Pranav Bhat", "department": "Computer Science & Engineering"},
-            {"name": "Prof. Ujwal Amar", "department": "Computer Science & Engineering"},
-            {"name": "Prof. Pruthvik K", "department": "Computer Science & Engineering"},
-            {"name": "Dr. Nivish Gowda", "department": "Electronics & Communication Engineering"},
+            FacultyItemModel(name="Dr. Pranav Bhat", department="Computer Science & Engineering", designation="Professor", proficient_subjects=["1BCS601", "1BCS502"]),
+            FacultyItemModel(name="Prof. Ujwal Amar", department="Computer Science & Engineering", designation="Associate Professor", proficient_subjects=["1BCS603", "1BCS604"]),
+            FacultyItemModel(name="Prof. Pruthvik K", department="Computer Science & Engineering", designation="Assistant Professor", proficient_subjects=["1BCSL606", "1BIS601"]),
+            FacultyItemModel(name="Dr. Nivish Gowda", department="Electronics & Communication Engineering", designation="Professor", proficient_subjects=["BEC601", "BEC602"]),
         ]
 
     return ParsedFacultyResponse(faculties=faculties)

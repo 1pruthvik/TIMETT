@@ -13,14 +13,26 @@ import {
   UserCheck,
   Search,
   Building2,
-  Layers,
+  BookOpen,
+  Award,
+  X,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
 
 interface FacultyItem {
+  id?: string;
   name: string;
   department: string;
+  designation?: string;
+  proficientSubjects?: string[];
+  maxWeeklyHours?: number;
+}
+
+interface SubjectOption {
+  code: string;
+  name: string;
+  department?: string;
 }
 
 const DEFAULT_DEPARTMENTS = [
@@ -31,6 +43,16 @@ const DEFAULT_DEPARTMENTS = [
   "Artificial Intelligence & Machine Learning",
   "Civil Engineering",
   "Electrical & Electronics Engineering",
+  "Chemical Engineering",
+  "Biomedical Engineering",
+];
+
+const DESIGNATIONS = [
+  "Professor",
+  "Associate Professor",
+  "Assistant Professor",
+  "Lab Instructor",
+  "Visiting Faculty",
 ];
 
 export default function FacultiesPage() {
@@ -38,8 +60,15 @@ export default function FacultiesPage() {
 
   const [facultyList, setFacultyList] = useState<FacultyItem[]>([]);
   const [departments, setDepartments] = useState<string[]>(DEFAULT_DEPARTMENTS);
+  const [availableSubjects, setAvailableSubjects] = useState<SubjectOption[]>([]);
+  
+  // Manual Entry Form State
   const [manualName, setManualName] = useState("");
   const [manualDept, setManualDept] = useState("Computer Science & Engineering");
+  const [manualDesg, setManualDesg] = useState("Assistant Professor");
+  const [selectedProficientSubjects, setSelectedProficientSubjects] = useState<string[]>([]);
+  const [customSubjectInput, setCustomSubjectInput] = useState("");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [parsingFaculty, setParsingFaculty] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
@@ -69,16 +98,66 @@ export default function FacultiesPage() {
         }
       }
 
-      // 2. Load faculties
+      // 2. Load available subjects from Sem 5 and Sem 6 maps
+      const subjs: SubjectOption[] = [];
+      ["vtu_course_subjects_map_sem5", "vtu_course_subjects_map_sem6"].forEach((key) => {
+        const savedMap = localStorage.getItem(key);
+        if (savedMap) {
+          try {
+            const parsed = JSON.parse(savedMap);
+            Object.values(parsed).forEach((courseData: any) => {
+              if (courseData?.theory) {
+                courseData.theory.forEach((s: any) => {
+                  if (s.code && !subjs.some((existing) => existing.code === s.code)) {
+                    subjs.push({ code: s.code, name: s.name, department: s.department });
+                  }
+                });
+              }
+              if (courseData?.practical) {
+                courseData.practical.forEach((s: any) => {
+                  if (s.code && !subjs.some((existing) => existing.code === s.code)) {
+                    subjs.push({ code: s.code, name: s.name, department: s.department });
+                  }
+                });
+              }
+            });
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      });
+      setAvailableSubjects(subjs);
+
+      // 3. Load faculties
       const saved = localStorage.getItem("vtu_faculty_list");
       if (saved) {
         setFacultyList(JSON.parse(saved));
       } else {
         const defaultFac: FacultyItem[] = [
-          { name: "Dr. Pranav Bhat", department: "Computer Science & Engineering" },
-          { name: "Prof. Ujwal Amar", department: "Computer Science & Engineering" },
-          { name: "Prof. Pruthvik K", department: "Computer Science & Engineering" },
-          { name: "Dr. Nivish Gowda", department: "Electronics & Communication Engineering" },
+          {
+            name: "Dr. Pranav Bhat",
+            department: "Computer Science & Engineering",
+            designation: "Professor",
+            proficientSubjects: ["1BCS601", "1BCS502", "1BCS603"],
+          },
+          {
+            name: "Prof. Ujwal Amar",
+            department: "Computer Science & Engineering",
+            designation: "Associate Professor",
+            proficientSubjects: ["1BCS603", "1BCS604", "1BCSL606"],
+          },
+          {
+            name: "Prof. Pruthvik K",
+            department: "Computer Science & Engineering",
+            designation: "Assistant Professor",
+            proficientSubjects: ["1BCSL606", "1BIS601", "1BCS501"],
+          },
+          {
+            name: "Dr. Nivish Gowda",
+            department: "Electronics & Communication Engineering",
+            designation: "Professor",
+            proficientSubjects: ["BEC601", "BEC602", "BECL606"],
+          },
         ];
         setFacultyList(defaultFac);
         localStorage.setItem("vtu_faculty_list", JSON.stringify(defaultFac));
@@ -136,9 +215,16 @@ export default function FacultiesPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        const extracted: FacultyItem[] = data.faculties || [];
+        const extractedRaw: any[] = data.faculties || [];
         
-        // Also auto-add any new departments extracted from file
+        const extracted: FacultyItem[] = extractedRaw.map((f) => ({
+          name: f.name,
+          department: f.department || "Computer Science & Engineering",
+          designation: f.designation || "Assistant Professor",
+          proficientSubjects: f.proficient_subjects || f.proficientSubjects || [],
+        }));
+
+        // Auto-add any new departments extracted from file
         const extractedDepts = extracted.map((f) => f.department).filter(Boolean);
         const mergedDepts = Array.from(new Set([...departments, ...extractedDepts]));
         setDepartments(mergedDepts);
@@ -149,7 +235,7 @@ export default function FacultiesPage() {
           saveFacultyToStorage(updated);
           return updated;
         });
-        setUploadSuccess(`Successfully parsed ${extracted.length} faculties!`);
+        setUploadSuccess(`Successfully parsed ${extracted.length} faculties with proficiency mappings!`);
       }
     } catch (err) {
       console.error(err);
@@ -165,6 +251,8 @@ export default function FacultiesPage() {
     const newFac: FacultyItem = {
       name: manualName.trim(),
       department: manualDept.trim() || departments[0] || "Computer Science & Engineering",
+      designation: manualDesg,
+      proficientSubjects: selectedProficientSubjects,
     };
 
     setFacultyList((prev) => {
@@ -174,6 +262,8 @@ export default function FacultiesPage() {
     });
 
     setManualName("");
+    setSelectedProficientSubjects([]);
+    setCustomSubjectInput("");
   };
 
   const handleRemoveFaculty = (index: number) => {
@@ -184,17 +274,37 @@ export default function FacultiesPage() {
     });
   };
 
+  const toggleSubjectProficiency = (code: string) => {
+    if (selectedProficientSubjects.includes(code)) {
+      setSelectedProficientSubjects(selectedProficientSubjects.filter((c) => c !== code));
+    } else {
+      setSelectedProficientSubjects([...selectedProficientSubjects, code]);
+    }
+  };
+
+  const handleAddCustomSubject = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && customSubjectInput.trim()) {
+      e.preventDefault();
+      const upper = customSubjectInput.trim().toUpperCase();
+      if (!selectedProficientSubjects.includes(upper)) {
+        setSelectedProficientSubjects([...selectedProficientSubjects, upper]);
+      }
+      setCustomSubjectInput("");
+    }
+  };
+
   const filteredFaculty = facultyList.filter(
     (f) =>
       f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.department.toLowerCase().includes(searchQuery.toLowerCase())
+      f.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (f.proficientSubjects && f.proficientSubjects.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   return (
     <AppShell>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
         
-        {/* Page Hero Header (No suggestions/descriptions) */}
+        {/* Page Hero Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
             Available Department Faculties
@@ -267,11 +377,11 @@ export default function FacultiesPage() {
           {/* Left Column: Upload & Add Form */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* File Upload Parser Dropzone */}
+            {/* File Upload Parser Dropzone (Excel, CSV, PDF, DOCX, Image) */}
             <div className="border-2 border-dashed border-primary/40 rounded-3xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
               <input
                 type="file"
-                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
+                accept=".xlsx,.xls,.csv,.pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
                 onChange={handleFacultyFileUpload}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
@@ -283,11 +393,16 @@ export default function FacultiesPage() {
                     <Upload className="h-6 w-6" />
                   )}
                 </div>
-                <p className="text-sm font-bold text-foreground">
-                  {parsingFaculty
-                    ? "Extracting Faculty..."
-                    : "Upload Faculty Roster (PDF / DOCX / Image)"}
-                </p>
+                <div>
+                  <p className="text-sm font-bold text-foreground">
+                    {parsingFaculty
+                      ? "Extracting Faculty & Proficiencies..."
+                      : "Upload Faculty Roster (Excel / CSV / PDF / DOCX / Image)"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Supports department-wise lists & subject proficiencies
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -313,48 +428,131 @@ export default function FacultiesPage() {
                     required
                   />
                 </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground block">
-                      Department
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                      Designation
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddDept(true)}
-                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center space-x-1"
+                    <select
+                      value={manualDesg}
+                      onChange={(e) => setManualDesg(e.target.value)}
+                      className="w-full h-11 px-3 text-xs font-semibold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
                     >
-                      <Plus className="h-3 w-3" />
-                      <span>New Dept</span>
-                    </button>
+                      {DESIGNATIONS.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  
-                  {/* Department Dropdown */}
-                  <select
-                    value={manualDept}
-                    onChange={(e) => {
-                      if (e.target.value === "__add_new__") {
-                        setShowAddDept(true);
-                      } else {
-                        setManualDept(e.target.value);
-                      }
-                    }}
-                    className="w-full h-11 px-4 text-xs font-semibold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
-                  >
-                    {departments.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                    <option value="__add_new__">+ Add Custom Department...</option>
-                  </select>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-semibold text-muted-foreground block">
+                        Department
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddDept(true)}
+                        className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center space-x-1"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>New</span>
+                      </button>
+                    </div>
+                    <select
+                      value={manualDept}
+                      onChange={(e) => {
+                        if (e.target.value === "__add_new__") {
+                          setShowAddDept(true);
+                        } else {
+                          setManualDept(e.target.value);
+                        }
+                      }}
+                      className="w-full h-11 px-3 text-xs font-semibold rounded-xl border border-border bg-background outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                    >
+                      {departments.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                      <option value="__add_new__">+ Add Custom Dept...</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Proficient Subjects Mapping Selector */}
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1 flex items-center justify-between">
+                    <span>Proficient Subjects / Specializations</span>
+                    <span className="text-[10px] text-primary font-mono">{selectedProficientSubjects.length} selected</span>
+                  </label>
+
+                  {/* Selected Chips */}
+                  {selectedProficientSubjects.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2.5 p-2 rounded-xl bg-background border border-border/60">
+                      {selectedProficientSubjects.map((code) => (
+                        <span
+                          key={code}
+                          className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-mono font-bold text-[11px] flex items-center gap-1"
+                        >
+                          <span>{code}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleSubjectProficiency(code)}
+                            className="hover:text-destructive cursor-pointer"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Available Subject Selector */}
+                  {availableSubjects.length > 0 ? (
+                    <div className="max-h-36 overflow-y-auto p-2 rounded-xl border border-border bg-background space-y-1">
+                      {availableSubjects.map((subj) => {
+                        const selected = selectedProficientSubjects.includes(subj.code);
+                        return (
+                          <div
+                            key={subj.code}
+                            onClick={() => toggleSubjectProficiency(subj.code)}
+                            className={`p-2 rounded-lg text-xs flex items-center justify-between cursor-pointer transition ${
+                              selected
+                                ? "bg-primary/10 border border-primary/30 text-primary font-bold"
+                                : "hover:bg-muted/50 text-foreground"
+                            }`}
+                          >
+                            <div className="truncate pr-2">
+                              <span className="font-mono font-bold mr-1.5">{subj.code}</span>
+                              <span className="text-[11px] opacity-90">{subj.name}</span>
+                            </div>
+                            {selected && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="Type code (e.g. 1BCS601) & press Enter"
+                      value={customSubjectInput}
+                      onChange={(e) => setCustomSubjectInput(e.target.value)}
+                      onKeyDown={handleAddCustomSubject}
+                      className="w-full h-10 px-3 text-xs font-mono rounded-xl border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  )}
                 </div>
               </div>
+
               <button
                 type="submit"
                 className="w-full h-11 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 transition cursor-pointer flex items-center justify-center space-x-2 shadow-md"
               >
                 <Plus className="h-4 w-4" />
-                <span>Add Faculty</span>
+                <span>Add Faculty Member</span>
               </button>
             </form>
           </div>
@@ -371,7 +569,7 @@ export default function FacultiesPage() {
               <div className="relative w-full sm:w-64">
                 <input
                   type="text"
-                  placeholder="Search faculty..."
+                  placeholder="Search faculty or subject..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-9 pl-8 pr-3 text-xs rounded-xl border border-border bg-background/80 outline-none focus:ring-1 focus:ring-primary"
@@ -382,29 +580,57 @@ export default function FacultiesPage() {
 
             {filteredFaculty.length === 0 ? (
               <div className="p-12 text-center text-xs text-muted-foreground italic rounded-2xl border border-dashed border-border bg-muted/10">
-                No faculty members added yet.
+                No faculty members found matching filter.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-3 max-h-[65vh] overflow-y-auto pr-1">
                 {filteredFaculty.map((f, idx) => (
                   <div
                     key={idx}
-                    className="p-4 rounded-xl border border-border/60 bg-card/60 flex items-center justify-between group hover:border-primary/40 transition"
+                    className="p-4 rounded-xl border border-border/60 bg-card/60 space-y-2 group hover:border-primary/40 transition"
                   >
-                    <div className="min-w-0 pr-2">
-                      <p className="font-bold text-foreground text-sm truncate flex items-center space-x-1.5">
-                        <UserCheck className="h-4 w-4 text-primary shrink-0" />
-                        <span>{f.name}</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{f.department}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-foreground text-sm truncate flex items-center space-x-1.5">
+                            <UserCheck className="h-4 w-4 text-primary shrink-0" />
+                            <span>{f.name}</span>
+                          </p>
+                          {f.designation && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-semibold border border-border/50">
+                              {f.designation}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{f.department}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFaculty(idx)}
+                        className="p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFaculty(idx)}
-                      className="p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+
+                    {/* Proficient Subjects Display */}
+                    {f.proficientSubjects && f.proficientSubjects.length > 0 && (
+                      <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
+                          <BookOpen className="h-3 w-3 text-primary" />
+                          <span>Proficient:</span>
+                        </span>
+                        {f.proficientSubjects.map((code) => (
+                          <span
+                            key={code}
+                            className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono font-bold"
+                          >
+                            {code}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -413,7 +639,7 @@ export default function FacultiesPage() {
 
         </div>
 
-        {/* Footer Navigation with Scrolling Overscroll Transition */}
+        {/* Footer Navigation */}
         <WizardFooter
           prevHref="/documents"
           nextHref="/sections"

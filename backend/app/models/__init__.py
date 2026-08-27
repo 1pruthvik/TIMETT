@@ -2,6 +2,7 @@ from app.models.institution import Institution
 from app.models.department import Department
 from app.models.stream import Stream
 from app.models.branch import Branch
+from app.models.cycle_group import CycleGroup
 from app.models.academic_year import AcademicYear
 from app.models.semester import Semester
 from app.models.faculty import Faculty
@@ -27,6 +28,7 @@ __all__ = [
     "Department",
     "Stream",
     "Branch",
+    "CycleGroup",
     "AcademicYear",
     "Semester",
     "Faculty",

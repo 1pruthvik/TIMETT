@@ -1,7 +1,9 @@
 from app.schemas.institution import InstitutionBase, InstitutionCreate, InstitutionResponse
 from app.schemas.department import DepartmentCreate, DepartmentResponse
 from app.schemas.stream import StreamBase, StreamCreate, StreamUpdate, StreamResponse
+from app.schemas.cycle_group import CycleGroupBase, CycleGroupCreate, CycleGroupUpdate, CycleGroupResponse
 from app.schemas.branch import BranchBase, BranchCreate, BranchUpdate, BranchResponse
+
 from app.schemas.academic_year import AcademicYearCreate, AcademicYearResponse
 from app.schemas.semester import SemesterCreate, SemesterResponse
 from app.schemas.faculty import FacultyCreate, FacultyResponse

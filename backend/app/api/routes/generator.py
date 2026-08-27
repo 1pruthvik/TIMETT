@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.solver.service import generate_timetable
+from app.solver.service import generate_timetable, generate_joint_timetable
 
 router = APIRouter(prefix="/generator", tags=["generator"])
 
@@ -39,3 +39,13 @@ def run_generator(
         generation_type=gen_type,
         joint_semester_ids=joint_sems,
     )
+
+
+@router.post("/generate-joint")
+def generate_joint(
+    sem1_id: int,
+    sem2_id: int,
+    institution_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    return generate_joint_timetable(db, sem1_id=sem1_id, sem2_id=sem2_id, institution_id=institution_id)

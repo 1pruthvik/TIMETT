@@ -48,7 +48,8 @@ export default function DocumentsPage() {
   const [newSubjCode, setNewSubjCode] = useState("");
   const [newSubjName, setNewSubjName] = useState("");
   const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "practical">("theory");
-  const [newSubjHours, setNewSubjHours] = useState(4);
+  const [newSubjHours, setNewSubjHours] = useState(3);
+  const [newSubjDept, setNewSubjDept] = useState("");
 
   // Initial Maps for Sem 5 and Sem 6
   const initialMapSem5: Record<string, { theory: Subject[]; practical: Subject[] }> = {
@@ -572,11 +573,28 @@ export default function DocumentsPage() {
     e.preventDefault();
     if (!newSubjCode || !newSubjName) return;
 
+    const defaultDept =
+      newSubjDept.trim() ||
+      (activeCourseCode === "ECE"
+        ? "ECE/ETE"
+        : activeCourseCode === "EEE"
+        ? "EEE"
+        : activeCourseCode === "ME"
+        ? "ME"
+        : activeCourseCode.includes("CIV")
+        ? "CIVIL"
+        : activeCourseCode.includes("CH")
+        ? "CHEMICAL"
+        : activeCourseCode.includes("BM")
+        ? "BIOMEDICAL"
+        : "CS Allied");
+
     const newSubj: Subject = {
       code: newSubjCode.toUpperCase().trim(),
       name: newSubjName.trim(),
       category: newSubjCategory,
-      weekly_hours: Number(newSubjHours) || 4,
+      weekly_hours: Number(newSubjHours) || (newSubjCategory === "practical" ? 2 : 3),
+      department: defaultDept,
     };
 
     setCourseSubjectsMap((prev) => {
@@ -600,6 +618,7 @@ export default function DocumentsPage() {
 
     setNewSubjCode("");
     setNewSubjName("");
+    setNewSubjDept("");
     setShowAddSubj(false);
   };
 
@@ -721,7 +740,7 @@ export default function DocumentsPage() {
                 Close
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <input
                 type="text"
                 placeholder="Code (e.g. 1BCS304)"
@@ -735,26 +754,57 @@ export default function DocumentsPage() {
                 placeholder="Subject Name"
                 value={newSubjName}
                 onChange={(e) => setNewSubjName(e.target.value)}
-                className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
+                className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
                 required
               />
               <select
-                value={newSubjCategory}
+                value={`${newSubjCategory}-${newSubjHours}`}
                 onChange={(e) => {
-                  const cat = e.target.value as "theory" | "practical";
-                  setNewSubjCategory(cat);
-                  setNewSubjHours(cat === "practical" ? 3 : 4);
+                  const [cat, hrs] = e.target.value.split("-");
+                  setNewSubjCategory(cat as "theory" | "practical");
+                  setNewSubjHours(Number(hrs));
                 }}
-                className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer"
+                className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
               >
-                <option value="theory">Theory (4 hrs/wk)</option>
-                <option value="practical">Practical / Lab (3 hrs/wk)</option>
+                <optgroup label="Theory Combinations">
+                  <option value="theory-4">Theory — 4 hrs/wk (Core / 4-Credit IPCC)</option>
+                  <option value="theory-3">Theory — 3 hrs/wk (Lecture / PEC / OEC)</option>
+                  <option value="theory-2">Theory — 2 hrs/wk (AEC / SDC / Env Studies)</option>
+                  <option value="theory-1">Theory — 1 hr/wk (Audit / IKS)</option>
+                </optgroup>
+                <optgroup label="Practical & Lab Combinations">
+                  <option value="practical-2">Practical / Lab — 2 hrs/wk (Standard Lab Session)</option>
+                  <option value="practical-3">Practical / Lab — 3 hrs/wk (Extended / Project Lab)</option>
+                  <option value="practical-4">Practical / Lab — 4 hrs/wk (Advanced Practical)</option>
+                </optgroup>
+              </select>
+              <select
+                value={newSubjDept}
+                onChange={(e) => setNewSubjDept(e.target.value)}
+                className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
+              >
+                <option value="">Teaching Dept: Default ({activeCourseCode})</option>
+                <option value="CS Allied">CS Allied (CSE/ISE/AIML/DS)</option>
+                <option value="ECE/ETE">ECE/ETE (Electronics)</option>
+                <option value="EEE">EEE (Electrical)</option>
+                <option value="ME">ME (Mechanical)</option>
+                <option value="CIVIL">CIVIL (Civil Engg)</option>
+                <option value="CHEMICAL">CHEMICAL (Chemical Engg)</option>
+                <option value="BIOMEDICAL">BIOMEDICAL (Biomedical Engg)</option>
+                <option value="Humanities/Any">Humanities / Any Department</option>
               </select>
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowAddSubj(false)}
+                className="px-5 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
+                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer hover:opacity-90 transition"
               >
                 Save Subject
               </button>

@@ -21,7 +21,7 @@ interface CycleGroup {
   created_at: string;
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 export default function StreamsPage() {
   const [streams, setStreams] = useState<Stream[]>([]);

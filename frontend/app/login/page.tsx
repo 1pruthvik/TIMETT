@@ -8,7 +8,7 @@ import { TechBackground } from "@/components/ui/tech-background";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { CalendarDays, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 export default function LoginPage() {
   const router = useRouter();

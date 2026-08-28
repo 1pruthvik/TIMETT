@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 interface VTUCourse {
   code: string;

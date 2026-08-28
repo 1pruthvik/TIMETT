@@ -17,7 +17,7 @@ import { KaciLogo } from "@/components/ui/kaci-logo";
 import { ChatMessage } from "@/components/layout/floating-ai-chat";
 import { MarkdownContent } from "@/components/ui/markdown-content";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 const DEFAULT_SUGGESTIONS = [
   "Move all of Prof. Rao's lectures away from Friday afternoon",

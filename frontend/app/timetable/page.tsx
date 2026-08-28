@@ -520,9 +520,9 @@ export default function TimetablePage() {
           });
         });
 
-        // 3. Read REAL subjects strictly from user-scoped storage with robust Lab detection
-        const parsedSubjectMap = getItemUserScoped<any>("vtu_course_subjects_map");
-        const subjectData: (Subject & { is_lab?: boolean })[] = [];
+        // 3. Read REAL subjects structured PER SEMESTER (Semesters 1 through 8!)
+        const subjectData: (Subject & { is_lab?: boolean; semester_id?: number })[] = [];
+        const subjectDataBySem = new Map<number, (Subject & { is_lab?: boolean })[]>();
         let subIdCounter = 1;
 
         const isLabSubject = (s: any): boolean => {
@@ -535,70 +535,128 @@ export default function TimetablePage() {
           return false;
         };
 
-        if (parsedSubjectMap) {
-          Object.values(parsedSubjectMap).forEach((semData: any) => {
-            const th = (semData.theory || []).map((s: any) => ({ ...s, category: "theory" }));
-            const pr = (semData.practical || []).map((s: any) => ({ ...s, category: "practical" }));
-            const tut = (semData.tutorial || []).map((s: any) => ({ ...s, category: "tutorial" }));
-            [...th, ...pr, ...tut].forEach((s: any) => {
-              if (s.code && !subjectData.some((existing) => existing.code === s.code)) {
-                const isLab = isLabSubject(s);
-                subjectData.push({
-                  id: subIdCounter++,
-                  name: s.name || s.code,
-                  code: s.code,
-                  is_lab: isLab,
-                });
-              }
-            });
-          });
-        }
+        // Standard VTU Semester Curriculum Defaults (Semesters 1 through 8)
+        const vtuSemTemplates: Record<number, { code: string; name: string; is_lab?: boolean }[]> = {
+          1: [
+            { code: "1BMATS101", name: "Calculus and Linear Algebra" },
+            { code: "1BPHYS102", name: "Quantum Physics and Applications" },
+            { code: "1BCHES102", name: "Applied Chemistry for Smart Systems" },
+            { code: "1BESC104E", name: "Essentials of Information Technology" },
+            { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
+            { code: "1BPHYS102-LAB", name: "Physics Practical Laboratory", is_lab: true },
+            { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
+          ],
+          2: [
+            { code: "1BMATS201", name: "Numerical Methods & Advanced Calculus" },
+            { code: "1BPHYS202", name: "Physics for Emerging Devices" },
+            { code: "1BCHES202", name: "Applied Chemistry for Smart Materials" },
+            { code: "1BCEDS203", name: "Computer-Aided Engineering Drawing" },
+            { code: "1BENG206", name: "Professional Communication" },
+            { code: "1BCHES202-LAB", name: "Chemistry Practical Laboratory", is_lab: true },
+            { code: "1BPLC205B-LAB", name: "Python Programming Laboratory", is_lab: true },
+          ],
+          3: [
+            { code: "1BCS301", name: "Data Structures and Algorithms" },
+            { code: "1BCS302", name: "Analog and Digital Electronics" },
+            { code: "1BCS303", name: "Computer Organization and Architecture" },
+            { code: "1BCS304", name: "Software Engineering & SDLC" },
+            { code: "1BCSL305", name: "Data Structures Laboratory", is_lab: true },
+            { code: "1BECEL306", name: "Digital Electronics Laboratory", is_lab: true },
+          ],
+          4: [
+            { code: "1BCS401", name: "Design and Analysis of Algorithms" },
+            { code: "1BCS402", name: "Operating Systems & Kernels" },
+            { code: "1BCS403", name: "Microcontrollers & Embedded Systems" },
+            { code: "1BCS404", name: "Object Oriented Concepts with Java" },
+            { code: "1BCSL405", name: "Algorithms Laboratory", is_lab: true },
+            { code: "1BCSL406", name: "Microcontroller Laboratory", is_lab: true },
+          ],
+          5: [
+            { code: "18CS51", name: "Management and Entrepreneurship for IT" },
+            { code: "18CS52", name: "Computer Networks & Protocols" },
+            { code: "18CS53", name: "Database Management Systems (DBMS)" },
+            { code: "18CS54", name: "Automata Theory and Computability" },
+            { code: "18CSL57", name: "Computer Networks Laboratory", is_lab: true },
+            { code: "18CSL58", name: "DBMS Laboratory", is_lab: true },
+          ],
+          6: [
+            { code: "18CS61", name: "System Software & Compiler Design" },
+            { code: "18CS62", name: "Computer Networks & Security" },
+            { code: "18CS63", name: "Web Technology & Applications" },
+            { code: "18CS64", name: "Data Mining & Data Warehousing" },
+            { code: "18CSL66", name: "System Software Laboratory", is_lab: true },
+            { code: "18CSL67", name: "Web Technology Laboratory", is_lab: true },
+          ],
+          7: [
+            { code: "18CS71", name: "Artificial Intelligence & Machine Learning" },
+            { code: "18CS72", name: "Big Data Analytics & Hadoop" },
+            { code: "18CS73", name: "Cloud Computing Architecture" },
+            { code: "18CS74", name: "Information & Network Security" },
+            { code: "18CSL76", name: "AI & Machine Learning Laboratory", is_lab: true },
+            { code: "18CSL77", name: "Big Data Laboratory", is_lab: true },
+          ],
+          8: [
+            { code: "18CS81", name: "Internet of Things & Cyber Security" },
+            { code: "1BCS801", name: "Professional Elective V" },
+            { code: "1BCS802", name: "Open Elective II" },
+            { code: "BEC801", name: "Advanced Communication Systems" },
+            { code: "BEC802", name: "VHDL & Embedded Systems" },
+            { code: "18CSL86", name: "Major Project Phase II Lab", is_lab: true },
+          ],
+        };
 
-        // Extract proficient subjects directly from uploaded faculty if subjectData is empty
-        if (subjectData.length === 0 && parsedFacArray.length > 0) {
-          const extractedSubjCodes = new Set<string>();
-          parsedFacArray.forEach((f: any) => {
-            (f.proficientSubjects || f.proficient_subjects || []).forEach((code: string) => {
-              if (code && typeof code === "string" && code.trim().length >= 2) {
-                extractedSubjCodes.add(code.trim());
-              }
-            });
-          });
-          extractedSubjCodes.forEach((code) => {
-            const isLab = isLabSubject({ code });
-            subjectData.push({
-              id: subIdCounter++,
-              name: `Course ${code}`,
-              code: code,
-              is_lab: isLab,
-            });
-          });
-        }
+        // Populate subjectDataBySem for all 8 semesters
+        [1, 2, 3, 4, 5, 6, 7, 8].forEach((sem) => {
+          const semSubjs: (Subject & { is_lab?: boolean; semester_id?: number })[] = [];
+          const savedSemMap = getItemUserScoped<any>(`vtu_higher_sem_subjects_map_sem_${sem}`);
 
-        // Always ensure standard VTU Practical Labs exist if no lab subjects were detected
-        if (!subjectData.some((s) => s.is_lab)) {
-          subjectData.push(
-            { id: subIdCounter++, name: "Programming & Data Structures Lab", code: "1BCSL305", is_lab: true },
-            { id: subIdCounter++, name: "Hardware & Systems Design Lab", code: "1BECEL306", is_lab: true }
-          );
-        }
+          if (savedSemMap) {
+            Object.values(savedSemMap).forEach((courseData: any) => {
+              const th = (courseData.theory || []).map((s: any) => ({ ...s, category: "theory" }));
+              const pr = (courseData.practical || []).map((s: any) => ({ ...s, category: "practical" }));
+              const tut = (courseData.tutorial || []).map((s: any) => ({ ...s, category: "tutorial" }));
+              [...th, ...pr, ...tut].forEach((s: any) => {
+                if (s.code && !semSubjs.some((existing) => existing.code === s.code)) {
+                  const isLab = isLabSubject(s);
+                  const subObj = {
+                    id: subIdCounter++,
+                    name: s.name || s.code,
+                    code: s.code,
+                    is_lab: isLab,
+                    semester_id: sem,
+                  };
+                  semSubjs.push(subObj);
+                  subjectData.push(subObj);
+                }
+              });
+            });
+          }
 
-        // Fallback default theory subjects if subjectData has no theory
-        if (!subjectData.some((s) => !s.is_lab)) {
-          subjectData.push(
-            { id: subIdCounter++, name: "System Software & Compiler Design", code: "18CS61", is_lab: false },
-            { id: subIdCounter++, name: "Computer Networks & Security", code: "18CS62", is_lab: false },
-            { id: subIdCounter++, name: "Web Technology & Applications", code: "18CS63", is_lab: false },
-            { id: subIdCounter++, name: "Data Mining & Data Warehousing", code: "18CS64", is_lab: false }
-          );
-        }
+          if (semSubjs.length === 0) {
+            const tmpl = vtuSemTemplates[sem] || vtuSemTemplates[1];
+            tmpl.forEach((t) => {
+              const subObj = {
+                id: subIdCounter++,
+                name: t.name,
+                code: t.code,
+                is_lab: t.is_lab || isLabSubject(t),
+                semester_id: sem,
+              };
+              semSubjs.push(subObj);
+              subjectData.push(subObj);
+            });
+          }
+
+          subjectDataBySem.set(sem, semSubjs);
+        });
 
         // 4. Build Subject Offerings linked to section's actual semester (Semesters 1 through 8!)
         const offeringData: SubjectOffering[] = [];
         let offIdCounter = 1;
 
         sectionData.forEach((sec) => {
-          subjectData.forEach((sub) => {
+          const semSubjs = subjectDataBySem.get(sec.semester_id) || [];
+          semSubjs.forEach((sub) => {
             offeringData.push({
               id: offIdCounter++,
               subject_id: sub.id,

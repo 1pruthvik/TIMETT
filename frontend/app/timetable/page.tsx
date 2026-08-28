@@ -627,8 +627,9 @@ export default function TimetablePage() {
           );
         };
 
-        // Workload Equalization & Zero-Clash Faculty Selector
+        // Workload Equalization & Subject-Proficient Zero-Clash Faculty Selector
         const pickOptimalFaculty = (
+          targetSubject: Subject | undefined,
           day: string,
           slotId: number,
           is9AM: boolean,
@@ -638,8 +639,31 @@ export default function TimetablePage() {
             return { id: 1, name: "Staff Professor", designation: "Assistant Professor" };
           }
 
-          // Filter faculties with ZERO CLASH at slotId, under daily cap, and under weekly cap
-          let validCandidates = facultyData.filter((f) => {
+          const subjCode = (targetSubject?.code || "").toUpperCase();
+          const subjName = (targetSubject?.name || "").toLowerCase();
+
+          // 1. Filter faculty by proficientSubjects or department match
+          let proficientCandidates = facultyData.filter((f: any) => {
+            const profs: string[] = (f.proficientSubjects || f.proficient_subjects || []).map((s: string) => s.toUpperCase());
+            if (profs.length > 0) {
+              if (profs.includes(subjCode)) return true;
+              if (profs.some((p) => subjCode.includes(p) || p.includes(subjCode))) return true;
+            }
+            const fDept = (f.department || "").toLowerCase();
+            if (subjCode.includes("MAT") && fDept.includes("math")) return true;
+            if (subjCode.includes("PHY") && fDept.includes("phys")) return true;
+            if (subjCode.includes("CHE") && fDept.includes("chem")) return true;
+            if ((subjCode.includes("CS") || subjCode.includes("IS") || subjCode.includes("AI") || subjCode.includes("DS")) && fDept.includes("comp")) return true;
+            if ((subjCode.includes("EC") || subjCode.includes("EE")) && (fDept.includes("electr") || fDept.includes("ece"))) return true;
+            return false;
+          });
+
+          if (proficientCandidates.length === 0) {
+            proficientCandidates = facultyData;
+          }
+
+          // 2. Filter proficient candidates for ZERO CLASH at slotId & workload caps
+          let validCandidates = proficientCandidates.filter((f) => {
             const facSlots = globalFacultyScheduleMap.get(f.id);
             if (facSlots && facSlots.has(slotId)) return false;
 
@@ -653,19 +677,18 @@ export default function TimetablePage() {
             return true;
           });
 
-          // Relax caps if candidate pool is empty to ensure 100% schedule fulfillment
           if (validCandidates.length === 0) {
-            validCandidates = facultyData.filter((f) => {
+            validCandidates = proficientCandidates.filter((f) => {
               const facSlots = globalFacultyScheduleMap.get(f.id);
               return !facSlots || !facSlots.has(slotId);
             });
           }
 
           if (validCandidates.length === 0) {
-            validCandidates = [facultyData[0]];
+            validCandidates = [proficientCandidates[slotId % proficientCandidates.length]];
           }
 
-          // Sort by soft constraints: 9 AM fairness & Workload equalization
+          // 3. Sort candidates for Workload Equalization & 9 AM Fairness
           validCandidates.sort((a, b) => {
             if (is9AM) {
               const countA = faculty9AMCountMap.get(a.id) || 0;
@@ -674,7 +697,8 @@ export default function TimetablePage() {
             }
             const loadA = facultyWeeklyLoadMap.get(a.id) || 0;
             const loadB = facultyWeeklyLoadMap.get(b.id) || 0;
-            return loadA - loadB;
+            if (loadA !== loadB) return loadA - loadB;
+            return a.id - b.id;
           });
 
           const chosen = validCandidates[0];
@@ -731,70 +755,61 @@ export default function TimetablePage() {
             const isHalfDay = sectionHalfDays.includes(day);
             let heavySubjectCountToday = 0;
 
-            // 1. Afternoon Periods 5 & 6 (after Lunch Break 01:20 PM)
-            if (!isHalfDay) {
-              if (secLab.length > 0) {
-                // Synchronous 2-Hour Practical Lab Block in Physical Lab
-                const labOff = secLab[labIdx % secLab.length];
-                labIdx++;
-                const chosenRoom = labRooms[(sec.id + dayIdx) % Math.max(1, labRooms.length)] || roomData[3];
+            // Flexible Lab Block Placement Option (Morning Block 1: P1&P2, Morning Block 2: P3&P4, Afternoon: P5&P6)
+            const labBlockIndices = isHalfDay || secLab.length === 0
+              ? []
+              : (sec.id + dayIdx) % 3 === 0
+                ? [4, 5] // Afternoon Block (Periods 5 & 6)
+                : (sec.id + dayIdx) % 3 === 1
+                  ? [2, 3] // Morning Block 2 (Periods 3 & 4)
+                  : [0, 1]; // Morning Block 1 (Periods 1 & 2)
 
-                const p5Slot = daySlots[4];
-                const p6Slot = daySlots[5];
+            // If full day has a lab scheduled
+            if (!isHalfDay && secLab.length > 0 && labBlockIndices.length === 2) {
+              const labOff = secLab[labIdx % secLab.length];
+              const labSub = subjectData.find((s) => s.id === labOff?.subject_id);
+              labIdx++;
+              const chosenLabRoom = labRooms[(sec.id + dayIdx) % Math.max(1, labRooms.length)] || roomData[3];
 
-                [p5Slot, p6Slot].forEach((slot) => {
-                  if (slot) {
-                    const fac = pickOptimalFaculty(day, slot.id, false, 2);
-                    entryData.push({
-                      id: entryIdCounter++,
-                      timetable_id: 1,
-                      subject_offering_id: { ...labOff, faculty_id: fac.id }.id,
-                      room_id: chosenRoom.id,
-                      time_slot_id: slot.id,
-                    });
-                  }
-                });
-              } else if (secTheory.length > 0) {
-                // Theory / Elective Block for Full Days without Lab
-                [daySlots[4], daySlots[5]].forEach((slot, pOffset) => {
-                  if (slot) {
-                    let theoryOff = secTheory[theoryIdx % secTheory.length];
-                    let sub = subjectData.find((s) => s.id === theoryOff?.subject_id);
-
-                    if (isAnalyticalHeavySubject(sub) && heavySubjectCountToday >= 2) {
-                      const lighterOff = secTheory.find((o) => !isAnalyticalHeavySubject(subjectData.find((s) => s.id === o.subject_id)));
-                      if (lighterOff) theoryOff = lighterOff;
-                    }
-
-                    if (isAnalyticalHeavySubject(sub)) heavySubjectCountToday++;
-                    theoryIdx++;
-
-                    const chosenRoom = lectureRooms[(sec.id + pOffset) % Math.max(1, lectureRooms.length)] || roomData[0];
-                    const fac = pickOptimalFaculty(day, slot.id, false, 1);
-
-                    entryData.push({
-                      id: entryIdCounter++,
-                      timetable_id: 1,
-                      subject_offering_id: { ...theoryOff, faculty_id: fac.id }.id,
-                      room_id: chosenRoom.id,
-                      time_slot_id: slot.id,
-                    });
-                  }
-                });
-              }
+              // Assign 2-hour lab block
+              labBlockIndices.forEach((pIdx) => {
+                const slot = daySlots[pIdx];
+                if (slot) {
+                  const fac = pickOptimalFaculty(labSub, day, slot.id, pIdx === 0, 2);
+                  entryData.push({
+                    id: entryIdCounter++,
+                    timetable_id: 1,
+                    subject_offering_id: { ...labOff, faculty_id: fac.id }.id,
+                    room_id: chosenLabRoom.id,
+                    time_slot_id: slot.id,
+                  });
+                }
+              });
             }
 
-            // 2. Morning Periods 1-4 (before Lunch Break 01:20 PM)
-            [0, 1, 2, 3].forEach((pIdx) => {
-              const slot = daySlots[pIdx];
-              if (slot && secTheory.length > 0) {
+            // Assign Theory subjects to remaining periods
+            daySlots.forEach((slot, pIdx) => {
+              if (isHalfDay && pIdx >= 4) {
+                // Free slots on half days
+                return;
+              }
+
+              if (labBlockIndices.includes(pIdx)) {
+                // Skip periods already occupied by the 2-hour Lab block
+                return;
+              }
+
+              if (secTheory.length > 0) {
                 let theoryOff = secTheory[theoryIdx % secTheory.length];
                 let sub = subjectData.find((s) => s.id === theoryOff?.subject_id);
 
                 // Enforce Student Cognitive Load Balancing: Max 2 Heavy Analytical Subjects / Day
                 if (isAnalyticalHeavySubject(sub) && heavySubjectCountToday >= 2) {
                   const lighterOff = secTheory.find((o) => !isAnalyticalHeavySubject(subjectData.find((s) => s.id === o.subject_id)));
-                  if (lighterOff) theoryOff = lighterOff;
+                  if (lighterOff) {
+                    theoryOff = lighterOff;
+                    sub = subjectData.find((s) => s.id === theoryOff?.subject_id);
+                  }
                 }
 
                 if (isAnalyticalHeavySubject(sub)) heavySubjectCountToday++;
@@ -802,7 +817,7 @@ export default function TimetablePage() {
 
                 const is9AM = pIdx === 0;
                 const chosenRoom = lectureRooms[(sec.id + pIdx) % Math.max(1, lectureRooms.length)] || roomData[0];
-                const fac = pickOptimalFaculty(day, slot.id, is9AM, 1);
+                const fac = pickOptimalFaculty(sub, day, slot.id, is9AM, 1);
 
                 entryData.push({
                   id: entryIdCounter++,

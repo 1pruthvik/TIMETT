@@ -145,17 +145,17 @@ export default function SectionsPage() {
     const keyCustom = `vtu_higher_sem_subjects_map_sem_${activeSemNumber}`;
     const keyStandard = `vtu_course_subjects_map_sem${activeSemNumber}`;
 
-    const savedCustom = localStorage.getItem(keyCustom);
-    const savedStandard = localStorage.getItem(keyStandard);
+    const savedCustom = getItemUserScoped<any>(keyCustom);
+    const savedStandard = getItemUserScoped<any>(keyStandard);
     const defaultTemplates = VTU_HIGHER_SEMESTER_TEMPLATES[activeSemNumber] || {};
 
     if (savedCustom) {
       try {
-        semSubjectMap = JSON.parse(savedCustom);
+        semSubjectMap = typeof savedCustom === "string" ? JSON.parse(savedCustom) : savedCustom;
       } catch (e) {}
     } else if (savedStandard) {
       try {
-        semSubjectMap = JSON.parse(savedStandard);
+        semSubjectMap = typeof savedStandard === "string" ? JSON.parse(savedStandard) : savedStandard;
       } catch (e) {}
     }
 
@@ -164,7 +164,7 @@ export default function SectionsPage() {
       const countStudents = course.studentCount || 60;
       const countSections = Math.ceil(countStudents / Math.max(1, roomCapacity));
 
-      const deptSubjects = semSubjectMap[cCode] || defaultTemplates[cCode] || { theory: [], tutorial: [], practical: [] };
+      const deptSubjects = semSubjectMap[cCode] || defaultTemplates[cCode] || defaultTemplates["CSE"] || { theory: [], tutorial: [], practical: [] };
 
       const thCount = deptSubjects.theory ? deptSubjects.theory.length : 0;
       const tutCount = deptSubjects.tutorial ? deptSubjects.tutorial.length : 0;

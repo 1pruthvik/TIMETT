@@ -401,19 +401,25 @@ export default function DocumentsPage() {
   useEffect(() => {
     if (!isFirstYear) {
       try {
-        const saved = localStorage.getItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`);
+        const saved = getItemUserScoped<any>(`vtu_higher_sem_subjects_map_sem_${semNumber}`);
         const defaultTemplates = VTU_HIGHER_SEMESTER_TEMPLATES[semNumber] || {};
 
+        const getFallbackTemplate = (code: string) => {
+          const streamType = resolveStreamType(code);
+          return defaultTemplates[code] || defaultTemplates[streamType] || defaultTemplates["CSE"] || { theory: [], tutorial: [], practical: [] };
+        };
+
         if (saved) {
-          const parsed = JSON.parse(saved);
+          const parsed = typeof saved === "string" ? JSON.parse(saved) : saved;
           const merged: Record<string, { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }> = { ...parsed };
           
           selectedCourses.forEach((c) => {
-            if (!merged[c.code] && defaultTemplates[c.code]) {
+            if (!merged[c.code]) {
+              const tmpl = getFallbackTemplate(c.code);
               merged[c.code] = {
-                theory: defaultTemplates[c.code].theory || [],
-                tutorial: defaultTemplates[c.code].tutorial || [],
-                practical: defaultTemplates[c.code].practical || [],
+                theory: tmpl.theory || [],
+                tutorial: tmpl.tutorial || [],
+                practical: tmpl.practical || [],
               };
             }
           });
@@ -421,19 +427,16 @@ export default function DocumentsPage() {
         } else {
           const initial: Record<string, { theory: SubjectItem[]; tutorial: SubjectItem[]; practical: SubjectItem[] }> = {};
           selectedCourses.forEach((c) => {
-            if (defaultTemplates[c.code]) {
-              initial[c.code] = {
-                theory: defaultTemplates[c.code].theory || [],
-                tutorial: defaultTemplates[c.code].tutorial || [],
-                practical: defaultTemplates[c.code].practical || [],
-              };
-            } else {
-              initial[c.code] = { theory: [], tutorial: [], practical: [] };
-            }
+            const tmpl = getFallbackTemplate(c.code);
+            initial[c.code] = {
+              theory: tmpl.theory || [],
+              tutorial: tmpl.tutorial || [],
+              practical: tmpl.practical || [],
+            };
           });
           setHigherSemSubjects(initial);
-          localStorage.setItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`, JSON.stringify(initial));
-          localStorage.setItem("vtu_course_subjects_map", JSON.stringify(initial));
+          setItemUserScoped(`vtu_higher_sem_subjects_map_sem_${semNumber}`, initial);
+          setItemUserScoped("vtu_course_subjects_map", initial);
         }
       } catch (e) {
         console.error(e);

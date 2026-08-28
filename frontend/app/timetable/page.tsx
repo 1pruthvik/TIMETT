@@ -501,22 +501,34 @@ export default function TimetablePage() {
           });
         });
 
-        // 3. Read REAL subjects strictly from user-scoped storage (vtu_course_subjects_map or uploaded proficiencies)
+        // 3. Read REAL subjects strictly from user-scoped storage with robust Lab detection
         const parsedSubjectMap = getItemUserScoped<any>("vtu_course_subjects_map");
-        const subjectData: Subject[] = [];
+        const subjectData: (Subject & { is_lab?: boolean })[] = [];
         let subIdCounter = 1;
+
+        const isLabSubject = (s: any): boolean => {
+          if (!s) return false;
+          if (s.category === "practical" || s.category === "lab") return true;
+          const nameLower = (s.name || "").toLowerCase();
+          const codeUpper = (s.code || "").toUpperCase();
+          if (nameLower.includes("lab") || nameLower.includes("practical") || nameLower.includes("workshop") || nameLower.includes("laboratory")) return true;
+          if (codeUpper.includes("LAB") || codeUpper.includes("L") || codeUpper.includes("PR") || codeUpper.includes("WS")) return true;
+          return false;
+        };
 
         if (parsedSubjectMap) {
           Object.values(parsedSubjectMap).forEach((semData: any) => {
-            const th = semData.theory || [];
-            const pr = semData.practical || [];
-            const tut = semData.tutorial || [];
+            const th = (semData.theory || []).map((s: any) => ({ ...s, category: "theory" }));
+            const pr = (semData.practical || []).map((s: any) => ({ ...s, category: "practical" }));
+            const tut = (semData.tutorial || []).map((s: any) => ({ ...s, category: "tutorial" }));
             [...th, ...pr, ...tut].forEach((s: any) => {
               if (s.code && !subjectData.some((existing) => existing.code === s.code)) {
+                const isLab = isLabSubject(s);
                 subjectData.push({
                   id: subIdCounter++,
                   name: s.name || s.code,
                   code: s.code,
+                  is_lab: isLab,
                 });
               }
             });
@@ -534,23 +546,31 @@ export default function TimetablePage() {
             });
           });
           extractedSubjCodes.forEach((code) => {
+            const isLab = isLabSubject({ code });
             subjectData.push({
               id: subIdCounter++,
               name: `Course ${code}`,
               code: code,
+              is_lab: isLab,
             });
           });
         }
 
-        // Fallback default subjects only if no subjects or faculty were provided
-        if (subjectData.length === 0) {
+        // Always ensure standard VTU Practical Labs exist if no lab subjects were detected
+        if (!subjectData.some((s) => s.is_lab)) {
           subjectData.push(
-            { id: 1, name: "System Software & Compiler Design", code: "18CS61" },
-            { id: 2, name: "Computer Networks & Security", code: "18CS62" },
-            { id: 3, name: "Web Technology & Applications", code: "18CS63" },
-            { id: 4, name: "Data Mining & Data Warehousing", code: "18CS64" },
-            { id: 5, name: "Object Oriented Modeling", code: "18CS65" },
-            { id: 6, name: "System Software & OS Lab", code: "18CSL66" }
+            { id: subIdCounter++, name: "Programming & Data Structures Lab", code: "1BCSL305", is_lab: true },
+            { id: subIdCounter++, name: "Hardware & Systems Design Lab", code: "1BECEL306", is_lab: true }
+          );
+        }
+
+        // Fallback default theory subjects if subjectData has no theory
+        if (!subjectData.some((s) => !s.is_lab)) {
+          subjectData.push(
+            { id: subIdCounter++, name: "System Software & Compiler Design", code: "18CS61", is_lab: false },
+            { id: subIdCounter++, name: "Computer Networks & Security", code: "18CS62", is_lab: false },
+            { id: subIdCounter++, name: "Web Technology & Applications", code: "18CS63", is_lab: false },
+            { id: subIdCounter++, name: "Data Mining & Data Warehousing", code: "18CS64", is_lab: false }
           );
         }
 
@@ -572,7 +592,7 @@ export default function TimetablePage() {
               faculty_id: fac.id,
               section_id: sec.id,
               semester_id: sec.semester_id, // Linked to section's actual semester (Sem 1 to 8)
-              weekly_hours: sub.code.includes("L") ? 2 : 4,
+              weekly_hours: sub.is_lab ? 2 : 4,
             });
           });
         });
@@ -586,12 +606,12 @@ export default function TimetablePage() {
 
         const theoryOfferings = offeringData.filter((o) => {
           const sub = subjectData.find((s) => s.id === o.subject_id);
-          return sub && !sub.code.includes("L");
+          return sub && !sub.is_lab;
         });
 
         const labOfferings = offeringData.filter((o) => {
           const sub = subjectData.find((s) => s.id === o.subject_id);
-          return sub && sub.code.includes("L");
+          return sub && sub.is_lab;
         });
 
         // Convenient half-day pairs staggered per section for optimal lab utilization
@@ -627,7 +647,7 @@ export default function TimetablePage() {
                   // Full days: Assign 2-hour Practical Lab block if available, else assign Theory/Elective subjects
                   if (secLab.length > 0) {
                     const labOff = secLab[labIdx % secLab.length];
-                    const room = roomData[sec.id % 2 === 0 ? 4 : 3]; // Computing Lab
+                    const room = roomData[sec.id % 2 === 0 ? 4 : 3]; // Physical Computing Lab
                     entryData.push({
                       id: entryIdCounter++,
                       timetable_id: 1,

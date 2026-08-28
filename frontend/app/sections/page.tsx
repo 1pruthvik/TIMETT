@@ -20,6 +20,8 @@ import { WizardFooter } from "@/components/ui/wizard-footer";
 import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
 import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 interface VTUCourse {
   code: string;
   name: string;
@@ -277,7 +279,7 @@ export default function SectionsPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-      const res = await fetch("http://127.0.0.1:8000/generator/generate", {
+      const res = await fetch(`${API_BASE}/generator/generate`, {
         method: "POST",
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },

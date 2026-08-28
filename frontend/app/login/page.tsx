@@ -8,6 +8,8 @@ import { TechBackground } from "@/components/ui/tech-background";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { CalendarDays, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -57,7 +59,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/oauth", {
+      const response = await fetch(`${API_BASE}/auth/oauth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -91,7 +93,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/login", {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

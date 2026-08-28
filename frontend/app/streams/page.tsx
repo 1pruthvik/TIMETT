@@ -21,6 +21,8 @@ interface CycleGroup {
   created_at: string;
 }
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 export default function StreamsPage() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [cycleGroups, setCycleGroups] = useState<CycleGroup[]>([]);
@@ -44,8 +46,8 @@ export default function StreamsPage() {
     setLoading(true);
     try {
       const [resS, resC] = await Promise.all([
-        fetch("http://127.0.0.1:8000/streams").catch(() => null),
-        fetch("http://127.0.0.1:8000/cycle-groups").catch(() => null),
+        fetch(`${API_BASE}/streams`).catch(() => null),
+        fetch(`${API_BASE}/cycle-groups`).catch(() => null),
       ]);
       if (resS && resS.ok) setStreams(await resS.json().catch(() => []));
       if (resC && resC.ok) setCycleGroups(await resC.json().catch(() => []));
@@ -60,7 +62,7 @@ export default function StreamsPage() {
     e.preventDefault();
     if (!streamName || !streamCode) return;
     try {
-      const res = await fetch("http://127.0.0.1:8000/streams", {
+      const res = await fetch(`${API_BASE}/streams`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: streamName, code: streamCode, description: streamDesc }),
@@ -80,7 +82,7 @@ export default function StreamsPage() {
     e.preventDefault();
     if (!cycleName || !selectedStreamId) return;
     try {
-      const res = await fetch("http://127.0.0.1:8000/cycle-groups", {
+      const res = await fetch(`${API_BASE}/cycle-groups`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: cycleName, cycle_type: cycleType, stream_id: selectedStreamId }),
@@ -96,7 +98,7 @@ export default function StreamsPage() {
 
   const handleDeleteStream = async (id: number) => {
     try {
-      await fetch(`http://127.0.0.1:8000/streams/${id}`, { method: "DELETE" }).catch(() => null);
+      await fetch(`${API_BASE}/streams/${id}`, { method: "DELETE" }).catch(() => null);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -108,7 +110,7 @@ export default function StreamsPage() {
     setJointStatus(null);
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/generator/generate-joint?sem1_id=${jointSem1}&sem2_id=${jointSem2}`,
+        `${API_BASE}/generator/generate-joint?sem1_id=${jointSem1}&sem2_id=${jointSem2}`,
         { method: "POST" }
       ).catch(() => null);
       const data = res ? await res.json().catch(() => null) : null;

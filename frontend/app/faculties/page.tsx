@@ -24,11 +24,15 @@ import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
 import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 interface FacultyItem {
   name: string;
   department: string;
   designation?: string;
   proficientSubjects?: string[];
+  proficient_subjects?: string[];
+  max_hours_per_week?: number;
 }
 
 const DEFAULT_DEPARTMENTS = [
@@ -240,7 +244,7 @@ export default function FacultiesPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/vtu/parse-faculty", {
+      const res = await fetch(`${API_BASE}/vtu/parse-faculty`, {
         method: "POST",
         body: formData,
       }).catch(() => null);
@@ -345,7 +349,7 @@ export default function FacultiesPage() {
     const matchesSearch =
       f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (f.proficientSubjects || []).some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      (f.proficientSubjects || f.proficient_subjects || []).some((s: string) => s.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesDept = selectedDeptFilter === "ALL" || f.department === selectedDeptFilter;
 
@@ -730,13 +734,13 @@ export default function FacultiesPage() {
                       </div>
 
                       {/* Proficient Subjects Display */}
-                      {f.proficientSubjects && f.proficientSubjects.length > 0 && (
+                      {((f.proficientSubjects || f.proficient_subjects || []).length > 0) && (
                         <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-1.5 pl-7">
                           <span className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
                             <BookOpen className="h-3 w-3 text-primary" />
                             <span>Proficient:</span>
                           </span>
-                          {f.proficientSubjects.map((code) => (
+                          {(f.proficientSubjects || f.proficient_subjects || []).map((code: string) => (
                             <span
                               key={code}
                               className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary font-mono font-bold"

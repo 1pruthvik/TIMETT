@@ -8,6 +8,8 @@ import { TechBackground } from "@/components/ui/tech-background";
 import { ThemeToggle } from "@/components/theme/theme-provider";
 import { CalendarDays, Eye, EyeOff, Sparkles } from "lucide-react";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -54,7 +56,7 @@ export default function RegisterPage() {
     setOauthLoading(true);
     setError("");
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/oauth", {
+      const response = await fetch(`${API_BASE}/auth/oauth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: selectedProvider, email: account.email, name: account.name }),
@@ -77,7 +79,7 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/register", {
+      const response = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),

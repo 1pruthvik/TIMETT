@@ -20,6 +20,8 @@ import { WizardFooter } from "@/components/ui/wizard-footer";
 
 import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 interface VTUCourse {
   code: string;
   name: string;
@@ -684,7 +686,7 @@ export default function DocumentsPage() {
     formData.append("semester", String(semNumber));
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/documents/parse-scheme", {
+      const res = await fetch(`${API_BASE}/documents/parse-scheme`, {
         method: "POST",
         body: formData,
       });

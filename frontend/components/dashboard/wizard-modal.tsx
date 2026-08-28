@@ -21,6 +21,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
 interface VTUCourse {
   code: string;
   name: string;
@@ -104,7 +106,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         return;
       }
 
-      const res = await fetch("http://127.0.0.1:8000/vtu/courses");
+      const res = await fetch(`${API_BASE}/vtu/courses`);
       if (res.ok) {
         const data = await res.json();
         const initial = data.map((c: any) => ({
@@ -147,7 +149,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/vtu/parse-scheme", {
+      const res = await fetch(`${API_BASE}/vtu/parse-scheme`, {
         method: "POST",
         body: formData,
       });
@@ -178,7 +180,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/vtu/parse-faculty", {
+      const res = await fetch(`${API_BASE}/vtu/parse-faculty`, {
         method: "POST",
         body: formData,
       });
@@ -208,7 +210,7 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     setGenerating(true);
     setGenStatus(null);
     try {
-      const res = await fetch("http://127.0.0.1:8000/generator/generate", {
+      const res = await fetch(`${API_BASE}/generator/generate`, {
         method: "POST",
       });
       const data = await res.json();

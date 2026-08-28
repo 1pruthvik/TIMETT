@@ -3,9 +3,12 @@ import json
 from pathlib import Path
 from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
-from sqlalchemy.orm import Session
-from google import genai
-from google.genai import types
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    genai = None
+    types = None
 
 from app.models.faculty import Faculty
 from app.models.department import Department
@@ -467,6 +470,17 @@ async def generate_kaci_response(
         "6. If the user asks for scheduling advice or constraint analysis, explain it concisely and offer to formulate it.\n\n"
         f"Live Database State:\n{context}"
     )
+
+    if not genai:
+        return {
+            "text": "Google GenAI SDK is not installed or initialized.",
+            "model": "Kaci Fallback",
+        }
+    if not api_key:
+        return {
+            "text": "Gemini API Key is not configured. Please set GEMINI_API_KEY.",
+            "model": "Kaci Configuration",
+        }
 
     try:
         client = genai.Client(api_key=api_key)

@@ -150,25 +150,25 @@ export default function CoursesPage() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5 tt-animate-fade">
         
         {/* Page Hero Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
             VTU B.E. Degree Courses & Student Intake
           </h1>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="h-8 px-3 rounded-lg bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
               <span>Total Students:</span>
               <span className="text-primary font-extrabold">{totalStudents}</span>
             </div>
             <button
               type="button"
               onClick={() => setShowAddCustom(!showAddCustom)}
-              className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+              className="h-8 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5 shadow-xs"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
               <span>Add Branch</span>
             </button>
           </div>
@@ -178,10 +178,10 @@ export default function CoursesPage() {
         {showAddCustom && (
           <form
             onSubmit={handleAddCustomCourse}
-            className="p-6 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 tt-animate-fade shadow-lg"
+            className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 tt-animate-fade shadow-md"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-primary">Add Department / Branch</h3>
+              <h3 className="text-xs font-bold text-primary uppercase tracking-wider">Add Department / Branch</h3>
               <button
                 type="button"
                 onClick={() => setShowAddCustom(false)}
@@ -190,13 +190,13 @@ export default function CoursesPage() {
                 Close
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <input
                 type="text"
                 placeholder="Branch Code (e.g. AI-ML)"
                 value={newCourseCode}
                 onChange={(e) => setNewCourseCode(e.target.value)}
-                className="h-11 px-4 text-xs font-mono rounded-xl border border-border bg-background"
+                className="h-8.5 px-3 text-xs font-mono rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
                 required
               />
               <input
@@ -204,14 +204,14 @@ export default function CoursesPage() {
                 placeholder="Branch Name (e.g. Artificial Intelligence & Machine Learning)"
                 value={newCourseName}
                 onChange={(e) => setNewCourseName(e.target.value)}
-                className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
+                className="h-8.5 px-3 text-xs rounded-lg border border-border bg-background outline-none focus:ring-1 focus:ring-primary"
                 required
               />
             </div>
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
+                className="h-8.5 px-4 text-xs font-bold bg-primary text-primary-foreground rounded-lg cursor-pointer"
               >
                 Save Branch
               </button>
@@ -220,25 +220,25 @@ export default function CoursesPage() {
         )}
 
         {/* Search Bar */}
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full max-w-sm">
           <input
             type="text"
             placeholder="Search branches..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 text-xs rounded-xl border border-border bg-background/80 focus:ring-2 focus:ring-primary/30 outline-none"
+            className="w-full h-8 pl-8 pr-3 text-xs rounded-lg border border-border bg-background/80 focus:ring-1 focus:ring-primary outline-none"
           />
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         </div>
 
         {/* Courses Cards Grid */}
         {loading ? (
-          <div className="flex items-center justify-center p-16 space-x-3 text-sm text-muted-foreground">
-            <RefreshCw className="h-5 w-5 animate-spin text-primary" />
+          <div className="flex items-center justify-center p-12 space-x-3 text-xs text-muted-foreground">
+            <RefreshCw className="h-4 w-4 animate-spin text-primary" />
             <span>Loading pre-fetched VTU courses...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredCourses.map((c) => {
               const currentCycle = c.cycle || "physics";
 
@@ -251,14 +251,14 @@ export default function CoursesPage() {
                       setActiveCourseCode(c.code);
                     }
                   }}
-                  className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 cursor-pointer select-none ${
+                  className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between space-y-3 cursor-pointer select-none ${
                     c.selected
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-[0_0_24px_rgba(0,102,255,0.18)]"
+                      ? "border-primary bg-primary/10 ring-1 ring-primary/40 shadow-xs"
                       : "border-border/60 bg-card/40 hover:border-primary/40 hover:bg-card/70 opacity-60 hover:opacity-100"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center space-x-3">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center space-x-2.5">
                       <input
                         type="checkbox"
                         checked={c.selected}
@@ -266,66 +266,66 @@ export default function CoursesPage() {
                           e.stopPropagation();
                           handleToggleCourse(c.code);
                         }}
-                        className="h-5 w-5 rounded border-primary text-primary focus:ring-primary/40 cursor-pointer pointer-events-none"
+                        className="h-4 w-4 rounded border-primary text-primary focus:ring-primary/40 cursor-pointer pointer-events-none"
                       />
                       <div>
-                        <span className="text-xs font-mono font-bold text-primary">{c.code}</span>
-                        <h3 className="text-sm font-bold text-foreground line-clamp-1">{c.name}</h3>
+                        <span className="text-[11px] font-mono font-bold text-primary">{c.code}</span>
+                        <h3 className="text-xs font-bold text-foreground line-clamp-1">{c.name}</h3>
                       </div>
                     </div>
 
                     {c.selected && (
-                      <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-primary text-primary-foreground">
+                      <span className="px-1.5 py-0.5 text-[9px] font-extrabold rounded-md bg-primary text-primary-foreground">
                         Active
                       </span>
                     )}
                   </div>
 
                   {c.selected && (
-                    <div className="space-y-3 pt-3 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+                    <div className="space-y-2 pt-2.5 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
                       {/* Students Admitted Intake */}
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-muted-foreground">Students Admitted:</span>
-                        <div className="flex items-center space-x-2">
+                        <span className="text-[11px] font-medium text-muted-foreground">Students Admitted:</span>
+                        <div className="flex items-center space-x-1.5">
                           <input
                             type="number"
                             value={c.studentCount}
                             onChange={(e) => handleUpdateStudentCount(c.code, Number(e.target.value))}
-                            className="w-20 h-9 px-3 text-xs font-mono font-bold rounded-lg border border-border bg-background text-right focus:ring-1 focus:ring-primary outline-none"
+                            className="w-16 h-7 px-2 text-xs font-mono font-bold rounded-md border border-border bg-background text-right focus:ring-1 focus:ring-primary outline-none"
                           />
-                          <span className="text-[11px] text-muted-foreground">std</span>
+                          <span className="text-[10px] text-muted-foreground">std</span>
                         </div>
                       </div>
 
                       {/* 1st Year Cycle Selection Option */}
                       {isFirstYear && (
-                        <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                          <span className="text-xs font-medium text-muted-foreground">Cycle:</span>
-                          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-background/80 border border-border/60">
+                        <div className="flex items-center justify-between pt-1.5 border-t border-border/40">
+                          <span className="text-[11px] font-medium text-muted-foreground">Cycle:</span>
+                          <div className="grid grid-cols-2 gap-1 p-0.5 rounded-lg bg-background/80 border border-border/60">
                             <button
                               type="button"
                               onClick={() => handleUpdateCycle(c.code, "physics")}
                               className={cn(
-                                "px-2.5 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center space-x-1",
+                                "px-2 py-0.5 text-[10px] font-bold rounded-md transition cursor-pointer flex items-center space-x-1",
                                 currentCycle === "physics"
                                   ? "bg-primary text-primary-foreground shadow-xs"
                                   : "text-muted-foreground hover:text-foreground"
                               )}
                             >
-                              <Zap className="h-3 w-3" />
+                              <Zap className="h-2.5 w-2.5" />
                               <span>Physics</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => handleUpdateCycle(c.code, "chemistry")}
                               className={cn(
-                                "px-2.5 py-1 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center space-x-1",
+                                "px-2 py-0.5 text-[10px] font-bold rounded-md transition cursor-pointer flex items-center space-x-1",
                                 currentCycle === "chemistry"
                                   ? "bg-[#00A3FF] text-white shadow-xs"
                                   : "text-muted-foreground hover:text-foreground"
                               )}
                             >
-                              <FlaskConical className="h-3 w-3" />
+                              <FlaskConical className="h-2.5 w-2.5" />
                               <span>Chemistry</span>
                             </button>
                           </div>
@@ -339,7 +339,7 @@ export default function CoursesPage() {
           </div>
         )}
 
-        {/* Footer Navigation with Scrolling Overscroll Transition */}
+        {/* Footer Navigation */}
         <WizardFooter
           prevHref="/academic-year"
           nextHref="/documents"

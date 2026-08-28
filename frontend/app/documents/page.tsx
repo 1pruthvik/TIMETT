@@ -382,6 +382,23 @@ export default function DocumentsPage() {
     return (y - 1) * 2 + (isOdd ? 1 : 2);
   }, [selectedYear, selectedSemType]);
 
+  const handleSelectSemester = (sem: number) => {
+    const y = String(Math.ceil(sem / 2));
+    const isOdd = sem % 2 !== 0;
+    const semType: "odd" | "even" = isOdd ? "odd" : "even";
+    setSelectedYear(y);
+    setSelectedSemType(semType);
+    try {
+      const savedSetup = localStorage.getItem("vtu_academic_setup");
+      const parsed = savedSetup ? JSON.parse(savedSetup) : {};
+      parsed.selectedYear = y;
+      parsed.selectedSemType = semType;
+      localStorage.setItem("vtu_academic_setup", JSON.stringify(parsed));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const isFirstYear = selectedYear === "1" || semNumber === 1 || semNumber === 2;
   const isSecondSem = semNumber === 2;
 
@@ -652,6 +669,7 @@ export default function DocumentsPage() {
     saveHigherSemSubjects(updated);
     setNewSubjCode("");
     setNewSubjName("");
+    setNewSubjDept("");
     setShowAddSubject(false);
   };
 
@@ -770,15 +788,15 @@ export default function DocumentsPage() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5 tt-animate-fade">
         
         {/* Page Hero Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3.5">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
               VTU Curriculum & Subject Allocation
             </h1>
-            <p className="text-xs font-semibold text-primary uppercase tracking-widest mt-1">
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mt-0.5">
               {isFirstYear
                 ? `${romanSem} Semester • ${isPhysGroup ? "Physics Group" : "Chemistry Group"}`
                 : `Year ${selectedYear} • ${romanSem} Semester (Sem ${semNumber})`}
@@ -786,66 +804,68 @@ export default function DocumentsPage() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="h-10 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary font-mono text-xs font-bold flex items-center space-x-1.5">
-              <span>Active Branch:</span>
-              <span className="text-primary font-extrabold">{activeCourseCode}</span>
-              {isFirstYear && (
-                <span className="text-muted-foreground font-normal">
-                  • {streamData.streamName} • ({activeCourseObj?.cycle === "chemistry" ? "Chemistry Cycle" : "Physics Cycle"})
-                </span>
-              )}
-            </div>
             {!isFirstYear && (
               <button
                 type="button"
                 onClick={() => setShowAddSubject(!showAddSubject)}
-                className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5"
+                className="h-8.5 px-3.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center space-x-1.5 shadow-xs"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
                 <span>Add Subject</span>
               </button>
             )}
           </div>
         </div>
 
+        {/* Semester Toggle Switcher */}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => {
+            const isActive = semNumber === sem;
+            return (
+              <button
+                key={sem}
+                type="button"
+                onClick={() => handleSelectSemester(sem)}
+                className={`h-8 px-3.5 rounded-lg text-xs font-bold transition cursor-pointer font-mono ${
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-card/70 border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                Sem {sem}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Course Tabs Selector */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Select Degree Branch
           </h2>
-          <div className="flex flex-wrap gap-2.5 pb-2">
+          <div className="flex flex-wrap gap-2 pb-1">
             {selectedCourses.map((c) => {
-              const stream = resolveStreamType(c.code);
+              const isActive = activeCourseCode === c.code;
               return (
                 <button
                   key={c.code}
                   type="button"
                   onClick={() => setActiveCourseCode(c.code)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
-                    activeCourseCode === c.code
-                      ? "bg-primary text-primary-foreground shadow-lg ring-2 ring-primary/30"
-                      : "bg-card/70 border border-border text-muted-foreground hover:bg-muted"
+                  className={`h-8 px-3.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer font-mono ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-card/70 border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
                   <span>{c.code}</span>
-                  <span className="text-[10px] opacity-75 font-mono">({c.studentCount} std)</span>
-                  {isFirstYear && (
-                    <>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-muted/60 text-muted-foreground border border-border/40">
-                        {stream}
-                      </span>
-                      {c.cycle && (
-                        <span
-                          className={`text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-bold ${
-                            c.cycle === "physics"
-                              ? "bg-primary/20 text-primary-foreground border border-primary/30"
-                              : "bg-[#00A3FF]/20 text-[#00A3FF] border border-[#00A3FF]/30"
-                          }`}
-                        >
-                          {c.cycle === "physics" ? "Physics" : "Chemistry"}
-                        </span>
-                      )}
-                    </>
+                  {isFirstYear && c.cycle && (
+                    <span
+                      className={`text-[10px] uppercase font-semibold ${
+                        isActive ? "text-primary-foreground/90" : "text-muted-foreground"
+                      }`}
+                    >
+                      • {c.cycle === "physics" ? "Physics" : "Chemistry"}
+                    </span>
                   )}
                 </button>
               );
@@ -1367,7 +1387,7 @@ export default function DocumentsPage() {
                     Close
                   </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <input
                     type="text"
                     placeholder={`Code (e.g. 21${activeCourseCode}${semNumber}1)`}
@@ -1381,46 +1401,64 @@ export default function DocumentsPage() {
                     placeholder="Subject Name"
                     value={newSubjName}
                     onChange={(e) => setNewSubjName(e.target.value)}
-                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background sm:col-span-2"
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Teaching Dept (e.g. CSE Dept)"
-                    value={newSubjDept}
-                    onChange={(e) => setNewSubjDept(e.target.value)}
                     className="h-11 px-4 text-xs rounded-xl border border-border bg-background"
                     required
                   />
                   <select
-                    value={newSubjCategory}
+                    value={`${newSubjCategory}-${newSubjHours}`}
                     onChange={(e) => {
-                      const cat = e.target.value as "theory" | "tutorial" | "practical";
-                      setNewSubjCategory(cat);
-                      setNewSubjHours(cat === "theory" ? 4 : 2);
+                      const [cat, hrs] = e.target.value.split("-");
+                      setNewSubjCategory(cat as "theory" | "tutorial" | "practical");
+                      setNewSubjHours(Number(hrs));
                     }}
-                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer"
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
                   >
-                    <option value="theory">Theory Subject (Lecture)</option>
-                    <option value="tutorial">Tutorial Session</option>
-                    <option value="practical">Practical / Lab Session</option>
+                    <optgroup label="Theory Combinations">
+                      <option value="theory-4">Theory — 4 hrs/wk (Core / 4-Credit IPCC)</option>
+                      <option value="theory-3">Theory — 3 hrs/wk (Lecture / PEC / OEC)</option>
+                      <option value="theory-2">Theory — 2 hrs/wk (AEC / SDC / Env Studies)</option>
+                      <option value="theory-1">Theory — 1 hr/wk (Audit / IKS)</option>
+                    </optgroup>
+                    <optgroup label="Tutorial Sessions">
+                      <option value="tutorial-2">Tutorial — 2 hrs/wk (Standard Tutorial)</option>
+                      <option value="tutorial-1">Tutorial — 1 hr/wk (Remedial Tutorial)</option>
+                    </optgroup>
+                    <optgroup label="Practical & Lab Combinations">
+                      <option value="practical-2">Practical / Lab — 2 hrs/wk (Standard Lab Session)</option>
+                      <option value="practical-3">Practical / Lab — 3 hrs/wk (Extended / Project Lab)</option>
+                      <option value="practical-4">Practical / Lab — 4 hrs/wk (Advanced Practical)</option>
+                    </optgroup>
                   </select>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={newSubjHours}
-                      onChange={(e) => setNewSubjHours(Number(e.target.value))}
-                      className="h-11 w-24 px-3 text-xs font-mono rounded-xl border border-border bg-background text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">hrs/week</span>
-                  </div>
+                  <select
+                    value={newSubjDept}
+                    onChange={(e) => setNewSubjDept(e.target.value)}
+                    className="h-11 px-4 text-xs rounded-xl border border-border bg-background cursor-pointer font-medium"
+                  >
+                    <option value="">Teaching Dept: Default ({activeCourseCode} Dept)</option>
+                    <option value="CSE Dept">CSE Dept (CS Allied)</option>
+                    <option value="ECE Dept">ECE Dept (Electronics)</option>
+                    <option value="EEE Dept">EEE Dept (Electrical)</option>
+                    <option value="ME Dept">ME Dept (Mechanical)</option>
+                    <option value="Civil Dept">Civil Dept (Civil Engg)</option>
+                    <option value="Chem Dept">Chem Dept (Chemical Engg)</option>
+                    <option value="Biomedical Dept">Biomedical Dept (Biomedical Engg)</option>
+                    <option value="Maths Dept">Maths Dept (Mathematics)</option>
+                    <option value="Physics Dept">Physics Dept</option>
+                    <option value="Chemistry Dept">Chemistry Dept</option>
+                    <option value="Humanities Dept">Humanities Dept</option>
+                  </select>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSubject(false)}
+                    className="px-5 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer"
+                    className="px-6 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl cursor-pointer hover:opacity-90 transition"
                   >
                     Save Subject
                   </button>

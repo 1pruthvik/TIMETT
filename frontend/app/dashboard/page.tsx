@@ -31,36 +31,36 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="h-[calc(100vh-140px)] w-full flex flex-col justify-center items-center text-center px-6 sm:px-12 relative tt-animate-fade">
-        <div className="max-w-4xl w-full space-y-8">
-          {/* Greeting Typography matching Image 2 */}
-          <div className="space-y-3">
-            <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
+      <div className="h-[calc(100vh-120px)] w-full flex flex-col justify-center items-center text-center px-6 sm:px-12 relative tt-animate-fade">
+        <div className="max-w-3xl w-full space-y-6">
+          {/* Greeting Typography */}
+          <div className="space-y-2">
+            <h1 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground">
               {getGreeting()},
             </h1>
-            <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold italic tracking-tight">
+            <h1 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold italic tracking-tight">
               <span className="tt-gradient-text">{userName}.</span>
             </h1>
           </div>
 
           {/* Prominent Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
+          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-4">
             <Link href="/academic-year">
               <Button
-                className="h-14 rounded-2xl tt-gradient-btn px-8 text-base font-bold gap-3 cursor-pointer shadow-xl hover:scale-105 transition-all"
+                className="h-10 rounded-xl tt-gradient-btn px-6 text-sm font-bold gap-2 cursor-pointer shadow-md hover:opacity-95 transition-all"
               >
-                <Plus className="size-5" />
+                <Plus className="size-4" />
                 Generate New
-                <ArrowRight className="size-5" />
+                <ArrowRight className="size-4" />
               </Button>
             </Link>
 
             <Link href="/timetable">
               <Button
                 variant="outline"
-                className="h-14 rounded-2xl border border-black/[0.08] dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] px-8 text-base font-semibold text-foreground cursor-pointer gap-3"
+                className="h-10 rounded-xl border border-border bg-card/60 hover:bg-muted px-6 text-sm font-semibold text-foreground cursor-pointer gap-2"
               >
-                <CalendarDays className="size-5 text-[#38BDF8]" />
+                <CalendarDays className="size-4 text-[#38BDF8]" />
                 Open Timetable Studio
               </Button>
             </Link>

@@ -136,84 +136,84 @@ export default function SectionsPage() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 tt-animate-fade">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5 tt-animate-fade">
         
-        {/* Page Hero Header (No suggestions/descriptions) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+        {/* Page Hero Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
             Section Calculation, Lab Coinciding & Period Durations
           </h1>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={handleRunGenerator}
               disabled={generating}
-              className="px-7 py-3 text-sm font-extrabold rounded-2xl bg-gradient-to-r from-primary via-[#00A3FF] to-primary text-white shadow-xl hover:scale-105 disabled:opacity-50 transition cursor-pointer flex items-center space-x-2.5"
+              className="h-8 px-4 text-xs font-bold rounded-lg bg-gradient-to-r from-primary via-[#00A3FF] to-primary text-white shadow-xs hover:opacity-90 disabled:opacity-50 transition cursor-pointer flex items-center space-x-1.5"
             >
               {generating ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="h-3.5 w-3.5" />
               )}
-              <span>{generating ? "Solving Constraints..." : "Generate Conflict-Free Timetable"}</span>
+              <span>{generating ? "Solving Constraints..." : "Generate Timetable"}</span>
             </button>
           </div>
         </div>
 
         {/* Live Capacity Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+          <div className="p-3.5 rounded-xl border border-border bg-card/60 space-y-0.5">
+            <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
               Enrolled Students
             </p>
-            <p className="text-3xl font-extrabold text-primary font-mono">{totalStudents}</p>
+            <p className="text-2xl font-extrabold text-primary font-mono">{totalStudents}</p>
           </div>
 
-          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Computed Class Sections
+          <div className="p-3.5 rounded-xl border border-border bg-card/60 space-y-0.5">
+            <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+              Computed Sections
             </p>
-            <p className="text-3xl font-extrabold text-primary font-mono">{calculatedSections}</p>
+            <p className="text-2xl font-extrabold text-primary font-mono">{calculatedSections}</p>
           </div>
 
-          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Lab Batches / Section
+          <div className="p-3.5 rounded-xl border border-border bg-card/60 space-y-0.5">
+            <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
+              Batches / Section
             </p>
-            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{calculatedBatchesPerSec}</p>
+            <p className="text-2xl font-extrabold text-[#00A3FF] font-mono">{calculatedBatchesPerSec}</p>
           </div>
 
-          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-1">
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+          <div className="p-3.5 rounded-xl border border-border bg-card/60 space-y-0.5">
+            <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
               Curriculum Subjects
             </p>
-            <p className="text-3xl font-extrabold text-[#00A3FF] font-mono">{activeSubjectsCount}</p>
+            <p className="text-2xl font-extrabold text-[#00A3FF] font-mono">{activeSubjectsCount}</p>
           </div>
         </div>
 
         {genStatus && (
           <div
-            className={`p-4 rounded-2xl flex items-center space-x-3 text-sm font-semibold tt-animate-fade ${
+            className={`p-3 rounded-xl flex items-center space-x-2.5 text-xs font-semibold tt-animate-fade ${
               genStatus.includes("successfully") || genStatus.includes("0 hard conflicts")
-                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-md"
+                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-xs"
                 : "bg-primary/10 text-primary border border-primary/20"
             }`}
           >
             {genStatus.includes("successfully") || genStatus.includes("0 hard conflicts") ? (
-              <CheckCircle2 className="h-5 w-5 shrink-0" />
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
             ) : (
-              <Sparkles className="h-5 w-5 shrink-0" />
+              <Sparkles className="h-4 w-4 shrink-0" />
             )}
             <span>{genStatus}</span>
           </div>
         )}
 
         {/* 2-Column Wide Configuration Settings */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           
           {/* Left Column: Room & Lab Architecture */}
-          <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-8 space-y-6">
+          <div className="rounded-xl border border-border bg-card/60 p-4 sm:p-5 space-y-4">
             <div className="border-b border-border/50 pb-3">
               <h2 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center space-x-2">
                 <Building2 className="h-4 w-4" />

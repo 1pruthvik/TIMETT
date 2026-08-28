@@ -146,7 +146,7 @@ export function AppSidebar() {
             <div>
               <div className="flex items-center gap-1.5">
                 <p className="text-base font-extrabold tracking-tight bg-gradient-to-r from-[#0A1B4F] via-[#0040C0] to-[#0052FF] dark:from-[#0070F3] dark:via-[#38BDF8] dark:to-[#60A5FA] bg-clip-text text-transparent">
-                  TIMETT
+                  Tempus
                 </p>
                 <span className="rounded-full bg-[#0040C0]/15 dark:bg-[#0070F3]/15 px-1.5 py-0.2 text-[9px] font-bold text-[#0040C0] dark:text-[#38BDF8]">
                   OS

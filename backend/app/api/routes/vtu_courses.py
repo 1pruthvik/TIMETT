@@ -260,6 +260,26 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
     )
 
 
+def is_valid_human_name(name_str: str) -> bool:
+    if not name_str or len(name_str) < 2 or len(name_str) > 80:
+        return False
+    # Disallow binary junk, zip entries, xml elements
+    lower = name_str.lower()
+    if any(bad in lower for bad in ["_rels", "[content_types]", ".xml", "<?xml", "pk\x03", "xmlns", "schemas."]):
+        return False
+    # Check for non-printable control characters
+    if any(ord(c) < 32 and c not in "\t\n\r" for c in name_str):
+        return False
+    # Must contain mostly alphabetic characters
+    letters = sum(1 for c in name_str if c.isalpha())
+    if letters < 2:
+        return False
+    junk_chars = sum(1 for c in name_str if not (c.isalnum() or c.isspace() or c in ".,'-()&/"))
+    if junk_chars > 3:
+        return False
+    return True
+
+
 @router.post("/parse-faculty", response_model=ParsedFacultyResponse)
 async def parse_vtu_faculty(file: UploadFile = File(...)):
     if not file.filename:
@@ -267,118 +287,216 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
 
     content = await file.read()
     ext = file.filename.lower().split(".")[-1]
+    faculties: list[FacultyItemModel] = []
 
-    # 1. Excel / CSV Parsing
-    if ext in ["xlsx", "xls", "csv"]:
+    # 1. Excel / CSV Parsing (xlsx, xls, csv, tsv)
+    if ext in ["xlsx", "xls", "csv", "tsv"]:
         try:
             import pandas as pd
             if ext == "csv":
-                df = pd.read_csv(io.BytesIO(content))
+                try:
+                    df = pd.read_csv(io.BytesIO(content))
+                except Exception:
+                    df = pd.read_csv(io.BytesIO(content), sep=None, engine="python")
+            elif ext == "tsv":
+                df = pd.read_csv(io.BytesIO(content), sep="\t")
             else:
                 df = pd.read_excel(io.BytesIO(content))
 
-            faculties_list: list[FacultyItemModel] = []
             for _, row in df.iterrows():
                 row_str = " ".join([str(val) for val in row.values if pd.notna(val)])
                 if not row_str.strip():
                     continue
 
-                col_keys = [str(c).lower() for c in df.columns]
                 val_name = ""
-                val_dept = "Computer Science & Engineering"
+                val_dept = ""
                 val_desg = "Assistant Professor"
                 subjs: list[str] = []
 
                 for col in df.columns:
-                    col_l = str(col).lower()
+                    col_l = str(col).lower().strip()
                     val = str(row[col]).strip() if pd.notna(row[col]) else ""
-                    if not val:
+                    if not val or val.lower() in ["nan", "none", "null"]:
                         continue
-                    if "name" in col_l or "faculty" in col_l or "teacher" in col_l or "professor" in col_l:
+
+                    if any(k in col_l for k in ["name", "faculty", "teacher", "professor", "instructor", "staff"]):
                         val_name = val
-                    elif "dept" in col_l or "department" in col_l or "branch" in col_l:
+                    elif any(k in col_l for k in ["dept", "department", "branch", "stream"]):
                         val_dept = val
-                    elif "desig" in col_l or "role" in col_l or "post" in col_l or "title" in col_l:
+                    elif any(k in col_l for k in ["desig", "designation", "role", "post", "title", "position"]):
                         val_desg = val
-                    elif "subj" in col_l or "course" in col_l or "teach" in col_l or "proficien" in col_l:
+                    elif any(k in col_l for k in ["subj", "course", "teach", "proficien", "handling", "allot"]):
                         subjs = [s.strip() for s in re.split(r"[,;/|]", val) if s.strip()]
 
                 if not val_name:
                     for v in row.values:
-                        if pd.notna(v) and (re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", str(v), re.I) or len(str(v).split()) <= 4):
-                            val_name = str(v).strip()
-                            break
+                        if pd.notna(v):
+                            v_str = str(v).strip()
+                            if is_valid_human_name(v_str) and (re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", v_str, re.I) or len(v_str.split()) <= 4):
+                                val_name = v_str
+                                break
 
-                if not val_name:
+                if not is_valid_human_name(val_name):
                     continue
 
-                faculties_list.append(FacultyItemModel(
+                if not val_dept:
+                    val_dept = infer_department(val_name + " " + row_str)
+
+                # Clean designation
+                if "prof" in val_name.lower() or "dr." in val_name.lower():
+                    if val_desg == "Assistant Professor" and "assoc" in val_name.lower():
+                        val_desg = "Associate Professor"
+                    elif val_desg == "Assistant Professor" and "prof" in val_name.lower():
+                        val_desg = "Professor"
+
+                faculties.append(FacultyItemModel(
                     name=val_name,
                     department=val_dept,
                     designation=val_desg,
-                    proficient_subjects=subjs
+                    proficient_subjects=subjs,
                 ))
-            if faculties_list:
-                return ParsedFacultyResponse(faculties=faculties_list)
+
+            if faculties:
+                return ParsedFacultyResponse(faculties=faculties)
         except Exception as err:
-            print("Excel/CSV parse fallback:", err)
+            print("Excel/CSV parse error:", err)
 
-    # 2. Text/PDF/Image Parsing Fallback
-    extracted_text = ""
+    # 2. Word Documents (.docx)
+    elif ext in ["docx", "doc"]:
+        try:
+            import docx
+            doc = docx.Document(io.BytesIO(content))
+            
+            # Check tables in Word document
+            for table in doc.tables:
+                headers = [cell.text.strip().lower() for cell in table.rows[0].cells] if len(table.rows) > 0 else []
+                for row in table.rows[1:]:
+                    cells = [cell.text.strip() for cell in row.cells]
+                    row_text = " ".join(cells)
+                    if not row_text.strip():
+                        continue
+                    
+                    val_name = ""
+                    val_dept = ""
+                    val_desg = "Assistant Professor"
+                    subjs = []
 
-    if ext == "pdf":
+                    for idx, cell_text in enumerate(cells):
+                        col_hdr = headers[idx] if idx < len(headers) else ""
+                        if any(k in col_hdr for k in ["name", "faculty", "staff", "teacher"]):
+                            val_name = cell_text
+                        elif any(k in col_hdr for k in ["dept", "department", "branch"]):
+                            val_dept = cell_text
+                        elif any(k in col_hdr for k in ["desig", "role", "position"]):
+                            val_desg = cell_text
+                        elif any(k in col_hdr for k in ["subj", "course"]):
+                            subjs = [s.strip() for s in re.split(r"[,;/|]", cell_text) if s.strip()]
+
+                    if not val_name:
+                        for cell_text in cells:
+                            if is_valid_human_name(cell_text) and len(cell_text.split()) <= 4:
+                                val_name = cell_text
+                                break
+
+                    if is_valid_human_name(val_name):
+                        if not val_dept:
+                            val_dept = infer_department(val_name + " " + row_text)
+                        faculties.append(FacultyItemModel(
+                            name=val_name,
+                            department=val_dept,
+                            designation=val_desg,
+                            proficient_subjects=subjs,
+                        ))
+
+            # Also check paragraphs
+            if not faculties:
+                for p in doc.paragraphs:
+                    line_clean = p.text.strip()
+                    if not line_clean or not is_valid_human_name(line_clean.split(",")[0]):
+                        continue
+                    parts = line_clean.split(",")
+                    name = parts[0].strip()
+                    dept = parts[1].strip() if len(parts) > 1 else infer_department(line_clean)
+                    subjs_raw = parts[2].strip() if len(parts) > 2 else ""
+                    subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip()]
+                    desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
+                    faculties.append(FacultyItemModel(
+                        name=name,
+                        department=dept,
+                        designation=desg,
+                        proficient_subjects=subjs,
+                    ))
+
+            if faculties:
+                return ParsedFacultyResponse(faculties=faculties)
+        except Exception as err:
+            print("Docx parse error:", err)
+
+    # 3. PDF Document Parsing
+    elif ext == "pdf":
         try:
             doc = fitz.open(stream=content, filetype="pdf")
+            extracted_text = ""
             for page in doc:
                 extracted_text += page.get_text() + "\n"
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
-    elif ext in ["png", "jpg", "jpeg", "webp", "bmp", "tiff"]:
-        try:
-            from PIL import Image
-            import pytesseract
-            img = Image.open(io.BytesIO(content))
-            extracted_text = pytesseract.image_to_string(img)
-        except Exception:
-            try:
-                doc = fitz.open(stream=content, filetype=ext)
-                for page in doc:
-                    extracted_text += page.get_text() + "\n"
-            except Exception:
-                extracted_text = content.decode("utf-8", errors="ignore")
+
+            for line in extracted_text.splitlines():
+                line_clean = line.strip()
+                if not line_clean or len(line_clean) < 3:
+                    continue
+
+                if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or (len(line_clean.split()) <= 4 and is_valid_human_name(line_clean)):
+                    parts = line_clean.split(",")
+                    name = parts[0].strip()
+                    if not is_valid_human_name(name):
+                        continue
+                    dept = parts[1].strip() if len(parts) > 1 else infer_department(line_clean)
+                    subjs_raw = parts[2].strip() if len(parts) > 2 else ""
+                    subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip()]
+                    desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
+
+                    faculties.append(FacultyItemModel(
+                        name=name,
+                        department=dept,
+                        designation=desg,
+                        proficient_subjects=subjs,
+                    ))
+            if faculties:
+                return ParsedFacultyResponse(faculties=faculties)
+        except Exception as err:
+            print("PDF parse error:", err)
+
+    # 4. Text / OCR Parsing
     else:
-        extracted_text = content.decode("utf-8", errors="ignore")
+        try:
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                text = content.decode("latin1", errors="ignore")
 
-    faculties: list[FacultyItemModel] = []
-    lines = extracted_text.splitlines()
+            for line in text.splitlines():
+                line_clean = line.strip()
+                if not line_clean or not is_valid_human_name(line_clean.split(",")[0]):
+                    continue
 
-    for line in lines:
-        line_clean = line.strip()
-        if not line_clean or len(line_clean) < 3:
-            continue
+                parts = line_clean.split(",")
+                name = parts[0].strip()
+                dept = parts[1].strip() if len(parts) > 1 else infer_department(line_clean)
+                subjs_raw = parts[2].strip() if len(parts) > 2 else ""
+                subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip()]
+                desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
 
-        if re.search(r"\b(Dr|Prof|Mr|Mrs|Ms)\.?\b", line_clean, re.IGNORECASE) or len(line_clean.split()) <= 6:
-            parts = line_clean.split(",")
-            name = parts[0].strip()
-            dept = parts[1].strip() if len(parts) > 1 else "Computer Science & Engineering"
-            subjs_raw = parts[2].strip() if len(parts) > 2 else ""
-            subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip()]
-            
-            desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
+                faculties.append(FacultyItemModel(
+                    name=name,
+                    department=dept,
+                    designation=desg,
+                    proficient_subjects=subjs,
+                ))
+            if faculties:
+                return ParsedFacultyResponse(faculties=faculties)
+        except Exception as err:
+            print("Text parse error:", err)
 
-            faculties.append(FacultyItemModel(
-                name=name,
-                department=dept,
-                designation=desg,
-                proficient_subjects=subjs
-            ))
-
-    if not faculties:
-        faculties = [
-            FacultyItemModel(name="Dr. Pranav Bhat", department="Computer Science & Engineering", designation="Professor", proficient_subjects=["1BCS601", "1BCS502"]),
-            FacultyItemModel(name="Prof. Ujwal Amar", department="Computer Science & Engineering", designation="Associate Professor", proficient_subjects=["1BCS603", "1BCS604"]),
-            FacultyItemModel(name="Prof. Pruthvik K", department="Computer Science & Engineering", designation="Assistant Professor", proficient_subjects=["1BCSL606", "1BIS601"]),
-            FacultyItemModel(name="Dr. Nivish Gowda", department="Electronics & Communication Engineering", designation="Professor", proficient_subjects=["BEC601", "BEC602"]),
-        ]
-
+    # 5. Return parsed faculties (or empty list)
     return ParsedFacultyResponse(faculties=faculties)
+

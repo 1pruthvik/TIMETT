@@ -257,7 +257,7 @@ export function CommandPalette() {
             </span>
           </div>
           <span className="text-[10px] font-semibold text-[#0040C0] dark:text-[#38BDF8]">
-            TIMETT Fast Finder
+            Tempus Fast Finder
           </span>
         </div>
       </div>

@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-nunito), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
-  --font-heading: var(--font-outfit), var(--font-jakarta), sans-serif;
+  --font-heading: var(--font-nunito), sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -134,30 +134,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+    zoom: 0.9;
+  }
   body {
     @apply bg-background text-foreground transition-colors duration-500 overflow-x-hidden;
-    font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-nunito), var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     letter-spacing: 0.025em;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: var(--font-outfit), var(--font-jakarta), sans-serif;
+    font-family: var(--font-nunito), var(--font-outfit), var(--font-jakarta), sans-serif;
     letter-spacing: 0.02em;
-  }
-  p, span, label, td, th {
-    letter-spacing: 0.02em;
-  }
-  button, input, select, textarea {
-    letter-spacing: 0.025em;
-  }
-  code, kbd, samp, pre, .font-mono {
-    font-family: var(--font-jetbrains), monospace;
-    letter-spacing: 0.05em;
-  }
-  html {
-    @apply font-sans;
   }
 
   /* Dropdown Select & Option Theme Engine */

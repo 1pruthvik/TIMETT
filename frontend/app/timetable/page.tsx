@@ -1078,6 +1078,18 @@ export default function TimetablePage() {
           let theoryIdx = (sec.id - 1) * 2;
           let labIdx = sec.id - 1;
 
+          // Consistent course-to-faculty map for this section
+          const courseFacultyMap = new Map<number, Faculty>();
+          const getSectionCourseFaculty = (sub?: Subject): Faculty => {
+            if (!sub) return facultyData[0];
+            if (courseFacultyMap.has(sub.id)) {
+              return courseFacultyMap.get(sub.id)!;
+            }
+            const assigned = pickOptimalFaculty(sub, "Monday", 1, false, 2);
+            courseFacultyMap.set(sub.id, assigned);
+            return assigned;
+          };
+
           const sectionHalfDays = convenientHalfDayPairs[(sec.id - 1) % convenientHalfDayPairs.length];
 
           days.forEach((day, dayIdx) => {
@@ -1100,12 +1112,12 @@ export default function TimetablePage() {
               const labSub = subjectData.find((s) => s.id === labOff?.subject_id);
               labIdx++;
               const chosenLabRoom = labRooms[(sec.id + dayIdx) % Math.max(1, labRooms.length)] || roomData[3];
+              const fac = getSectionCourseFaculty(labSub);
 
-              // Assign 2-hour lab block
+              // Assign 2-hour lab block with CONSISTENT faculty for this section & subject
               labBlockIndices.forEach((pIdx) => {
                 const slot = daySlots[pIdx];
                 if (slot) {
-                  const fac = pickOptimalFaculty(labSub, day, slot.id, pIdx === 0, 2);
                   const dedicatedLabOff: SubjectOffering = {
                     id: offIdCounter++,
                     subject_id: labSub?.id || 1,
@@ -1155,9 +1167,8 @@ export default function TimetablePage() {
                 if (isAnalyticalHeavySubject(sub)) heavySubjectCountToday++;
                 theoryIdx++;
 
-                const is9AM = pIdx === 0;
                 const chosenRoom = lectureRooms[(sec.id + pIdx) % Math.max(1, lectureRooms.length)] || roomData[0];
-                const fac = pickOptimalFaculty(sub, day, slot.id, is9AM, 1);
+                const fac = getSectionCourseFaculty(sub);
 
                 const dedicatedTheoryOff: SubjectOffering = {
                   id: offIdCounter++,
@@ -1718,9 +1729,6 @@ export default function TimetablePage() {
                                             <div className="text-[10px] font-bold text-gray-900 font-serif">
                                               {item.section} • {item.faculty}
                                             </div>
-                                            <div className="text-[9px] font-mono text-gray-700">
-                                              {item.room}
-                                            </div>
                                           </div>
                                         ))}
                                       </div>
@@ -2216,8 +2224,8 @@ export default function TimetablePage() {
                               </span>
                             </div>
                             <p className="text-xs font-bold text-foreground">{item.subject}</p>
-                            <p className="text-[11px] text-muted-foreground mt-1">
-                              {item.faculty} &bull; {item.room}
+                            <p className="text-[11px] font-medium text-muted-foreground mt-1">
+                              {item.faculty}
                             </p>
                           </div>
                         ))}

@@ -436,8 +436,23 @@ export default function TimetablePage() {
         const sectionData: (Section & { semester_id: number })[] = [];
         let secIdCounter = 1;
 
-        // Build section cohorts for ALL semesters 1 through 8 so no semester is left empty!
-        const semestersToBuild = [1, 2, 3, 4, 5, 6, 7, 8];
+        // Build section cohorts ONLY for user's selected Academic Year Level & Target Semester
+        const savedSetup = getItemUserScoped<any>("vtu_academic_setup");
+        const yearStr = String(savedSetup?.selectedYear || "2");
+        const semType = String(savedSetup?.selectedSemType || "odd");
+
+        let semestersToBuild: number[] = [];
+        if (yearStr === "1") {
+          semestersToBuild = semType === "odd" ? [1] : [2];
+        } else if (yearStr === "2") {
+          semestersToBuild = semType === "odd" ? [3] : [4];
+        } else if (yearStr === "3") {
+          semestersToBuild = semType === "odd" ? [5] : [6];
+        } else if (yearStr === "4") {
+          semestersToBuild = semType === "odd" ? [7] : [8];
+        } else {
+          semestersToBuild = [3];
+        }
 
         semestersToBuild.forEach((semNum) => {
           if (activeCourses.length > 0) {
@@ -1676,10 +1691,26 @@ export default function TimetablePage() {
                 onChange={(e) => setSelectedSemester(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
                 className="h-11 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.04] px-4 text-xs font-bold text-foreground focus:outline-none cursor-pointer"
               >
-                <option value="ALL">All Semesters (Unified Master)</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                  <option key={sem} value={sem}>Semester {sem}</option>
-                ))}
+                {(() => {
+                  const savedSetup = getItemUserScoped<any>("vtu_academic_setup");
+                  const yearStr = String(savedSetup?.selectedYear || "2");
+                  const semType = String(savedSetup?.selectedSemType || "odd");
+
+                  let activeSems = [3];
+                  if (yearStr === "1") activeSems = semType === "odd" ? [1] : [2];
+                  else if (yearStr === "2") activeSems = semType === "odd" ? [3] : [4];
+                  else if (yearStr === "3") activeSems = semType === "odd" ? [5] : [6];
+                  else if (yearStr === "4") activeSems = semType === "odd" ? [7] : [8];
+
+                  return (
+                    <>
+                      <option value="ALL">Active Year Master (Semester {activeSems.join(", ")})</option>
+                      {activeSems.map((sem) => (
+                        <option key={sem} value={sem}>Semester {sem}</option>
+                      ))}
+                    </>
+                  );
+                })()}
               </select>
             </div>
 

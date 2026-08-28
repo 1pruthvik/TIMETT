@@ -624,7 +624,7 @@ export default function TimetablePage() {
                   // Leave FREE / Unassigned for Student-Friendly Half Day!
                   return;
                 } else {
-                  // Full days: Assign 2-hour Practical Lab block after Lunch Break
+                  // Full days: Assign 2-hour Practical Lab block if available, else assign Theory/Elective subjects
                   if (secLab.length > 0) {
                     const labOff = secLab[labIdx % secLab.length];
                     const room = roomData[sec.id % 2 === 0 ? 4 : 3]; // Computing Lab
@@ -632,6 +632,17 @@ export default function TimetablePage() {
                       id: entryIdCounter++,
                       timetable_id: 1,
                       subject_offering_id: labOff.id,
+                      room_id: room.id,
+                      time_slot_id: slot.id,
+                    });
+                  } else if (secTheory.length > 0) {
+                    const theoryOff = secTheory[theoryIdx % secTheory.length];
+                    theoryIdx++;
+                    const room = roomData[(sec.id + pIdx) % 3]; // Lecture Rooms L-101, L-102, L-103
+                    entryData.push({
+                      id: entryIdCounter++,
+                      timetable_id: 1,
+                      subject_offering_id: theoryOff.id,
                       room_id: room.id,
                       time_slot_id: slot.id,
                     });

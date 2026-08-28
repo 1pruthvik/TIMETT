@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
+from sqlalchemy.orm import Session
 try:
     from google import genai
     from google.genai import types

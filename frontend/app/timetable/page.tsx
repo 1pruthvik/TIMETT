@@ -535,9 +535,331 @@ export default function TimetablePage() {
           });
         });
 
-        // 3. Read REAL subjects structured PER SEMESTER (Semesters 1 through 8!)
+        // Helper to resolve engineering stream from section name
+        const resolveSectionStream = (secName: string): "CSE" | "ECE" | "EEE" | "ME" | "CV" => {
+          const upper = (secName || "").toUpperCase();
+          if (upper.includes("ECE") || upper.startsWith("EC")) return "ECE";
+          if (upper.includes("EEE") || upper.startsWith("EE")) return "EEE";
+          if (upper.includes("ME") || upper.startsWith("MECH") || upper.startsWith("ME")) return "ME";
+          if (upper.includes("CV") || upper.includes("CIV") || upper.startsWith("CV")) return "CV";
+          return "CSE";
+        };
+
+        // Stream-aware VTU Semester Curriculum Generator (Semesters 1 through 8)
+        const getStreamSemesterTemplates = (stream: string, sem: number): { code: string; name: string; is_lab?: boolean }[] => {
+          if (sem === 1) {
+            if (stream === "ECE") return [
+              { code: "1BMATE101", name: "Differential Calculus & Linear Algebra (ECE)" },
+              { code: "1BPHEC102", name: "Quantum Physics & Electronics Sensors" },
+              { code: "1BCHEE102", name: "Applied Chemistry for Emerging Electronics" },
+              { code: "1BESC104C", name: "Intro to Electronics & Communication Engg" },
+              { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
+              { code: "1BECEL107", name: "Fundamentals of Electronics Lab", is_lab: true },
+              { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
+            ];
+            if (stream === "EEE") return [
+              { code: "1BMATE101", name: "Differential Calculus & Linear Algebra (EEE)" },
+              { code: "1BPHEE102", name: "Physics of Electrical Engg Materials" },
+              { code: "1BCHEE102", name: "Applied Chemistry for Smart Devices" },
+              { code: "1BESC104B", name: "Intro to Electrical Engineering" },
+              { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
+              { code: "1BBEEL107", name: "Basic Electrical Laboratory", is_lab: true },
+              { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "1BMATM101", name: "Differential Calculus & Linear Algebra (ME)" },
+              { code: "1BPHYM102", name: "Physics of Mechanical Materials" },
+              { code: "1BCHEM102", name: "Applied Chemistry for Metal Protection" },
+              { code: "1BESC104D", name: "Intro to Mechanical Engineering" },
+              { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
+              { code: "1BEMEL107", name: "Elements of Mechanical Engg Lab", is_lab: true },
+              { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "1BMATC101", name: "Differential Calculus & Linear Algebra (CV)" },
+              { code: "1BPHYC102", name: "Physics for Structural Systems" },
+              { code: "1BCHEC102", name: "Applied Chemistry for Sustainable Structures" },
+              { code: "1BESC104A", name: "Building Sciences & Mechanics" },
+              { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
+              { code: "1BMEML107", name: "Mechanics and Materials Lab", is_lab: true },
+              { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
+            ];
+            return [
+              { code: "1BMATS101", name: "Calculus and Linear Algebra (CSE)" },
+              { code: "1BPHYS102", name: "Quantum Physics and Applications" },
+              { code: "1BCHES102", name: "Applied Chemistry for Smart Systems" },
+              { code: "1BESC104E", name: "Essentials of Information Technology" },
+              { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
+              { code: "1BPHYS102-LAB", name: "Physics Practical Laboratory", is_lab: true },
+              { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 2) {
+            if (stream === "ECE") return [
+              { code: "1BMATE201", name: "Calculus & Numerical Techniques (ECE)" },
+              { code: "1BPHEC202", name: "Quantum Physics & Electronic Sensors" },
+              { code: "1BCHEE202", name: "Applied Chemistry for Devices" },
+              { code: "1BCEDEC203", name: "CAED for Electronics" },
+              { code: "1BENG206", name: "Professional Communication" },
+              { code: "1BECEL207", name: "Electronics Sensors Laboratory", is_lab: true },
+              { code: "1BPLC205B-LAB", name: "Python Programming Laboratory", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "1BMATM201", name: "Multivariable Calculus & Numerical Methods" },
+              { code: "1BPHYM202", name: "Physics of Materials" },
+              { code: "1BCHEM202", name: "Applied Chemistry for Sustainable Energy" },
+              { code: "1BCEDM203", name: "Computer-Aided Engineering Drawing (ME)" },
+              { code: "1BENG206", name: "Professional Communication" },
+              { code: "1BMEML207", name: "Materials Testing Laboratory", is_lab: true },
+              { code: "1BPLC205E-LAB", name: "C Programming Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "1BMATC201", name: "Differential Calculus & Numerical Methods (CV)" },
+              { code: "1BPHYC202", name: "Physics for Structural Systems" },
+              { code: "1BCHEC202", name: "Applied Chemistry for Structures" },
+              { code: "1BCEDC203", name: "Computer-Aided Engineering Drawing (CV)" },
+              { code: "1BENG206", name: "Professional Communication" },
+              { code: "1BMEML207", name: "Mechanics Laboratory", is_lab: true },
+              { code: "1BPLC205E-LAB", name: "C Programming Laboratory", is_lab: true },
+            ];
+            return [
+              { code: "1BMATS201", name: "Numerical Methods & Advanced Calculus" },
+              { code: "1BPHYS202", name: "Physics for Emerging Devices" },
+              { code: "1BCHES202", name: "Applied Chemistry for Smart Materials" },
+              { code: "1BCEDS203", name: "Computer-Aided Engineering Drawing" },
+              { code: "1BENG206", name: "Professional Communication" },
+              { code: "1BCHES202-LAB", name: "Chemistry Practical Laboratory", is_lab: true },
+              { code: "1BPLC205B-LAB", name: "Python Programming Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 3) {
+            if (stream === "ECE") return [
+              { code: "1BEC301", name: "Network Analysis & Synthesis" },
+              { code: "1BEC302", name: "Electronic Devices & Circuits" },
+              { code: "1BEC303", name: "Digital System Design" },
+              { code: "1BEC304", name: "Signals and Systems" },
+              { code: "1BECL305", name: "Electronic Devices Laboratory", is_lab: true },
+              { code: "1BECL306", name: "Digital System Design Laboratory", is_lab: true },
+            ];
+            if (stream === "EEE") return [
+              { code: "1BEE301", name: "Electric Circuit Analysis" },
+              { code: "1BEE302", name: "Analog Electronics" },
+              { code: "1BEE303", name: "Transformers & Generators" },
+              { code: "1BEE304", name: "Digital Electronics & Logic" },
+              { code: "1BEEL305", name: "Analog Electronics Laboratory", is_lab: true },
+              { code: "1BEEL306", name: "Electrical Machines Laboratory I", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "1BME301", name: "Mechanics of Materials / Solid Mechanics" },
+              { code: "1BME302", name: "Basic Thermodynamics" },
+              { code: "1BME303", name: "Manufacturing Process I - Casting & Welding" },
+              { code: "1BME304", name: "Material Science & Metallurgy" },
+              { code: "1BMEL305", name: "Material Testing Laboratory", is_lab: true },
+              { code: "1BMEL306", name: "Foundry & Forging Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "1BCV301", name: "Strength of Materials" },
+              { code: "1BCV302", name: "Fluid Mechanics & Hydraulics" },
+              { code: "1BCV303", name: "Basic Surveying" },
+              { code: "1BCV304", name: "Engineering Geology" },
+              { code: "1BCVL305", name: "Surveying Practice I Laboratory", is_lab: true },
+              { code: "1BCVL306", name: "Strength of Materials Laboratory", is_lab: true },
+            ];
+            return [
+              { code: "1BCS301", name: "Data Structures and Algorithms" },
+              { code: "1BCS302", name: "Analog and Digital Electronics" },
+              { code: "1BCS303", name: "Computer Organization and Architecture" },
+              { code: "1BCS304", name: "Software Engineering & SDLC" },
+              { code: "1BCSL305", name: "Data Structures Laboratory", is_lab: true },
+              { code: "1BECEL306", name: "Digital Electronics Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 4) {
+            if (stream === "ECE") return [
+              { code: "1BEC401", name: "Analog Circuits & Linear ICs" },
+              { code: "1BEC402", name: "Microcontrollers & Microprocessors" },
+              { code: "1BEC403", name: "Control Systems Engineering" },
+              { code: "1BEC404", name: "Electromagnetic Waves & Fields" },
+              { code: "1BECL405", name: "Analog Circuits Laboratory", is_lab: true },
+              { code: "1BECL406", name: "Microcontroller Laboratory", is_lab: true },
+            ];
+            if (stream === "EEE") return [
+              { code: "1BEE401", name: "Electrical Machines II (Motors & Induction)" },
+              { code: "1BEE402", name: "Electromagnetic Field Theory" },
+              { code: "1BEE403", name: "Op-Amps & Linear ICs" },
+              { code: "1BEE404", name: "Transmission & Distribution" },
+              { code: "1BEEL405", name: "Electrical Machines Laboratory II", is_lab: true },
+              { code: "1BEEL406", name: "Linear ICs Laboratory", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "1BME401", name: "Applied Thermodynamics" },
+              { code: "1BME402", name: "Fluid Mechanics & Hydraulic Machines" },
+              { code: "1BME403", name: "Kinematics of Machines" },
+              { code: "1BME404", name: "Manufacturing Process II - Machining" },
+              { code: "1BMEL405", name: "Fluid Mechanics Laboratory", is_lab: true },
+              { code: "1BMEL406", name: "Machine Shop Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "1BCV401", name: "Analysis of Determinate Structures" },
+              { code: "1BCV402", name: "Applied Hydraulics & Flow" },
+              { code: "1BCV403", name: "Advanced Surveying & GIS" },
+              { code: "1BCV404", name: "Building Materials & Construction" },
+              { code: "1BCVL405", name: "Applied Hydraulics Laboratory", is_lab: true },
+              { code: "1BCVL406", name: "Surveying Practice II Laboratory", is_lab: true },
+            ];
+            return [
+              { code: "1BCS401", name: "Design and Analysis of Algorithms" },
+              { code: "1BCS402", name: "Operating Systems & Kernels" },
+              { code: "1BCS403", name: "Microcontrollers & Embedded Systems" },
+              { code: "1BCS404", name: "Object Oriented Concepts with Java" },
+              { code: "1BCSL405", name: "Algorithms Laboratory", is_lab: true },
+              { code: "1BCSL406", name: "Microcontroller Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 5) {
+            if (stream === "ECE") return [
+              { code: "18EC51", name: "Technological Innovation Management" },
+              { code: "18EC52", name: "Digital Signal Processing (DSP)" },
+              { code: "18EC53", name: "Principles of Communication Systems" },
+              { code: "18EC54", name: "Information Theory & Coding" },
+              { code: "18ECL57", name: "DSP Laboratory", is_lab: true },
+              { code: "18ECL58", name: "HDL & Digital Communication Lab", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "18ME51", name: "Management and Economics" },
+              { code: "18ME52", name: "Design of Machine Elements I" },
+              { code: "18ME53", name: "Dynamics of Machinery" },
+              { code: "18ME54", name: "Turbo Machines" },
+              { code: "18MEL57", name: "Fluid Mechanics & Machinery Lab", is_lab: true },
+              { code: "18MEL58", name: "Energy Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "18CV51", name: "Construction Management & Entrepreneurship" },
+              { code: "18CV52", name: "Analysis of Indeterminate Structures" },
+              { code: "18CV53", name: "Design of RC Structural Elements" },
+              { code: "18CV54", name: "Basic Geotechnical Engineering" },
+              { code: "18CVL57", name: "Geotechnical Engineering Lab", is_lab: true },
+              { code: "18CVL58", name: "Concrete & Highway Materials Lab", is_lab: true },
+            ];
+            return [
+              { code: "18CS51", name: "Management and Entrepreneurship for IT" },
+              { code: "18CS52", name: "Computer Networks & Protocols" },
+              { code: "18CS53", name: "Database Management Systems (DBMS)" },
+              { code: "18CS54", name: "Automata Theory and Computability" },
+              { code: "18CSL57", name: "Computer Networks Laboratory", is_lab: true },
+              { code: "18CSL58", name: "DBMS Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 6) {
+            if (stream === "ECE") return [
+              { code: "18EC61", name: "Digital Communication Systems" },
+              { code: "18EC62", name: "ARM Microcontroller & Embedded Systems" },
+              { code: "18EC63", name: "VLSI Design & CMOS Circuits" },
+              { code: "18EC64", name: "Antennas & Wave Propagation" },
+              { code: "18ECL66", name: "Embedded Systems Laboratory", is_lab: true },
+              { code: "18ECL67", name: "VLSI Laboratory", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "18ME61", name: "Finite Element Methods (FEM)" },
+              { code: "18ME62", name: "Design of Machine Elements II" },
+              { code: "18ME63", name: "Heat Transfer & Thermodynamics" },
+              { code: "18ME64", name: "Non-Traditional Machining" },
+              { code: "18MEL66", name: "Heat Transfer Laboratory", is_lab: true },
+              { code: "18MEL67", name: "CAMA & Simulation Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "18CV61", name: "Design of Steel Structural Elements" },
+              { code: "18CV62", name: "Applied Geotechnical Engineering" },
+              { code: "18CV63", name: "Hydrology & Irrigation Engineering" },
+              { code: "18CV64", name: "Environmental Engineering I" },
+              { code: "18CVL66", name: "STAAD Structural Application Lab", is_lab: true },
+              { code: "18CVL67", name: "Environmental Engineering Lab", is_lab: true },
+            ];
+            return [
+              { code: "18CS61", name: "System Software & Compiler Design" },
+              { code: "18CS62", name: "Computer Networks & Security" },
+              { code: "18CS63", name: "Web Technology & Applications" },
+              { code: "18CS64", name: "Data Mining & Data Warehousing" },
+              { code: "18CSL66", name: "System Software Laboratory", is_lab: true },
+              { code: "18CSL67", name: "Web Technology Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 7) {
+            if (stream === "ECE") return [
+              { code: "18EC71", name: "Computer Networks & IoT Sensors" },
+              { code: "18EC72", name: "VLSI Systems & CMOS Microelectronics" },
+              { code: "18EC73", name: "Power Electronics & Converters" },
+              { code: "18EC74", name: "Wireless Communication & 5G" },
+              { code: "18ECL76", name: "Advanced Communication Lab", is_lab: true },
+              { code: "18ECL77", name: "Power Electronics Laboratory", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "18ME71", name: "Control Engineering & Mechatronics" },
+              { code: "18ME72", name: "Computer Aided Design & Manufacturing (CAD/CAM)" },
+              { code: "18ME73", name: "Power Plant Engineering" },
+              { code: "18ME74", name: "Vibrations Engineering" },
+              { code: "18MEL76", name: "Mechanical Design Lab", is_lab: true },
+              { code: "18MEL77", name: "CIM & Robotics Laboratory", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "18CV71", name: "Quality Surveying & Contract Management" },
+              { code: "18CV72", name: "Design of RCC & Steel Structures" },
+              { code: "18CV73", name: "Transportation Engineering II" },
+              { code: "18CV74", name: "Environmental Engineering II" },
+              { code: "18CVL76", name: "Computer Aided Detailing Lab", is_lab: true },
+              { code: "18CVL77", name: "Geotechnical & Highway Lab", is_lab: true },
+            ];
+            return [
+              { code: "18CS71", name: "Artificial Intelligence & Machine Learning" },
+              { code: "18CS72", name: "Big Data Analytics & Hadoop" },
+              { code: "18CS73", name: "Cloud Computing Architecture" },
+              { code: "18CS74", name: "Information & Network Security" },
+              { code: "18CSL76", name: "AI & Machine Learning Laboratory", is_lab: true },
+              { code: "18CSL77", name: "Big Data Laboratory", is_lab: true },
+            ];
+          }
+
+          if (sem === 8) {
+            if (stream === "ECE") return [
+              { code: "18EC81", name: "Wireless & Cellular Networks" },
+              { code: "1BEC801", name: "Advanced Communication Systems" },
+              { code: "1BEC802", name: "Optical Fiber Communication" },
+              { code: "18ECL86", name: "Major Project Phase II Lab", is_lab: true },
+            ];
+            if (stream === "ME") return [
+              { code: "18ME81", name: "Automotive Engineering & Hybrid Vehicles" },
+              { code: "1BME801", name: "Industrial Robotics & Automation" },
+              { code: "1BME802", name: "Additive Manufacturing & 3D Printing" },
+              { code: "18MEL86", name: "Major Project Phase II Lab", is_lab: true },
+            ];
+            if (stream === "CV") return [
+              { code: "18CV81", name: "Design of Pre Stressed Concrete Structures" },
+              { code: "1BCV801", name: "Pavement Design & Asset Management" },
+              { code: "1BCV802", name: "Urban Transport Planning" },
+              { code: "18CVL86", name: "Major Project Phase II Lab", is_lab: true },
+            ];
+            return [
+              { code: "18CS81", name: "Internet of Things & Cyber Security" },
+              { code: "1BCS801", name: "Professional Elective V" },
+              { code: "1BCS802", name: "Open Elective II" },
+              { code: "18CSL86", name: "Major Project Phase II Lab", is_lab: true },
+            ];
+          }
+
+          return [
+            { code: `SUB-${sem}01`, name: `Core Subject I (Sem ${sem})` },
+            { code: `SUB-${sem}02`, name: `Core Subject II (Sem ${sem})` },
+            { code: `SUBL-${sem}05`, name: `Practical Laboratory (Sem ${sem})`, is_lab: true },
+          ];
+        };
+
         const subjectData: (Subject & { is_lab?: boolean; semester_id?: number })[] = [];
-        const subjectDataBySem = new Map<number, (Subject & { is_lab?: boolean })[]>();
         let subIdCounter = 1;
 
         const isLabSubject = (s: any): boolean => {
@@ -550,135 +872,51 @@ export default function TimetablePage() {
           return false;
         };
 
-        // Standard VTU Semester Curriculum Defaults (Semesters 1 through 8)
-        const vtuSemTemplates: Record<number, { code: string; name: string; is_lab?: boolean }[]> = {
-          1: [
-            { code: "1BMATS101", name: "Calculus and Linear Algebra" },
-            { code: "1BPHYS102", name: "Quantum Physics and Applications" },
-            { code: "1BCHES102", name: "Applied Chemistry for Smart Systems" },
-            { code: "1BESC104E", name: "Essentials of Information Technology" },
-            { code: "1BSKS106", name: "Soft Skills & Professional Ethics" },
-            { code: "1BPHYS102-LAB", name: "Physics Practical Laboratory", is_lab: true },
-            { code: "1BPOPL107", name: "C Programming Laboratory", is_lab: true },
-          ],
-          2: [
-            { code: "1BMATS201", name: "Numerical Methods & Advanced Calculus" },
-            { code: "1BPHYS202", name: "Physics for Emerging Devices" },
-            { code: "1BCHES202", name: "Applied Chemistry for Smart Materials" },
-            { code: "1BCEDS203", name: "Computer-Aided Engineering Drawing" },
-            { code: "1BENG206", name: "Professional Communication" },
-            { code: "1BCHES202-LAB", name: "Chemistry Practical Laboratory", is_lab: true },
-            { code: "1BPLC205B-LAB", name: "Python Programming Laboratory", is_lab: true },
-          ],
-          3: [
-            { code: "1BCS301", name: "Data Structures and Algorithms" },
-            { code: "1BCS302", name: "Analog and Digital Electronics" },
-            { code: "1BCS303", name: "Computer Organization and Architecture" },
-            { code: "1BCS304", name: "Software Engineering & SDLC" },
-            { code: "1BCSL305", name: "Data Structures Laboratory", is_lab: true },
-            { code: "1BECEL306", name: "Digital Electronics Laboratory", is_lab: true },
-          ],
-          4: [
-            { code: "1BCS401", name: "Design and Analysis of Algorithms" },
-            { code: "1BCS402", name: "Operating Systems & Kernels" },
-            { code: "1BCS403", name: "Microcontrollers & Embedded Systems" },
-            { code: "1BCS404", name: "Object Oriented Concepts with Java" },
-            { code: "1BCSL405", name: "Algorithms Laboratory", is_lab: true },
-            { code: "1BCSL406", name: "Microcontroller Laboratory", is_lab: true },
-          ],
-          5: [
-            { code: "18CS51", name: "Management and Entrepreneurship for IT" },
-            { code: "18CS52", name: "Computer Networks & Protocols" },
-            { code: "18CS53", name: "Database Management Systems (DBMS)" },
-            { code: "18CS54", name: "Automata Theory and Computability" },
-            { code: "18CSL57", name: "Computer Networks Laboratory", is_lab: true },
-            { code: "18CSL58", name: "DBMS Laboratory", is_lab: true },
-          ],
-          6: [
-            { code: "18CS61", name: "System Software & Compiler Design" },
-            { code: "18CS62", name: "Computer Networks & Security" },
-            { code: "18CS63", name: "Web Technology & Applications" },
-            { code: "18CS64", name: "Data Mining & Data Warehousing" },
-            { code: "18CSL66", name: "System Software Laboratory", is_lab: true },
-            { code: "18CSL67", name: "Web Technology Laboratory", is_lab: true },
-          ],
-          7: [
-            { code: "18CS71", name: "Artificial Intelligence & Machine Learning" },
-            { code: "18CS72", name: "Big Data Analytics & Hadoop" },
-            { code: "18CS73", name: "Cloud Computing Architecture" },
-            { code: "18CS74", name: "Information & Network Security" },
-            { code: "18CSL76", name: "AI & Machine Learning Laboratory", is_lab: true },
-            { code: "18CSL77", name: "Big Data Laboratory", is_lab: true },
-          ],
-          8: [
-            { code: "18CS81", name: "Internet of Things & Cyber Security" },
-            { code: "1BCS801", name: "Professional Elective V" },
-            { code: "1BCS802", name: "Open Elective II" },
-            { code: "BEC801", name: "Advanced Communication Systems" },
-            { code: "BEC802", name: "VHDL & Embedded Systems" },
-            { code: "18CSL86", name: "Major Project Phase II Lab", is_lab: true },
-          ],
-        };
-
-        // Populate subjectDataBySem for all 8 semesters
-        [1, 2, 3, 4, 5, 6, 7, 8].forEach((sem) => {
-          const semSubjs: (Subject & { is_lab?: boolean; semester_id?: number })[] = [];
-          const savedSemMap = getItemUserScoped<any>(`vtu_higher_sem_subjects_map_sem_${sem}`);
-
-          if (savedSemMap) {
-            Object.values(savedSemMap).forEach((courseData: any) => {
-              const th = (courseData.theory || []).map((s: any) => ({ ...s, category: "theory" }));
-              const pr = (courseData.practical || []).map((s: any) => ({ ...s, category: "practical" }));
-              const tut = (courseData.tutorial || []).map((s: any) => ({ ...s, category: "tutorial" }));
-              [...th, ...pr, ...tut].forEach((s: any) => {
-                if (s.code && !semSubjs.some((existing) => existing.code === s.code)) {
-                  const isLab = isLabSubject(s);
-                  const subObj = {
-                    id: subIdCounter++,
-                    name: s.name || s.code,
-                    code: s.code,
-                    is_lab: isLab,
-                    semester_id: sem,
-                  };
-                  semSubjs.push(subObj);
-                  subjectData.push(subObj);
-                }
-              });
-            });
-          }
-
-          if (semSubjs.length === 0) {
-            const tmpl = vtuSemTemplates[sem] || vtuSemTemplates[1];
-            tmpl.forEach((t) => {
-              const subObj = {
-                id: subIdCounter++,
-                name: t.name,
-                code: t.code,
-                is_lab: t.is_lab || isLabSubject(t),
-                semester_id: sem,
-              };
-              semSubjs.push(subObj);
-              subjectData.push(subObj);
-            });
-          }
-
-          subjectDataBySem.set(sem, semSubjs);
-        });
-
-        // 4. Build Subject Offerings linked to section's actual semester (Semesters 1 through 8!)
+        // 4. Build Subject Offerings linked to section's actual semester & engineering stream
         const offeringData: SubjectOffering[] = [];
         let offIdCounter = 1;
 
         sectionData.forEach((sec) => {
-          const semSubjs = subjectDataBySem.get(sec.semester_id) || [];
-          semSubjs.forEach((sub) => {
+          const stream = resolveSectionStream(sec.name);
+          const savedSemMap = getItemUserScoped<any>(`vtu_higher_sem_subjects_map_sem_${sec.semester_id}`);
+          let secSubjs: { code: string; name: string; is_lab?: boolean }[] = [];
+
+          if (savedSemMap && savedSemMap[sec.name]) {
+            const courseData = savedSemMap[sec.name];
+            const th = (courseData.theory || []).map((s: any) => ({ ...s, category: "theory" }));
+            const pr = (courseData.practical || []).map((s: any) => ({ ...s, category: "practical" }));
+            const tut = (courseData.tutorial || []).map((s: any) => ({ ...s, category: "tutorial" }));
+            secSubjs = [...th, ...pr, ...tut].map((s: any) => ({
+              code: s.code,
+              name: s.name || s.code,
+              is_lab: isLabSubject(s),
+            }));
+          }
+
+          if (secSubjs.length === 0) {
+            secSubjs = getStreamSemesterTemplates(stream, sec.semester_id);
+          }
+
+          secSubjs.forEach((s) => {
+            let subObj = subjectData.find((existing) => existing.code === s.code);
+            if (!subObj) {
+              subObj = {
+                id: subIdCounter++,
+                name: s.name,
+                code: s.code,
+                is_lab: s.is_lab || isLabSubject(s),
+                semester_id: sec.semester_id,
+              };
+              subjectData.push(subObj);
+            }
+
             offeringData.push({
               id: offIdCounter++,
-              subject_id: sub.id,
+              subject_id: subObj.id,
               faculty_id: 1, // Will be dynamically selected by Workload Equalization & Zero-Clash Solver
               section_id: sec.id,
               semester_id: sec.semester_id,
-              weekly_hours: sub.is_lab ? 2 : 4,
+              weekly_hours: subObj.is_lab ? 2 : 4,
             });
           });
         });

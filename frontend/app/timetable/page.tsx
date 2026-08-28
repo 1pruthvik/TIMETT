@@ -54,14 +54,45 @@ import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 const DEFAULT_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const DEFAULT_PERIODS = [
-  "09:00 - 10:00",
-  "10:00 - 11:00",
-  "11:15 - 12:15",
-  "12:15 - 01:15",
-  "02:00 - 03:00",
-  "03:00 - 04:00",
-];
+
+const addMinutes = (timeStr: string, mins: number): string => {
+  const [h, m] = (timeStr || "00:00").split(":").map(Number);
+  const total = (h || 0) * 60 + (m || 0) + mins;
+  const newH = Math.floor(total / 60) % 24;
+  const newM = total % 60;
+  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+};
+
+const getDynamicPeriodTimes = (userSlotConfig?: any) => {
+  const minStart = userSlotConfig?.minStartTime || "09:00";
+  const maxStay = userSlotConfig?.maxStayTime || "16:00";
+  const teaStart = userSlotConfig?.teaBreakStart || "11:00";
+  const teaDur = Number(userSlotConfig?.teaBreakDuration ?? 20);
+  const lunchStart = userSlotConfig?.lunchBreakStart || "13:20";
+  const lunchDur = Number(userSlotConfig?.lunchBreakDuration ?? 40);
+  const periodDur = Number(userSlotConfig?.theoryMin ?? 60);
+
+  const p1End = addMinutes(minStart, periodDur);
+  const p2Start = p1End;
+  const p2End = teaStart;
+  const p3Start = addMinutes(teaStart, teaDur);
+  const p3End = addMinutes(p3Start, periodDur);
+  const p4Start = p3End;
+  const p4End = lunchStart;
+  const p5Start = addMinutes(lunchStart, lunchDur);
+  const p5End = addMinutes(p5Start, periodDur);
+  const p6Start = p5End;
+  const p6End = maxStay;
+
+  return [
+    { period: 1, start: minStart, end: p2Start },
+    { period: 2, start: p2Start, end: p2End },
+    { period: 3, start: p3Start, end: p3End },
+    { period: 4, start: p4Start, end: p4End },
+    { period: 5, start: p5Start, end: p5End },
+    { period: 6, start: p6Start, end: p6End },
+  ];
+};
 
 interface TimeSlot {
   id: number;
@@ -213,18 +244,20 @@ export default function TimetablePage() {
 
   const [showHeatmapModal, setShowHeatmapModal] = useState(false);
 
-  // Robust Time Slot Resolver (resolves 12h vs 24h & indexed slot mappings)
+  // Robust Time Slot Resolver (resolves 12h vs 24h & dynamic slot index mappings)
   const getSlotForDayAndPeriod = (slots: TimeSlot[], day: string, period: string) => {
     if (!slots || slots.length === 0) return undefined;
     const exact = slots.find((s) => s.day_of_week === day && `${s.start_time} - ${s.end_time}` === period);
     if (exact) return exact;
 
     const daySlots = slots.filter((s) => s.day_of_week === day).sort((a, b) => a.id - b.id);
-    const periodIdx = DEFAULT_PERIODS.indexOf(period);
+    const userSlotConfig = getItemUserScoped<any>("vtu_slot_duration_config");
+    const dynamicTimes = getDynamicPeriodTimes(userSlotConfig);
+    const periodIdx = dynamicTimes.findIndex((pt) => `${pt.start} - ${pt.end}` === period);
     if (periodIdx !== -1 && daySlots[periodIdx]) {
       return daySlots[periodIdx];
     }
-    return undefined;
+    return daySlots[0];
   };
 
   const handleFindSubstitutes = () => {
@@ -670,42 +703,31 @@ export default function TimetablePage() {
       }
 
       if (colsToUse.length === 0) {
-        // Fallback: derive from backend slots
-        const uniquePeriodMap = new Map<string, { start: string; end: string }>();
-        loadedSlots.forEach((s) => {
-          const key = `${s.start_time} - ${s.end_time}`;
-          if (!uniquePeriodMap.has(key)) {
-            uniquePeriodMap.set(key, { start: s.start_time, end: s.end_time });
-          }
-        });
+        // Build dynamic columns strictly matching user-configured slot and break times
+        const userSlotConfig = getItemUserScoped<any>("vtu_slot_duration_config");
+        const minStart = userSlotConfig?.minStartTime || "09:00";
+        const maxStay = userSlotConfig?.maxStayTime || "16:00";
+        const teaStart = userSlotConfig?.teaBreakStart || "11:00";
+        const teaDur = Number(userSlotConfig?.teaBreakDuration ?? 20);
+        const lunchStart = userSlotConfig?.lunchBreakStart || "13:20";
+        const lunchDur = Number(userSlotConfig?.lunchBreakDuration ?? 40);
 
-        if (uniquePeriodMap.size > 0) {
-          let pIdx = 1;
-          uniquePeriodMap.forEach((v) => {
-            colsToUse.push({
-              type: "theory",
-              label: `Period ${pIdx++}`,
-              startTime: v.start,
-              endTime: v.end,
-              startTime24: v.start,
-              endTime24: v.end,
-              durationMinutes: 60,
-            });
-          });
-        } else {
-          DEFAULT_PERIODS.forEach((p, idx) => {
-            const [st, et] = p.split(" - ");
-            colsToUse.push({
-              type: "theory",
-              label: `Period ${idx + 1}`,
-              startTime: st,
-              endTime: et,
-              startTime24: st,
-              endTime24: et,
-              durationMinutes: 60,
-            });
-          });
-        }
+        const addMinutes = (timeStr: string, mins: number): string => {
+          const [h, m] = (timeStr || "00:00").split(":").map(Number);
+          const total = (h || 0) * 60 + (m || 0) + mins;
+          const newH = Math.floor(total / 60) % 24;
+          const newM = total % 60;
+          return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+        };
+
+        colsToUse = [
+          { type: "theory", label: "Period 1", startTime: minStart, endTime: addMinutes(minStart, 60), startTime24: minStart, endTime24: addMinutes(minStart, 60), durationMinutes: 60 },
+          { type: "theory", label: "Period 2", startTime: addMinutes(minStart, 60), endTime: teaStart, startTime24: addMinutes(minStart, 60), endTime24: teaStart, durationMinutes: 60 },
+          { type: "theory", label: "Period 3", startTime: addMinutes(teaStart, teaDur), endTime: addMinutes(teaStart, teaDur + 60), startTime24: addMinutes(teaStart, teaDur), endTime24: addMinutes(teaStart, teaDur + 60), durationMinutes: 60 },
+          { type: "theory", label: "Period 4", startTime: addMinutes(teaStart, teaDur + 60), endTime: lunchStart, startTime24: addMinutes(teaStart, teaDur + 60), endTime24: lunchStart, durationMinutes: 60 },
+          { type: "theory", label: "Period 5", startTime: addMinutes(lunchStart, lunchDur), endTime: addMinutes(lunchStart, lunchDur + 60), startTime24: addMinutes(lunchStart, lunchDur), endTime24: addMinutes(lunchStart, lunchDur + 60), durationMinutes: 60 },
+          { type: "theory", label: "Period 6", startTime: addMinutes(lunchStart, lunchDur + 60), endTime: maxStay, startTime24: addMinutes(lunchStart, lunchDur + 60), endTime24: maxStay, durationMinutes: 60 },
+        ];
       }
 
       setTimelineCols(colsToUse);
@@ -1102,16 +1124,23 @@ export default function TimetablePage() {
 
                   {/* Printable Master Grid with Sharp Borders & Breaks */}
                   {(() => {
+                    const printConfig = getItemUserScoped<any>("vtu_slot_duration_config");
+                    const dynamicPts = getDynamicPeriodTimes(printConfig);
+                    const teaStart = printConfig?.teaBreakStart || "11:00";
+                    const teaDur = Number(printConfig?.teaBreakDuration ?? 20);
+                    const lunchStart = printConfig?.lunchBreakStart || "13:20";
+                    const lunchDur = Number(printConfig?.lunchBreakDuration ?? 40);
+
                     const PRINT_PERIODS = [
-                      { type: "class", period: "09:00 - 10:00", label: "P1\n09:00 - 10:00" },
-                      { type: "class", period: "10:00 - 11:00", label: "P2\n10:00 - 11:00" },
-                      { type: "break", label: "TEA BREAK\n11:00 - 11:20 AM", text: "TEA\nBREAK" },
-                      { type: "class", period: "11:20 - 12:20", label: "P3\n11:20 - 12:20" },
-                      { type: "class", period: "12:20 - 01:20", label: "P4\n12:20 - 01:20 PM" },
-                      { type: "break", label: "LUNCH BREAK\n01:20 - 02:00 PM", text: "LUNCH\nBREAK" },
-                      { type: "class", period: "02:00 - 03:00", label: "P5\n02:00 - 03:00 PM" },
-                      { type: "class", period: "03:00 - 04:00", label: "P6\n03:00 - 04:00 PM" },
-                    ] as const;
+                      { type: "class", period: `${dynamicPts[0].start} - ${dynamicPts[0].end}`, label: `P1\n${dynamicPts[0].start} - ${dynamicPts[0].end}` },
+                      { type: "class", period: `${dynamicPts[1].start} - ${dynamicPts[1].end}`, label: `P2\n${dynamicPts[1].start} - ${dynamicPts[1].end}` },
+                      { type: "break", label: `TEA BREAK\n${teaStart} - ${addMinutes(teaStart, teaDur)}`, text: "TEA\nBREAK" },
+                      { type: "class", period: `${dynamicPts[2].start} - ${dynamicPts[2].end}`, label: `P3\n${dynamicPts[2].start} - ${dynamicPts[2].end}` },
+                      { type: "class", period: `${dynamicPts[3].start} - ${dynamicPts[3].end}`, label: `P4\n${dynamicPts[3].start} - ${dynamicPts[3].end}` },
+                      { type: "break", label: `LUNCH BREAK\n${lunchStart} - ${addMinutes(lunchStart, lunchDur)}`, text: "LUNCH\nBREAK" },
+                      { type: "class", period: `${dynamicPts[4].start} - ${dynamicPts[4].end}`, label: `P5\n${dynamicPts[4].start} - ${dynamicPts[4].end}` },
+                      { type: "class", period: `${dynamicPts[5].start} - ${dynamicPts[5].end}`, label: `P6\n${dynamicPts[5].start} - ${dynamicPts[5].end}` },
+                    ];
 
                     return (
                       <table className="w-full border-collapse border-2 border-black text-center text-xs font-serif">
@@ -1152,7 +1181,7 @@ export default function TimetablePage() {
                                   return null;
                                 }
 
-                                const items = getCellEntries(day, col.period);
+                                const items = getCellEntries(day, col.period || "");
                                 return (
                                   <td key={colIdx} className="border-2 border-black p-2 align-middle text-center h-[60px] bg-white">
                                     {items.length > 0 ? (
@@ -1897,9 +1926,10 @@ export default function TimetablePage() {
                     onChange={(e) => setSubstitutePeriod(e.target.value)}
                     className="w-full h-10 px-2.5 text-xs font-semibold rounded-xl border border-border bg-background outline-none cursor-pointer"
                   >
-                    {DEFAULT_PERIODS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
+                    {getDynamicPeriodTimes(getItemUserScoped<any>("vtu_slot_duration_config")).map((pt) => {
+                      const timeLabel = `${pt.start} - ${pt.end}`;
+                      return <option key={timeLabel} value={timeLabel}>{timeLabel}</option>;
+                    })}
                   </select>
                 </div>
               </div>

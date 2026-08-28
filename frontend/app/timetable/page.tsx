@@ -795,10 +795,20 @@ export default function TimetablePage() {
                 const slot = daySlots[pIdx];
                 if (slot) {
                   const fac = pickOptimalFaculty(labSub, day, slot.id, pIdx === 0, 2);
+                  const dedicatedLabOff: SubjectOffering = {
+                    id: offIdCounter++,
+                    subject_id: labSub?.id || 1,
+                    faculty_id: fac.id,
+                    section_id: sec.id,
+                    semester_id: sec.semester_id,
+                    weekly_hours: 2,
+                  };
+                  offeringData.push(dedicatedLabOff);
+
                   entryData.push({
                     id: entryIdCounter++,
                     timetable_id: 1,
-                    subject_offering_id: { ...labOff, faculty_id: fac.id }.id,
+                    subject_offering_id: dedicatedLabOff.id,
                     room_id: chosenLabRoom.id,
                     time_slot_id: slot.id,
                   });
@@ -838,10 +848,20 @@ export default function TimetablePage() {
                 const chosenRoom = lectureRooms[(sec.id + pIdx) % Math.max(1, lectureRooms.length)] || roomData[0];
                 const fac = pickOptimalFaculty(sub, day, slot.id, is9AM, 1);
 
+                const dedicatedTheoryOff: SubjectOffering = {
+                  id: offIdCounter++,
+                  subject_id: sub?.id || 1,
+                  faculty_id: fac.id,
+                  section_id: sec.id,
+                  semester_id: sec.semester_id,
+                  weekly_hours: 4,
+                };
+                offeringData.push(dedicatedTheoryOff);
+
                 entryData.push({
                   id: entryIdCounter++,
                   timetable_id: 1,
-                  subject_offering_id: { ...theoryOff, faculty_id: fac.id }.id,
+                  subject_offering_id: dedicatedTheoryOff.id,
                   room_id: chosenRoom.id,
                   time_slot_id: slot.id,
                 });

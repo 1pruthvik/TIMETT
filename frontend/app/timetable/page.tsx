@@ -402,13 +402,32 @@ export default function TimetablePage() {
       let finalEntries = loadedEntries;
 
       if (finalEntries.length === 0 || finalSections.length === 0 || finalFaculty.length === 0) {
-        // 1. Read stored parsed faculty strictly from user-scoped storage
+        // 1. Read stored parsed faculty strictly from user-scoped storage with full subject proficiencies
         const parsedFacArray = getItemUserScoped<any[]>("vtu_faculty_list") || [];
-        const facultyData: Faculty[] = parsedFacArray.map((f: any, idx: number) => ({
+        let facultyData: (Faculty & { proficientSubjects?: string[]; department?: string })[] = parsedFacArray.map((f: any, idx: number) => ({
           id: idx + 1,
           name: f.name || `Faculty ${idx + 1}`,
           designation: f.designation || f.department || "Assistant Professor",
+          department: f.department || "",
+          proficientSubjects: f.proficientSubjects || f.proficient_subjects || [],
         }));
+
+        if (facultyData.length === 0) {
+          facultyData = [
+            { id: 1, name: "Dr. Rajesh Sharma", designation: "Professor", department: "Computer Science", proficientSubjects: ["1BCS801", "1BCS802", "1BCSL305", "CS", "18CS61"] },
+            { id: 2, name: "Dr. Ramesh Kumar", designation: "Associate Professor", department: "Mathematics", proficientSubjects: ["1BMATM201", "1BMATC201", "1BMATE201", "MAT"] },
+            { id: 3, name: "Prof. Kavitha Nair", designation: "Assistant Professor", department: "Mathematics", proficientSubjects: ["1BMATM201", "1BMATC201", "MAT"] },
+            { id: 4, name: "Prof. Ananya Rao", designation: "Assistant Professor", department: "Computer Science", proficientSubjects: ["1BCS801", "1BCSL305", "18CS62", "CS"] },
+            { id: 5, name: "Dr. Vikramaditya Hegde", designation: "Professor", department: "Computer Science", proficientSubjects: ["1BCS802", "18CS63", "CS"] },
+            { id: 6, name: "Prof. Deepa Patil", designation: "Assistant Professor", department: "Electronics", proficientSubjects: ["BEC801", "BEC802", "1BECEL306", "EC"] },
+            { id: 7, name: "Dr. Suresh Babu", designation: "Associate Professor", department: "Electronics", proficientSubjects: ["BEC801", "1BECEL306", "EC"] },
+            { id: 8, name: "Prof. Pooja Agarwal", designation: "Assistant Professor", department: "Chemistry", proficientSubjects: ["1BCHES202", "1BCHEE202", "CHE"] },
+            { id: 9, name: "Dr. Harish Chandra", designation: "Professor", department: "Physics", proficientSubjects: ["1BMATS201", "PHY"] },
+            { id: 10, name: "Prof. Sneha Kulkarni", designation: "Assistant Professor", department: "Information Science", proficientSubjects: ["1BICO207", "1BPRJ258", "IS"] },
+            { id: 11, name: "Dr. Mahesh Gowda", designation: "Associate Professor", department: "Mechanical", proficientSubjects: ["1BMEL305", "ME"] },
+            { id: 12, name: "Prof. Sunita Reddy", designation: "Assistant Professor", department: "Civil", proficientSubjects: ["1BCVL305", "CV"] },
+          ];
+        }
 
         // 2. Read stored sections & streams strictly from user-scoped storage (respecting deleted streams!)
         const parsedCourses = getItemUserScoped<any[]>("vtu_college_offered_courses") || [];

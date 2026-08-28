@@ -3,8 +3,8 @@
 @import "shadcn/tailwind.css";
 
 /* Default 90% Window Zoom View */
-html {
-  zoom: 90%;
+html, body {
+  zoom: 90% !important;
 }
 
 /* Hide browser default spin buttons for number inputs */

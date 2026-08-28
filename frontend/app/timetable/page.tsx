@@ -1259,18 +1259,16 @@ export default function TimetablePage() {
         {/* ── Official Institutional Printable Document (Attached to body via Portal) ── */}
         {mounted &&
           createPortal(
-            <div id="official-print-document" className="hidden print:block font-serif text-black bg-white p-2 w-full">
-              <div className="border-2 border-black flex flex-col justify-between overflow-hidden w-full bg-white p-3">
+            <div id="official-print-document" className="hidden print:block font-serif text-black bg-white p-2 w-full h-full">
+              <div className="border-4 border-double border-black flex flex-col justify-between overflow-hidden w-full h-full bg-white p-3 min-h-[92vh]">
                 <div>
-                  {/* Header Box with Institutional Emblem */}
+                  {/* Header Box with Tempus Institutional Emblem */}
                   <div className="relative flex items-center justify-between p-3 border-2 border-black bg-white text-center mb-3">
-                    <div className="w-14 h-14 rounded-full border-2 border-black flex items-center justify-center font-serif font-black text-sm tracking-tighter shrink-0 bg-white">
-                      <div className="border border-black rounded-full w-10 h-10 flex items-center justify-center">
-                        VTU
-                      </div>
+                    <div className="w-14 h-14 rounded-full border-2 border-black flex items-center justify-center font-serif font-black text-sm shrink-0 bg-gradient-to-tr from-blue-600 to-cyan-500 text-white shadow-sm">
+                      <CalendarDays className="size-8 text-white" />
                     </div>
                     <div className="flex-1 px-4 space-y-0.5">
-                      <h1 className="text-base sm:text-lg font-black uppercase tracking-wide text-black font-serif">
+                      <h1 className="text-base sm:text-xl font-black uppercase tracking-wide text-black font-serif">
                         OFFICIAL INSTITUTIONAL MASTER TIMETABLE
                       </h1>
                       <p className="text-xs font-bold text-black font-serif">
@@ -1306,13 +1304,13 @@ export default function TimetablePage() {
                     return (
                       <table className="w-full border-collapse border-2 border-black text-center text-xs font-serif">
                         <thead>
-                          <tr className="bg-gray-100 text-black font-black uppercase">
-                            <th className="border-2 border-black p-2 w-28 text-xs font-black bg-gray-200">DAY / TIME</th>
+                          <tr className="bg-[#D1E9F6] text-black font-black uppercase">
+                            <th className="border-2 border-black p-2 w-28 text-xs font-black bg-[#D1E9F6]">DAY / TIME</th>
                             {PRINT_PERIODS.map((col, idx) => (
                               <th
                                 key={idx}
                                 className={`border-2 border-black p-2 text-[11px] font-black whitespace-pre-line ${
-                                  col.type === "break" ? "bg-amber-100 text-black w-20" : "bg-gray-100"
+                                  col.type === "break" ? "bg-[#FEF9C3] text-black w-20" : "bg-[#D1E9F6]"
                                 }`}
                               >
                                 {col.label}
@@ -1323,7 +1321,7 @@ export default function TimetablePage() {
                         <tbody>
                           {DEFAULT_DAYS.map((day: string, dayIdx: number) => (
                             <tr key={day} className="border-b-2 border-black h-[60px]">
-                              <td className="bg-gray-50 font-black text-xs border-2 border-black p-2 align-middle uppercase text-center w-28 font-serif">
+                              <td className="bg-[#F1F5F9] font-black text-xs border-2 border-black p-2 align-middle uppercase text-center w-28 font-serif">
                                 {day.toUpperCase()}
                               </td>
                               {PRINT_PERIODS.map((col, colIdx) => {
@@ -1333,7 +1331,7 @@ export default function TimetablePage() {
                                       <td
                                         key={colIdx}
                                         rowSpan={5}
-                                        className="border-2 border-black bg-amber-50 font-extrabold text-[11px] align-middle text-center p-1 uppercase tracking-wider text-black whitespace-pre-line"
+                                        className="border-2 border-black bg-[#FEF9C3] font-extrabold text-[11px] align-middle text-center p-1 uppercase tracking-wider text-black whitespace-pre-line"
                                       >
                                         {col.text}
                                       </td>
@@ -1352,10 +1350,10 @@ export default function TimetablePage() {
                                             <div className="font-black text-xs text-black uppercase font-serif">
                                               {item.code || item.subject}
                                             </div>
-                                            <div className="text-[10px] font-bold text-gray-800 font-serif">
+                                            <div className="text-[10px] font-bold text-gray-900 font-serif">
                                               {item.section} • {item.faculty}
                                             </div>
-                                            <div className="text-[9px] font-mono text-gray-600">
+                                            <div className="text-[9px] font-mono text-gray-700">
                                               {item.room}
                                             </div>
                                           </div>

@@ -18,7 +18,7 @@ export function friendlyApiError(error: unknown): string {
     if (error.status && error.status >= 500) return "The scheduling server could not complete that request. Please try again.";
     return error.message;
   }
-  return "TIMETT cannot reach the scheduling server. Check that it is running, then try again.";
+  return "Tempus cannot reach the scheduling server. Check that it is running, then try again.";
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -29,7 +29,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       headers: { "Content-Type": "application/json", ...init.headers },
     });
   } catch (error) {
-    throw new ApiError("TIMETT cannot reach the scheduling server.", undefined, error);
+    throw new ApiError("Tempus cannot reach the scheduling server.", undefined, error);
   }
 
   const contentType = response.headers.get("content-type") || "";
@@ -42,7 +42,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       ? (payload as { detail?: unknown }).detail
       : undefined;
     throw new ApiError(
-      typeof detail === "string" ? detail : "TIMETT could not complete that request.",
+      typeof detail === "string" ? detail : "Tempus could not complete that request.",
       response.status,
       detail,
     );

@@ -18,6 +18,7 @@ import {
   Sparkles,
   User,
   Users,
+  FileText,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme/theme-provider";
@@ -27,12 +28,11 @@ import { TimettLogo } from "@/components/ui/timett-logo";
 import { cn } from "@/lib/utils";
 
 const RESOURCE_SUB_NAV = [
-  { label: "Academic Terms", href: "/academic-terms", icon: CalendarRange },
-  { label: "Departments", href: "/departments", icon: Building2 },
-  { label: "Rooms & Labs", href: "/rooms", icon: DoorOpen },
-  { label: "Subjects", href: "/subjects", icon: BookOpen },
-  { label: "Faculty", href: "/faculty", icon: Users },
-  { label: "Time Slots", href: "/time-slots", icon: Clock },
+  { label: "Academic Year & Type", href: "/academic-year", icon: CalendarRange },
+  { label: "Courses & Intake", href: "/courses", icon: Building2 },
+  { label: "Scheme & Subjects", href: "/documents", icon: FileText },
+  { label: "Department Faculties", href: "/faculties", icon: Users },
+  { label: "Sections & Durations", href: "/sections", icon: Layers3 },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [initials, setInitials] = useState("U");
   const [userName, setUserName] = useState("Admin User");
-  const [userEmail, setUserEmail] = useState("admin@timett.io");
+  const [userEmail, setUserEmail] = useState("admin@tempus.io");
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [resDropdownOpen, setResDropdownOpen] = useState(false);
@@ -51,13 +51,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isResourcePage = [
-    "/academic-terms",
-    "/departments",
-    "/rooms",
-    "/subjects",
-    "/faculty",
-    "/time-slots",
-  ].some((p) => pathname.startsWith(p));
+    "/academic-year",
+    "/courses",
+    "/documents",
+    "/faculties",
+    "/sections",
+    "/constraints",
+  ].includes(pathname);
 
   const handleMouseEnter = () => {
     if (closeTimeoutRef.current) {
@@ -68,13 +68,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   const handleMouseLeave = () => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
     closeTimeoutRef.current = setTimeout(() => {
       setMenuOpen(false);
       setResDropdownOpen(false);
-    }, 350);
+    }, 200);
   };
 
   useEffect(() => {
@@ -130,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/dashboard"
             className="flex items-center cursor-pointer p-1"
-            title="TIMETT Dashboard"
+            title="Tempus Dashboard"
           >
             <TimettLogo
               className={cn(
@@ -150,19 +147,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
             aria-label="Expanded navigation"
           >
-            {/* Studio Link */}
-            <Link
-              href="/timetable"
-              className={cn(
-                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
-                pathname === "/timetable"
-                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
-                  : "text-foreground/70 hover:text-foreground"
-              )}
-            >
-              Studio
-            </Link>
-
             {/* Resources with Hover Dropdown */}
             <div
               className="relative py-1"
@@ -172,7 +156,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => {
                   setResDropdownOpen((v) => !v);
-                  if (!isResourcePage) router.push("/academic-terms");
+                  if (!isResourcePage) router.push("/academic-year");
                 }}
                 className={cn(
                   "flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap cursor-pointer",
@@ -224,6 +208,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             </div>
+
+            {/* Studio Link */}
+            <Link
+              href="/timetable"
+              className={cn(
+                "text-xs font-bold tracking-wide uppercase transition-colors whitespace-nowrap",
+                pathname === "/timetable"
+                  ? "text-[#0070F3] dark:text-[#38BDF8] font-extrabold"
+                  : "text-foreground/70 hover:text-foreground"
+              )}
+            >
+              Studio
+            </Link>
 
             {/* Kaci */}
             <Link

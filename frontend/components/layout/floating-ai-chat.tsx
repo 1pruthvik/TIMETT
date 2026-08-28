@@ -233,7 +233,7 @@ export function FloatingAiChat() {
                   <span className="font-bold text-sm text-foreground">Kaci</span>
                   <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
-                <p className="text-[10px] text-muted-foreground">TIMETT AI Copilot &bull; Live</p>
+                <p className="text-[10px] text-muted-foreground">Tempus AI Copilot &bull; Live</p>
               </div>
             </div>
 

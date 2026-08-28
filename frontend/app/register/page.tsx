@@ -112,7 +112,7 @@ export default function RegisterPage() {
             Create your account
           </h1>
           <p className="text-xs text-muted-foreground">
-            Get started with TIMETT college timetable planner
+            Get started with Tempus college timetable planner
           </p>
         </div>
 

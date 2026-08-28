@@ -1,0 +1,1275 @@
+==============================================================================================================
+VISVESVARAYA TECHNOLOGICAL UNIVERSITY (VTU) - COMPLETE CURRICULUM SUBJECT DIRECTORY
+ALL SEMESTERS (SEMESTER 1 TO SEMESTER 8) • ALL 11 ENGINEERING BRANCHES
+==============================================================================================================
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 1 (I SEMESTER) - 1ST YEAR VTU SCHEME
+--------------------------------------------------------------------------------------------------------------
+
+[ PHYSICS CYCLE ]
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATS101        | Calculus and Linear Algebra: CSE Stream                 | Maths Dept           | Theory       | 3 hrs/wk
+1BMATE101        | Differential Calculus and Linear Algebra: EEE/ECE Stream | Maths Dept           | Theory       | 3 hrs/wk
+1BMATM101        | Differential Calculus and Linear Algebra: ME Stream     | Maths Dept           | Theory       | 3 hrs/wk
+1BMATC101        | Differential Calculus and Linear Algebra: CV Stream     | Maths Dept           | Theory       | 3 hrs/wk
+1BPHYS102        | Quantum Physics and Applications (CSE stream)           | Physics Dept         | Theory       | 3 hrs/wk
+1BPHEC102        | Quantum Physics and Electronics Sensors (ECE stream)    | Physics Dept         | Theory       | 3 hrs/wk
+1BPHEE102        | Physics of Electrical Engineering Materials (EEE stream) | Physics Dept         | Theory       | 3 hrs/wk
+1BPHYM102        | Physics of Materials (Mech stream)                      | Physics Dept         | Theory       | 3 hrs/wk
+1BPHYC102        | Physics for Sustainable Structural Systems (CV stream)  | Physics Dept         | Theory       | 3 hrs/wk
+1BCEDS103        | Computer-Aided Engineering Drawing for CSE stream       | ME Dept              | Theory       | 2 hrs/wk
+1BCEDEC103       | Computer-Aided Engineering Drawing for ECE stream       | ME Dept              | Theory       | 2 hrs/wk
+1BCEDE103        | Computer-Aided Engineering Drawing for EEE stream       | ME Dept              | Theory       | 2 hrs/wk
+1BCEDM103        | Computer-Aided Engineering Drawing for ME stream        | ME Dept              | Theory       | 2 hrs/wk
+1BCEDC103        | Computer-Aided Engineering Drawing for CV Stream        | ME Dept              | Theory       | 2 hrs/wk
+1BESC104A        | Building Sciences & Mechanics                           | Civil Dept           | Theory (ESC-I) | 3 hrs/wk
+1BESC104B        | Introduction to Electrical Engineering                  | EEE Dept             | Theory (ESC-I) | 3 hrs/wk
+1BESC104C        | Introduction to Electronics and Communication Engineering | ECE Dept             | Theory (ESC-I) | 3 hrs/wk
+1BESC104D        | Introduction to Mechanical Engineering                  | ME Dept              | Theory (ESC-I) | 3 hrs/wk
+1BESC104E        | Essentials of Information Technology                    | CSE/IT Dept          | Theory (ESC-I) | 3 hrs/wk
+1BCIV105         | Engineering Mechanics (PSC)                             | Civil Dept           | Theory (PSC) | 3 hrs/wk
+1BBEE105         | Basics of Electrical Engineering (PSC)                  | EEE Dept             | Theory (PSC) | 3 hrs/wk
+1BECE105         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept             | Theory (PSC) | 3 hrs/wk
+1BEME105         | Elements of Mechanical Engineering (PSC)                | ME Dept              | Theory (PSC) | 3 hrs/wk
+1BEIT105         | Programming in C (PSC)                                  | CSE Dept             | Theory (PSC) | 3 hrs/wk
+1BEBT105         | Elements of Biotechnology and Biomimetics (PSC)         | BT Dept              | Theory (PSC) | 3 hrs/wk
+1BSKS106         | Soft Skills                                             | Humanities Dept      | Theory       | 1 hrs/wk
+1BKSK109         | Samskrutika Kannada                                     | Humanities Dept      | Theory       | 1 hrs/wk
+1BKBK109         | Balake Kannada                                          | Humanities Dept      | Theory       | 1 hrs/wk
+1BMATS101-TUT    | Calculus and Linear Algebra Tutorial                    | Maths Dept           | Tutorial     | 2 hrs/wk
+1BPHYS102-LAB    | Applied Physics Practical Sessions                      | Physics Dept         | Practical    | 2 hrs/wk
+1BCEDS103-LAB    | Computer-Aided Engineering Drawing Lab                  | ME Dept              | Practical    | 2 hrs/wk
+1BMEML107        | Mechanics and Materials Lab (PSCL)                      | Civil Dept           | Practical (PSCL) | 2 hrs/wk
+1BBEEL107        | Basic Electrical Lab (PSCL)                             | EEE Dept             | Practical (PSCL) | 2 hrs/wk
+1BECEL107        | Fundamentals of Electronics Lab (PSCL)                  | ECE Dept             | Practical (PSCL) | 2 hrs/wk
+1BEMEL107        | Elements of Mechanical Engineering Lab (PSCL)           | ME Dept              | Practical (PSCL) | 2 hrs/wk
+1BPOPL107        | C Programming Lab (PSCL)                                | CSE Dept             | Practical (PSCL) | 2 hrs/wk
+1BIDTL158        | Innovation and Design Thinking Lab (Project-based)      | Any Dept             | Practical    | 2 hrs/wk
+
+[ CHEMISTRY CYCLE ]
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATS101        | Calculus and Linear Algebra: CSE Stream                 | Maths Dept           | Theory       | 3 hrs/wk
+1BCHES102        | Applied Chemistry for Smart Systems (CSE)               | Chemistry Dept       | Theory       | 3 hrs/wk
+1BCHEE102        | Applied Chemistry for Emerging Electronics (EEE/ECE)    | Chemistry Dept       | Theory       | 3 hrs/wk
+1BCHEM102        | Applied Chemistry for Advanced Metal Protection (ME)    | Chemistry Dept       | Theory       | 3 hrs/wk
+1BCHEC102        | Applied Chemistry for Sustainable Structures (CV)       | Chemistry Dept       | Theory       | 3 hrs/wk
+1BAIA103         | Introduction to AI and Applications                     | Any Dept             | Theory       | 3 hrs/wk
+1BESC104A        | Building Sciences & Mechanics                           | Civil Dept           | Theory (ESC-I) | 3 hrs/wk
+1BESC104B        | Introduction to Electrical Engineering                  | EEE Dept             | Theory (ESC-I) | 3 hrs/wk
+1BESC104C        | Introduction to Electronics & Communication Engineering | ECE Dept             | Theory (ESC-I) | 3 hrs/wk
+1BESC104D        | Introduction to Mechanical Engineering                  | ME Dept              | Theory (ESC-I) | 3 hrs/wk
+1BESC104E        | Essentials of Information Technology                    | CSE/IT Dept          | Theory (ESC-I) | 3 hrs/wk
+1BPLC105B        | Python Programming (for CSE and allied programmes)      | CSE Dept             | Theory (PLC) | 3 hrs/wk
+1BPLC105E        | Introduction to C Programming (For non-IT programmes)   | Non-IT Engg Dept     | Theory (PLC) | 3 hrs/wk
+1BENG106         | Communication Skills                                    | Humanities Dept      | Theory       | 1 hrs/wk
+1BICO107         | Indian Constitution & Engineering Ethics                | Humanities Dept      | Theory       | 1 hrs/wk
+1BCHES102-LAB    | Applied Chemistry Laboratory                            | Chemistry Dept       | Practical    | 2 hrs/wk
+1BPLC105B-LAB    | Python Programming Laboratory                           | CSE Dept             | Practical    | 2 hrs/wk
+1BPLC105E-LAB    | C Programming Laboratory                                | Non-IT Engg Dept     | Practical    | 2 hrs/wk
+1BIDTL158        | Innovation and Design Thinking Lab (Project-based)      | Any Dept             | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 2 (II SEMESTER) - 1ST YEAR VTU SCHEME
+--------------------------------------------------------------------------------------------------------------
+
+[ PHYSICS GROUP (II SEM) ]
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATS201        | Numerical Methods: CSE Stream                           | Maths Dept           | Theory       | 3 hrs/wk
+1BMATE201        | Calculus, Laplace Transform and Numerical Techniques: EEE/ECE | Maths Dept           | Theory       | 3 hrs/wk
+1BMATM201        | Multivariable Calculus and Numerical Methods: ME Stream | Maths Dept           | Theory       | 3 hrs/wk
+1BMATC201        | Differential Calculus and Numerical Methods: CV Stream  | Maths Dept           | Theory       | 3 hrs/wk
+1BPHYS202        | Quantum Physics and Applications (CSE stream)           | Physics Dept         | Theory       | 3 hrs/wk
+1BPHEC202        | Quantum Physics and Electronic Sensors (ECE stream)     | Physics Dept         | Theory       | 3 hrs/wk
+1BPHEE202        | Physics of Electrical Engineering Materials (EEE stream) | Physics Dept         | Theory       | 3 hrs/wk
+1BPHYM202        | Physics of Materials (Mech stream)                      | Physics Dept         | Theory       | 3 hrs/wk
+1BPHYC202        | Physics for Sustainable Structural Systems (CV stream)  | Physics Dept         | Theory       | 3 hrs/wk
+1BCEDS203        | Computer-Aided Engineering Drawing for CSE stream       | ME Dept              | Theory       | 2 hrs/wk
+1BESC204A        | Building Sciences & Mechanics                           | Civil Dept           | Theory (ESC-II) | 3 hrs/wk
+1BESC204B        | Introduction to Electrical Engineering                  | EEE Dept             | Theory (ESC-II) | 3 hrs/wk
+1BESC204C        | Introduction to Electronics & Communication Engineering | ECE Dept             | Theory (ESC-II) | 3 hrs/wk
+1BESC204D        | Introduction to Mechanical Engineering                  | ME Dept              | Theory (ESC-II) | 3 hrs/wk
+1BESC204E        | Essentials of Information Technology                    | CSE/IT Dept          | Theory (ESC-II) | 3 hrs/wk
+1BCIV205         | Engineering Mechanics (PSC)                             | Civil Dept           | Theory (PSC) | 3 hrs/wk
+1BBEE205         | Basics of Electrical Engineering (PSC)                  | EEE Dept             | Theory (PSC) | 3 hrs/wk
+1BECE205         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept             | Theory (PSC) | 3 hrs/wk
+1BEME205         | Elements of Mechanical Engineering (PSC)                | ME Dept              | Theory (PSC) | 3 hrs/wk
+1BEIT205         | Programming in C (PSC)                                  | CSE Dept             | Theory (PSC) | 3 hrs/wk
+1BSKS206         | Soft Skills                                             | Humanities Dept      | Theory       | 1 hrs/wk
+1BKSK209         | Samskrutika Kannada                                     | Humanities Dept      | Theory       | 1 hrs/wk
+1BKBK209         | Balake Kannada                                          | Humanities Dept      | Theory       | 1 hrs/wk
+1BMATS201-TUT    | Numerical Methods Tutorial                              | Maths Dept           | Tutorial     | 2 hrs/wk
+1BPHYS202-LAB    | Applied Physics Practical Sessions                      | Physics Dept         | Practical    | 2 hrs/wk
+1BCEDS203-LAB    | Computer-Aided Engineering Drawing Lab                  | ME Dept              | Practical    | 2 hrs/wk
+1BMEML207        | Mechanics and Materials Lab (PSCL)                      | Civil Dept           | Practical (PSCL) | 2 hrs/wk
+1BBEEL207        | Basic Electrical Lab (PSCL)                             | EEE Dept             | Practical (PSCL) | 2 hrs/wk
+1BECEL207        | Fundamentals of Electronics Lab (PSCL)                  | ECE Dept             | Practical (PSCL) | 2 hrs/wk
+1BEMEL207        | Elements of Mechanical Engineering Lab (PSCL)           | ME Dept              | Practical (PSCL) | 2 hrs/wk
+1BPOPL207        | C Programming Lab (PSCL)                                | CSE Dept             | Practical (PSCL) | 2 hrs/wk
+1BPRJ258         | Interdisciplinary Project-Based Learning                | Multiple Depts       | Practical    | 2 hrs/wk
+
+[ CHEMISTRY GROUP (II SEM) ]
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATS201        | Numerical Methods: CSE Stream                           | Maths Dept           | Theory       | 3 hrs/wk
+1BCHES202        | Applied Chemistry for Smart Systems (CSE)               | Chemistry Dept       | Theory       | 3 hrs/wk
+1BCHEE202        | Applied Chemistry for Emerging Electronics and Devices  | Chemistry Dept       | Theory       | 3 hrs/wk
+1BCHEM202        | Applied Chemistry for Advanced Metal Protection         | Chemistry Dept       | Theory       | 3 hrs/wk
+1BCHEC202        | Applied Chemistry for Sustainable Structures            | Chemistry Dept       | Theory       | 3 hrs/wk
+1BAIA203         | Introduction to AI and Applications                     | Any Dept             | Theory       | 3 hrs/wk
+1BESC204A        | Building Sciences & Mechanics                           | Civil Dept           | Theory (ESC-II) | 3 hrs/wk
+1BESC204B        | Introduction to Electrical Engineering                  | EEE Dept             | Theory (ESC-II) | 3 hrs/wk
+1BESC204C        | Introduction to Electronics & Communication Engineering | ECE Dept             | Theory (ESC-II) | 3 hrs/wk
+1BESC204D        | Introduction to Mechanical Engineering                  | ME Dept              | Theory (ESC-II) | 3 hrs/wk
+1BESC204E        | Essentials of Information Technology                    | CSE/IT Dept          | Theory (ESC-II) | 3 hrs/wk
+1BPLC205B        | Python Programming (For CSE and allied programmes)      | CSE Dept             | Theory (PLC) | 3 hrs/wk
+1BPLC205E        | Introduction to C Programming (for non-IT programmes)   | Non-IT Engg Dept     | Theory (PLC) | 3 hrs/wk
+1BENG206         | Communication Skills                                    | Humanities Dept      | Theory       | 1 hrs/wk
+1BICO207         | Indian Constitution & Engineering Ethics                | Humanities Dept      | Theory       | 1 hrs/wk
+1BCHES202-LAB    | Applied Chemistry Laboratory                            | Chemistry Dept       | Practical    | 2 hrs/wk
+1BPLC205B-LAB    | Python Programming Laboratory                           | CSE Dept             | Practical    | 2 hrs/wk
+1BPLC205E-LAB    | C Programming Laboratory                                | Non-IT Engg Dept     | Practical    | 2 hrs/wk
+1BPRJ258         | Interdisciplinary Project-Based Learning                | Multiple Depts       | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 3 (III SEMESTER) - BRANCH-WISE VTU SCHEMES
+--------------------------------------------------------------------------------------------------------------
+
+>>> BRANCH: AI&DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics               | Maths Dept           | Theory       | 5 hrs/wk
+1BCS302          | Object Oriented Programming with Java                   | CSE Dept             | Theory       | 3 hrs/wk
+1BCS303          | Digital Design and Computer Organization                | CSE Dept             | Theory       | 4 hrs/wk
+1BCS304          | Operating Systems                                       | CSE Dept             | Theory       | 3 hrs/wk
+1BCS305          | Data Structures and Applications                        | CSE Dept             | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCS302          | Object Oriented Programming with Java Lab               | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL306         | Data Structures Laboratory                              | CSE Dept             | Practical    | 2 hrs/wk
+1BXXL307x        | Ability Enhancement Course                              | AI/DS Dept           | Practical    | 2 hrs/wk
+
+>>> BRANCH: BME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BBM301          | Transform Techniques and Fourier Series                 | Biomedical Dept      | Theory       | 5 hrs/wk
+1BBM302          | Digital Design and HDL                                  | Biomedical Dept      | Theory       | 3 hrs/wk
+1BBM303          | Analog Electronic Circuits                              | ECE Dept             | Theory       | 5 hrs/wk
+1BBM304          | Human Anatomy and Physiology                            | Biomedical Dept      | Theory       | 3 hrs/wk
+1BBM305          | Instrumentation, Measurements and Biomedical Transducers | Biomedical Dept      | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BBM302          | Digital Design and HDL Lab                              | Biomedical Dept      | Practical    | 2 hrs/wk
+1BBML306         | Analog Electronic Circuits Lab                          | ECE Dept             | Practical    | 2 hrs/wk
+1BBML307         | Instrumentation, Measurements and Biomedical Transducers Lab | Biomedical Dept      | Practical    | 2 hrs/wk
+
+>>> BRANCH: CH
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCH301       | Applied Differential Calculus in Chemical Engineering   | Maths Dept           | Theory       | 5 hrs/wk
+1BCH302          | Mechanical Operations                                   | ME Dept              | Theory       | 3 hrs/wk
+1BCH303          | Momentum Transfer                                       | Chem Dept            | Theory       | 5 hrs/wk
+1BCH304          | Process Principles and Calculations                     | Chem Dept            | Theory       | 3 hrs/wk
+1BCH305          | Materials Chemistry and its Applications                | Chemistry Dept       | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCH302          | Mechanical Operations Lab                               | ME Dept              | Practical    | 2 hrs/wk
+1BCHL306         | Momentum Transfer Lab (Professional Core Course Lab)    | Chem Dept            | Practical    | 2 hrs/wk
+1BCHL307x        | Ability Enhancement Course Laboratory                   | Chem Dept            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CIV
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCV301       | Probability and Statistics                              | Maths Dept           | Theory       | 5 hrs/wk
+1BCV302          | Fluid Mechanics and Hydraulic Machinery                 | ME Dept              | Theory       | 3 hrs/wk
+1BCV303          | Solid Mechanics                                         | Civil Dept           | Theory       | 5 hrs/wk
+1BCV304          | Building Materials and Construction Methods             | Civil Dept           | Theory       | 3 hrs/wk
+1BCV305          | Engineering Geology for Infrastructure Projects         | Civil Dept           | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCV302          | Fluid Mechanics and Hydraulic Machinery Lab             | ME Dept              | Practical    | 2 hrs/wk
+1BCVL306         | Building CAD and 3D Modelling Lab                       | Civil Dept           | Practical    | 2 hrs/wk
+1BCVL307x        | Ability Enhancement Course Laboratory                   | Civil Dept           | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics               | Maths Dept           | Theory       | 5 hrs/wk
+1BCS302          | Object Oriented Programming with Java                   | CSE Dept             | Theory       | 3 hrs/wk
+1BCS303          | Digital Design and Computer Organization                | CSE Dept             | Theory       | 4 hrs/wk
+1BCS304          | Operating Systems                                       | CSE Dept             | Theory       | 3 hrs/wk
+1BCS305          | Data Structures and Applications                        | CSE Dept             | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCS302          | Object Oriented Programming with Java Lab               | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL306         | Data Structures Laboratory                              | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL307A        | Project Management (with Git)                           | Humanities Dept      | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-AIML
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics               | Maths Dept           | Theory       | 5 hrs/wk
+1BCS302          | Object Oriented Programming with Java                   | CSE Dept             | Theory       | 3 hrs/wk
+1BCS303          | Digital Design and Computer Organization                | CSE Dept             | Theory       | 4 hrs/wk
+1BCS304          | Operating Systems                                       | CSE Dept             | Theory       | 3 hrs/wk
+1BCS305          | Data Structures and Applications                        | CSE Dept             | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCS302          | Object Oriented Programming with Java Lab               | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL306         | Data Structures Laboratory                              | CSE Dept             | Practical    | 2 hrs/wk
+1BXXL307x        | Ability Enhancement Course                              | AI/ML Dept           | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics               | Maths Dept           | Theory       | 5 hrs/wk
+1BCS302          | Object Oriented Programming with Java                   | CSE Dept             | Theory       | 3 hrs/wk
+1BCS303          | Digital Design and Computer Organization                | CSE Dept             | Theory       | 4 hrs/wk
+1BCS304          | Operating Systems                                       | CSE Dept             | Theory       | 3 hrs/wk
+1BCS305          | Data Structures and Applications                        | CSE Dept             | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCS302          | Object Oriented Programming with Java Lab               | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL306         | Data Structures Laboratory                              | CSE Dept             | Practical    | 2 hrs/wk
+1BXXL307x        | Ability Enhancement Course                              | Data Science Dept    | Practical    | 2 hrs/wk
+
+>>> BRANCH: ECE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATEC301       | Transform Techniques and Optimization Theory            | Maths Dept           | Theory       | 5 hrs/wk
+1BEC302          | Digital System Design Using Verilog                     | ECE Dept             | Theory       | 3 hrs/wk
+1BEC303          | Network Analysis                                        | ECE Dept             | Theory       | 5 hrs/wk
+1BEC304          | Analog Electronics and Linear Integrated Circuits       | ECE Dept             | Theory       | 3 hrs/wk
+1BEC305          | Python Programming                                      | ECE Dept             | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BEC302          | Digital System Design Using Verilog Lab                 | ECE Dept             | Practical    | 2 hrs/wk
+1BECL306         | Analog Electronics and Linear Integrated Circuits Lab   | ECE Dept             | Practical    | 2 hrs/wk
+1BECL307x        | Ability Enhancement Course Laboratory                   | ECE Dept             | Practical    | 2 hrs/wk
+
+>>> BRANCH: EEE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATEEE301      | Mathematics for Electrical Engineers                    | Maths Dept           | Theory       | 4 hrs/wk
+1BEE302          | Electric Circuit Analysis                               | EEE Dept             | Theory       | 4 hrs/wk
+1BEE303          | Analog Electronic Circuits                              | EEE Dept             | Theory       | 3 hrs/wk
+1BEE304          | Electrical Machines-I                                   | EEE Dept             | Theory       | 3 hrs/wk
+1BEE305          | Electromagnetic Field Theory                            | EEE Dept             | Theory       | 3 hrs/wk
+1BEEL306         | Analog Electronics Lab                                  | EEE Dept             | Practical    | 2 hrs/wk
+1BEEL307         | Electrical Machines Lab-I                               | EEE Dept             | Practical    | 2 hrs/wk
+
+>>> BRANCH: ISE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCS301       | Probability, Distributions and Statistics               | Maths Dept           | Theory       | 5 hrs/wk
+1BCS302          | Object Oriented Programming with Java                   | CSE Dept             | Theory       | 3 hrs/wk
+1BCS303          | Digital Design and Computer Organization                | CSE Dept             | Theory       | 4 hrs/wk
+1BCS304          | Operating Systems                                       | CSE Dept             | Theory       | 3 hrs/wk
+1BCS305          | Data Structures and Applications                        | CSE Dept             | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BCS302          | Object Oriented Programming with Java Lab               | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL306         | Data Structures Laboratory                              | CSE Dept             | Practical    | 2 hrs/wk
+1BCSL307A        | Project Management (with Git)                           | Humanities Dept      | Practical    | 2 hrs/wk
+
+>>> BRANCH: ME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATM301        | Transforms and Statistics                               | Maths Dept           | Theory       | 5 hrs/wk
+1BME302          | Materials Science and Metallurgy                        | ME Dept              | Theory       | 3 hrs/wk
+1BME303          | Basic Thermodynamics                                    | ME Dept              | Theory       | 3 hrs/wk
+1BME304          | Mechanics of Materials                                  | ME Dept              | Theory       | 3 hrs/wk
+1BME305          | Manufacturing Technology - I                            | ME Dept              | Theory       | 3 hrs/wk
+1BMATDIP310      | Mathematics course for Lateral Entry Students           | Maths Dept           | Theory       | 1 hrs/wk
+1BME302          | Materials Science and Metallurgy Lab                    | ME Dept              | Practical    | 2 hrs/wk
+1BMEL306         | Computer Aided Machine Drawing Lab                      | ME Dept              | Practical    | 4 hrs/wk
+1BMEL307x        | Ability Enhancement Course Laboratory                   | ME Dept              | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 4 (IV SEMESTER) - BRANCH-WISE VTU SCHEMES
+--------------------------------------------------------------------------------------------------------------
+
+>>> BRANCH: AI&DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAI401          | Discrete Mathematics and Optimization Techniques        | Maths Dept           | Theory       | 5 hrs/wk
+1BAI402          | Design and Analysis of Algorithms                       | CSE Dept             | Theory       | 3 hrs/wk
+1BAI403          | Database Management Systems                             | Humanities Dept      | Theory       | 5 hrs/wk
+1BAI404          | Machine Learning                                        | AI/DS Dept           | Theory       | 5 hrs/wk
+1BCS407          | Biology for Computer Engineers                          | CSE Dept             | Theory       | 2 hrs/wk
+1BAI402          | Design and Analysis of Algorithms Lab                   | CSE Dept             | Practical    | 2 hrs/wk
+1BAIL405         | Machine Learning Laboratory                             | AI/DS Dept           | Practical    | 2 hrs/wk
+1BXXL406x        | Ability Enhancement Course                              | AI/DS Dept           | Practical    | 2 hrs/wk
+
+>>> BRANCH: BME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BBM401          | Data Acquisition Circuits                               | Biomedical Dept      | Theory       | 3 hrs/wk
+1BBM402          | Data Structures and Algorithms                          | CSE Dept             | Theory       | 3 hrs/wk
+1BBM403          | Biomechanics                                            | Biomedical Dept      | Theory       | 5 hrs/wk
+1BBM404          | Embedded Controllers                                    | Biomedical Dept      | Theory       | 3 hrs/wk
+1BBM407          | Biology for Engineers                                   | Biomedical Dept      | Theory       | 2 hrs/wk
+1Bxx409          | Control Systems Engineering                             | Biomedical Dept      | Theory       | 3 hrs/wk
+1BBM402          | Data Structures and Algorithms Lab                      | CSE Dept             | Practical    | 2 hrs/wk
+1BBML405         | Data Acquisition Circuits Lab                           | Biomedical Dept      | Practical    | 2 hrs/wk
+1BBML406         | Embedded Controllers Lab                                | Biomedical Dept      | Practical    | 2 hrs/wk
+
+>>> BRANCH: CH
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATCH401       | Probability and Statistics for Chemical Engineering     | Maths Dept           | Theory       | 3 hrs/wk
+1BCH402          | Heat Transfer                                           | Chem Dept            | Theory       | 3 hrs/wk
+1BCH403          | Chemical Engineering Thermodynamics                     | ME Dept              | Theory       | 4 hrs/wk
+1BCH404          | Industrial Pollution Control and Management             | Humanities Dept      | Theory       | 3 hrs/wk
+1BCH405          | Chemical Reaction Engineering-I                         | Chem Dept            | Theory       | 3 hrs/wk
+1BRM408          | Program Specific Biology                                | Biomedical Dept      | Theory       | 2 hrs/wk
+1BCH402          | Heat Transfer Lab                                       | Chem Dept            | Practical    | 2 hrs/wk
+1BCHL406         | Instrument Analysis and Pollution control lab (PCC Lab) | Chem Dept            | Practical    | 2 hrs/wk
+1BCHL407         | Ability Enhancement Course Laboratory                   | Chem Dept            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CIV
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCV401          | Surveying and Geospatial Techniques                     | Civil Dept           | Theory       | 3 hrs/wk
+1BCV402          | Water Supply and Sanitary Engineering                   | Civil Dept           | Theory       | 3 hrs/wk
+1BCV403          | Analysis of Structures                                  | Civil Dept           | Theory       | 5 hrs/wk
+1BCV404          | Building Information Modelling (BIM)                    | Civil Dept           | Theory       | 3 hrs/wk
+1BCV407          | Biology for Civil Engineers                             | Civil Dept           | Theory       | 2 hrs/wk
+1BCV409          | Concrete Technology                                     | Civil Dept           | Theory       | 3 hrs/wk
+1BCV402          | Water Supply and Sanitary Engineering Lab               | Civil Dept           | Practical    | 2 hrs/wk
+1BCVL405         | Surveying and Geospatial Engineering Laboratory         | Civil Dept           | Practical    | 2 hrs/wk
+1BCVL406         | Ability Enhancement Course Laboratory                   | Civil Dept           | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS401          | Discrete Mathematics and Graph Theory                   | Maths Dept           | Theory       | 5 hrs/wk
+1BCS402          | Database Management Systems                             | Humanities Dept      | Theory       | 3 hrs/wk
+1BCS403          | Computer Networks                                       | CSE Dept             | Theory       | 4 hrs/wk
+1BCS404          | Design and Analysis of Algorithms                       | CSE Dept             | Theory       | 5 hrs/wk
+1BCS407          | Biology for Computer Engineers                          | CSE Dept             | Theory       | 2 hrs/wk
+1BCS402          | Database Management Systems Lab                         | Humanities Dept      | Practical    | 2 hrs/wk
+1BCSL405         | Algorithms Laboratory                                   | CSE Dept             | Practical    | 2 hrs/wk
+1BXXL406x        | Ability Enhancement Course                              | CSE Dept             | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-AIML
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAI401          | Discrete Mathematics and Optimization Techniques        | Maths Dept           | Theory       | 5 hrs/wk
+1BAI402          | Design and Analysis of Algorithms                       | CSE Dept             | Theory       | 3 hrs/wk
+1BAI403          | Database Management Systems                             | Humanities Dept      | Theory       | 5 hrs/wk
+1BAI404          | Machine Learning                                        | AI/ML Dept           | Theory       | 5 hrs/wk
+1BCS407          | Biology for Computer Engineers                          | CSE Dept             | Theory       | 2 hrs/wk
+1BAI402          | Design and Analysis of Algorithms Lab                   | CSE Dept             | Practical    | 2 hrs/wk
+1BAIL405         | Machine Learning Laboratory                             | AI/ML Dept           | Practical    | 2 hrs/wk
+1BXXL406x        | Ability Enhancement Course                              | AI/ML Dept           | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAI401          | Discrete Mathematics and Optimization Techniques        | Maths Dept           | Theory       | 5 hrs/wk
+1BAI402          | Design and Analysis of Algorithms                       | CSE Dept             | Theory       | 3 hrs/wk
+1BAI403          | Database Management Systems                             | Humanities Dept      | Theory       | 5 hrs/wk
+1BAI404          | Machine Learning                                        | Data Science Dept    | Theory       | 5 hrs/wk
+1BCS407          | Biology for Computer Engineers                          | CSE Dept             | Theory       | 2 hrs/wk
+1BAI402          | Design and Analysis of Algorithms Lab                   | CSE Dept             | Practical    | 2 hrs/wk
+1BAIL405         | Machine Learning Laboratory                             | Data Science Dept    | Practical    | 2 hrs/wk
+1BXXL406x        | Ability Enhancement Course                              | Data Science Dept    | Practical    | 2 hrs/wk
+
+>>> BRANCH: ECE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATEC401       | Mathematics for Machine Learning                        | Maths Dept           | Theory       | 3 hrs/wk
+1BEC402          | Applied Computer Organization and Microcontroller       | ECE Dept             | Theory       | 3 hrs/wk
+1BEC403          | Control Systems                                         | ECE Dept             | Theory       | 5 hrs/wk
+1BEC404          | Signals and Systems                                     | ECE Dept             | Theory       | 3 hrs/wk
+1BEC407          | Biology for Electrical and Electronics Engineers        | ECE Dept             | Theory       | 2 hrs/wk
+1BEC409          | Introduction to Analog Communication Systems            | ECE Dept             | Theory       | 3 hrs/wk
+1BEC402          | Applied Computer Organization and Microcontroller Lab   | ECE Dept             | Practical    | 2 hrs/wk
+1BECL405         | Signals and Analog Communications Lab                   | ECE Dept             | Practical    | 2 hrs/wk
+1BECL406         | Ability Enhancement Course Laboratory                   | ECE Dept             | Practical    | 2 hrs/wk
+
+>>> BRANCH: EEE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BEE401          | Electric Motors                                         | EEE Dept             | Theory       | 3 hrs/wk
+1BEE402          | Microcontroller                                         | ECE Dept             | Theory       | 3 hrs/wk
+1BEE403          | Field Theory                                            | EEE Dept             | Theory       | 5 hrs/wk
+1BEE404          | Transmission and Distribution                           | EEE Dept             | Theory       | 3 hrs/wk
+1BEE407          | Biology for Electrical Engineers                        | EEE Dept             | Theory       | 2 hrs/wk
+1BEE409          | Electric Power Generation and Economics                 | EEE Dept             | Theory       | 3 hrs/wk
+1BEE402          | Microcontroller Lab                                     | ECE Dept             | Practical    | 2 hrs/wk
+1BEEL405         | Electric Motors Lab                                     | EEE Dept             | Practical    | 2 hrs/wk
+1BEEL406         | Ability Enhancement Course Laboratory                   | EEE Dept             | Practical    | 2 hrs/wk
+
+>>> BRANCH: ISE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS401          | Discrete Mathematics and Graph Theory                   | Maths Dept           | Theory       | 5 hrs/wk
+1BCS402          | Database Management Systems                             | Humanities Dept      | Theory       | 3 hrs/wk
+1BCS403          | Computer Networks                                       | CSE Dept             | Theory       | 4 hrs/wk
+1BCS404          | Design and Analysis of Algorithms                       | CSE Dept             | Theory       | 5 hrs/wk
+1BCS407          | Biology for Computer Engineers                          | CSE Dept             | Theory       | 2 hrs/wk
+1BCS402          | Database Management Systems Lab                         | Humanities Dept      | Practical    | 2 hrs/wk
+1BCSL405         | Algorithms Laboratory                                   | CSE Dept             | Practical    | 2 hrs/wk
+1BXXL406x        | Ability Enhancement Course                              | ISE Dept             | Practical    | 2 hrs/wk
+
+>>> BRANCH: ME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BMATM401        | Complex Analysis and Probability Distributions          | Maths Dept           | Theory       | 3 hrs/wk
+1BME402          | Manufacturing Technology - II                           | ME Dept              | Theory       | 3 hrs/wk
+1BME403          | Applied Thermodynamics                                  | ME Dept              | Theory       | 5 hrs/wk
+1BME404          | Fluid Mechanics                                         | ME Dept              | Theory       | 3 hrs/wk
+1BME407          | Biology for Engineers                                   | ME Dept              | Theory       | 2 hrs/wk
+1BME409          | Kinematics of Machines                                  | ME Dept              | Theory       | 3 hrs/wk
+1BME402          | Manufacturing Technology - II Lab                       | ME Dept              | Practical    | 2 hrs/wk
+1BMEL405         | Mechanical Measurements and Metrology Lab               | ME Dept              | Practical    | 2 hrs/wk
+1BMEL406x        | Ability Enhancement Course Laboratory                   | ME Dept              | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 5 (V SEMESTER) - BRANCH-WISE VTU SCHEMES
+--------------------------------------------------------------------------------------------------------------
+
+>>> BRANCH: AI&DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management             | CS Allied            | Theory       | 3 hrs/wk
+1BAI502          | Artificial Intelligence                                 | CS Allied            | Theory       | 3 hrs/wk
+1BCS503          | Theory of Computation                                   | CS Allied            | Theory       | 4 hrs/wk
+1BAI504          | Computer Networks                                       | CS Allied            | Theory       | 3 hrs/wk
+1BXX505x         | Professional Elective Course-I                          | CS Allied            | Theory       | 3 hrs/wk
+1BAIL507         | Data Visualization Laboratory                           | CS Allied            | Practical    | 2 hrs/wk
+1BAI502L         | Artificial Intelligence Laboratory                      | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: BME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BBM501           | Technological Innovation Management & Entrepreneurship  | BIOMEDICAL           | Theory       | 3 hrs/wk
+BBM502           | Digital Signal Processing                               | BIOMEDICAL           | Theory       | 3 hrs/wk
+BBM503           | Clinical Instrumentation                                | BIOMEDICAL           | Theory       | 4 hrs/wk
+BBM515x          | Professional Elective Course                            | BIOMEDICAL           | Theory       | 3 hrs/wk
+BRMK557          | Research Methodology and IPR                            | Humanities/Any       | Theory       | 3 hrs/wk
+BESK508          | Environmental Studies                                   | Humanities/Any       | Theory       | 2 hrs/wk
+BBM504           | Clinical Instrumentation Lab                            | BIOMEDICAL           | Practical    | 2 hrs/wk
+BBM502L          | Digital Signal Processing Laboratory                    | BIOMEDICAL           | Practical    | 2 hrs/wk
+
+>>> BRANCH: CH
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BCH501           | Industrial Process Management                           | CHEMICAL             | Theory       | 3 hrs/wk
+BCH502           | Chemical Reaction Engineering                           | CHEMICAL             | Theory       | 3 hrs/wk
+BCH503           | Mass Transfer Operations-I                              | CHEMICAL             | Theory       | 4 hrs/wk
+BCH515x          | Professional Elective Course                            | CHEMICAL             | Theory       | 3 hrs/wk
+BRMK557          | Research Methodology and IPR                            | Humanities/Any       | Theory       | 3 hrs/wk
+BESK508          | Environmental Studies                                   | Humanities/Any       | Theory       | 2 hrs/wk
+BCHL504          | Mass Transfer Operations Lab-1                          | CHEMICAL             | Practical    | 2 hrs/wk
+BCH502L          | Chemical Reaction Engineering Laboratory                | CHEMICAL             | Practical    | 2 hrs/wk
+
+>>> BRANCH: CIV
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BCV501           | Construction Management and Entrepreneurship            | CIVIL                | Theory       | 3 hrs/wk
+BCV502           | Geotechnical Engineering                                | CIVIL                | Theory       | 3 hrs/wk
+BCV503           | Concrete Technology                                     | CIVIL                | Theory       | 3 hrs/wk
+BCV515x          | Professional Elective Course                            | CIVIL                | Theory       | 3 hrs/wk
+BRMK557          | Research Methodology and IPR                            | Humanities/Any       | Theory       | 3 hrs/wk
+BESK508          | Environmental Studies                                   | Humanities/Any       | Theory       | 2 hrs/wk
+BCV504           | Environmental Engineering Lab                           | CIVIL                | Practical    | 2 hrs/wk
+BCV502L          | Geotechnical Engineering Laboratory                     | CIVIL                | Practical    | 2 hrs/wk
+BCV503L          | Concrete Technology Laboratory                          | CIVIL                | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management             | CS Allied            | Theory       | 3 hrs/wk
+1BCS502          | Machine Learning                                        | CS Allied            | Theory       | 3 hrs/wk
+1BCS503          | Theory of Computation                                   | CS Allied            | Theory       | 4 hrs/wk
+1BCS504          | Computer Vision                                         | CS Allied            | Theory       | 3 hrs/wk
+1BXX505x         | Professional Elective Course-I                          | CS Allied            | Theory       | 3 hrs/wk
+1BCSL507         | Web Technology Laboratory                               | CS Allied            | Practical    | 2 hrs/wk
+1BCS502L         | Machine Learning Laboratory                             | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-AIML
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management             | CS Allied            | Theory       | 3 hrs/wk
+1BAI502          | Artificial Intelligence                                 | CS Allied            | Theory       | 3 hrs/wk
+1BCS503          | Theory of Computation                                   | CS Allied            | Theory       | 4 hrs/wk
+1BAI504          | Computer Networks                                       | CS Allied            | Theory       | 3 hrs/wk
+1BXX505x         | Professional Elective Course-I                          | CS Allied            | Theory       | 3 hrs/wk
+1BAIL507         | Data Visualization Laboratory                           | CS Allied            | Practical    | 2 hrs/wk
+1BAI502L         | Artificial Intelligence Laboratory                      | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management             | CS Allied            | Theory       | 3 hrs/wk
+1BDS502          | No SQL Databases                                        | CS Allied            | Theory       | 3 hrs/wk
+1BCS503          | Theory of Computation                                   | CS Allied            | Theory       | 4 hrs/wk
+1BAI504          | Computer Networks                                       | CS Allied            | Theory       | 3 hrs/wk
+1BXX505x         | Professional Elective Course-I                          | CS Allied            | Theory       | 3 hrs/wk
+1BAIL507         | Data Visualization Laboratory                           | CS Allied            | Practical    | 2 hrs/wk
+1BDS502L         | No SQL Databases Laboratory                             | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: ECE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEC501           | Technological Innovation and Management Entrepreneurship | ECE/ETE              | Theory       | 3 hrs/wk
+BEC502           | Digital Signal Processing                               | ECE/ETE              | Theory       | 3 hrs/wk
+BEC503           | Digital Communication                                   | ECE/ETE              | Theory       | 4 hrs/wk
+BEC515x          | Professional Elective Course                            | ECE/ETE              | Theory       | 3 hrs/wk
+BRMK557          | Research Methodology and IPR                            | Humanities/Any       | Theory       | 3 hrs/wk
+BESK508          | Environmental Studies                                   | Humanities/Any       | Theory       | 2 hrs/wk
+BECL504          | Digital Communication Lab                               | ECE/ETE              | Practical    | 2 hrs/wk
+BEC502L          | Digital Signal Processing Laboratory                    | ECE/ETE              | Practical    | 2 hrs/wk
+
+>>> BRANCH: EEE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEE501           | Engineering Management and Entrepreneurship             | EEE                  | Theory       | 3 hrs/wk
+BEE502           | Signals & DSP                                           | EEE                  | Theory       | 3 hrs/wk
+BEE503           | Power Electronics                                       | EEE                  | Theory       | 4 hrs/wk
+BEE515x          | Professional Elective Course                            | EEE                  | Theory       | 3 hrs/wk
+BRMK557          | Research Methodology and IPR                            | Humanities/Any       | Theory       | 3 hrs/wk
+BESK508          | Environmental Studies                                   | Humanities/Any       | Theory       | 2 hrs/wk
+BEEL504          | Power Electronics Lab                                   | EEE                  | Practical    | 2 hrs/wk
+BEE502L          | Signals & DSP Laboratory                                | EEE                  | Practical    | 2 hrs/wk
+
+>>> BRANCH: ISE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS501          | Software Engineering and Project Management             | CS Allied            | Theory       | 3 hrs/wk
+1BCS502          | Machine Learning                                        | CS Allied            | Theory       | 3 hrs/wk
+1BCS503          | Theory of Computation                                   | CS Allied            | Theory       | 4 hrs/wk
+1BIS504          | Full Stack Development                                  | CS Allied            | Theory       | 3 hrs/wk
+1BXX505x         | Professional Elective Course-I                          | CS Allied            | Theory       | 3 hrs/wk
+1BISL507         | Full Stack Development Laboratory                       | CS Allied            | Practical    | 2 hrs/wk
+1BCS502L         | Machine Learning Laboratory                             | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: ME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BME501           | Industrial Management & Entrepreneurship                | ME                   | Theory       | 3 hrs/wk
+BME502           | Turbo machines                                          | ME                   | Theory       | 3 hrs/wk
+BME503           | Theory of Machines                                      | ME                   | Theory       | 4 hrs/wk
+BME515x          | Professional Elective - I                               | ME                   | Theory       | 3 hrs/wk
+BRMK557          | Research Methodology and IPR                            | Humanities/Any       | Theory       | 3 hrs/wk
+BESK508          | Environmental Studies                                   | Humanities/Any       | Theory       | 2 hrs/wk
+BME504L          | CNC Programming and 3-D Printing lab                    | ME                   | Practical    | 2 hrs/wk
+BME502L          | Turbo machines Laboratory                               | ME                   | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 6 (VI SEMESTER) - BRANCH-WISE VTU SCHEMES
+--------------------------------------------------------------------------------------------------------------
+
+>>> BRANCH: AI&DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAD601          | Natural Language Processing                             | CS Allied            | Theory       | 3 hrs/wk
+1BAD602          | Data Security & Privacy                                 | CS Allied            | Theory       | 3 hrs/wk
+1BAI603          | Deep Learning                                           | CS Allied            | Theory       | 3 hrs/wk
+1BAD604          | Big Data Analytics                                      | CS Allied            | Theory       | 3 hrs/wk
+1BXX605x         | Professional Elective Courses-II                        | CS Allied            | Theory       | 3 hrs/wk
+1BAIL606         | Deep Learning Laboratory                                | CS Allied            | Practical    | 2 hrs/wk
+1BXXL607x        | Ability Enhancement Course Laboratory                   | CS Allied            | Practical    | 2 hrs/wk
+1BAD601L         | Natural Language Processing Laboratory                  | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: BME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BBM601           | Medical Image Processing                                | BIOMEDICAL           | Theory       | 3 hrs/wk
+BBM602           | Biomedical Digital Signal Processing                    | BIOMEDICAL           | Theory       | 4 hrs/wk
+BBM613x          | Professional Elective Course                            | BIOMEDICAL           | Theory       | 3 hrs/wk
+BBM654x          | Open Elective Course                                    | BIOMEDICAL           | Theory       | 3 hrs/wk
+BIKS609          | Indian Knowledge System                                 | Humanities/Any       | Theory       | 1 hrs/wk
+
+>>> BRANCH: CH
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BCH601           | Process Equipment Design and Drawing                    | CHEMICAL             | Theory       | 3 hrs/wk
+BCH602           | Mass Transfer Operations-II                             | CHEMICAL             | Theory       | 4 hrs/wk
+BCH613x          | Professional Elective Course                            | CHEMICAL             | Theory       | 3 hrs/wk
+BCH654x          | Open Elective Course                                    | CHEMICAL             | Theory       | 3 hrs/wk
+BIKS609          | Indian Knowledge System                                 | Humanities/Any       | Theory       | 1 hrs/wk
+BCHL606          | Mass Transfer Operations lab-2                          | CHEMICAL             | Practical    | 2 hrs/wk
+BCH657x          | Ability Enhancement Course/Skill Development Course V   | CHEMICAL             | Practical    | 2 hrs/wk
+BCH601L          | Process Equipment Design and Drawing Laboratory         | CHEMICAL             | Practical    | 2 hrs/wk
+
+>>> BRANCH: CIV
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BCV601           | Design of RCC Structures                                | CIVIL                | Theory       | 3 hrs/wk
+BCV602           | Irrigation Engineering and Hydraulic Structures         | CIVIL                | Theory       | 4 hrs/wk
+BCV613x          | Professional Elective Course                            | CIVIL                | Theory       | 3 hrs/wk
+BCV654x          | Open Elective Course                                    | CIVIL                | Theory       | 3 hrs/wk
+BCVL606          | Software Application Lab                                | CIVIL                | Practical    | 2 hrs/wk
+BCV657x          | Ability Enhancement Course/Skill Development Course V   | CIVIL                | Practical    | 2 hrs/wk
+BCV601L          | Design of RCC Structures Laboratory                     | CIVIL                | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS601          | Advanced Java Programming                               | CS Allied            | Theory       | 3 hrs/wk
+1BCS602          | Cryptography and Network Security                       | CS Allied            | Theory       | 3 hrs/wk
+1BCS603          | High Performance Computing                              | CS Allied            | Theory       | 3 hrs/wk
+1BCS604          | Internet of Things                                      | CS Allied            | Theory       | 3 hrs/wk
+1BXX605x         | Professional Elective Courses-II                        | CS Allied            | Theory       | 3 hrs/wk
+1BCSL606         | IoT laboratory                                          | CS Allied            | Practical    | 2 hrs/wk
+1BXXL607x        | Ability Enhancement Course Laboratory                   | CS Allied            | Practical    | 2 hrs/wk
+1BCS601L         | Advanced Java Programming Laboratory                    | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-AIML
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS601          | Advanced Java Programming                               | CS Allied            | Theory       | 3 hrs/wk
+1BIS602          | Information and Network Security                        | CS Allied            | Theory       | 3 hrs/wk
+1BCI603          | High Performance Computing in Artificial Intelligence   | CS Allied            | Theory       | 3 hrs/wk
+1BCS604          | Internet of Things                                      | CS Allied            | Theory       | 3 hrs/wk
+1BXX605x         | Professional Elective Courses-II                        | CS Allied            | Theory       | 3 hrs/wk
+1BCSL606         | IoT Laboratory                                          | CS Allied            | Practical    | 2 hrs/wk
+1BXXL607x        | Ability Enhancement Course Laboratory                   | CS Allied            | Practical    | 2 hrs/wk
+1BCS601L         | Advanced Java Programming Laboratory                    | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS601          | Advanced Java Programming                               | CS Allied            | Theory       | 3 hrs/wk
+1BAD602          | Data Security & Privacy                                 | CS Allied            | Theory       | 3 hrs/wk
+1BCS603          | High Performance Computing                              | CS Allied            | Theory       | 3 hrs/wk
+1BAD604          | Big Data Analytics                                      | CS Allied            | Theory       | 3 hrs/wk
+1BXX605x         | Professional Elective Courses-II                        | CS Allied            | Theory       | 3 hrs/wk
+1BDSL606         | Big Data Analytics Laboratory                           | CS Allied            | Practical    | 2 hrs/wk
+1BXXL607x        | Ability Enhancement Course Laboratory                   | CS Allied            | Practical    | 2 hrs/wk
+1BCS601L         | Advanced Java Programming Laboratory                    | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: ECE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEC601           | Embedded System Design                                  | ECE/ETE              | Theory       | 3 hrs/wk
+BEC602           | VLSI Design and Testing                                 | ECE/ETE              | Theory       | 4 hrs/wk
+BEC613x          | Professional Elective Course                            | ECE/ETE              | Theory       | 3 hrs/wk
+BEC654x          | Open Elective Course                                    | ECE/ETE              | Theory       | 3 hrs/wk
+BECL606          | VLSI Design and Testing Lab                             | ECE/ETE              | Practical    | 2 hrs/wk
+BEC657x          | Ability Enhancement Course/Skill Development Course V   | ECE/ETE              | Practical    | 2 hrs/wk
+BEC601L          | Embedded System Design Laboratory                       | ECE/ETE              | Practical    | 2 hrs/wk
+
+>>> BRANCH: EEE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEE601           | Power system Analysis - I                               | EEE                  | Theory       | 3 hrs/wk
+BEE602           | Control Systems                                         | EEE                  | Theory       | 4 hrs/wk
+BEE613x          | Professional Elective Course                            | EEE                  | Theory       | 3 hrs/wk
+BEE654x          | Open Elective Course                                    | EEE                  | Theory       | 3 hrs/wk
+BEEL606          | Control System Lab                                      | EEE                  | Practical    | 2 hrs/wk
+BEE657x          | Ability Enhancement Course/Skill Development Course - V | EEE                  | Practical    | 2 hrs/wk
+BEE601L          | Power system Analysis - I Laboratory                    | EEE                  | Practical    | 2 hrs/wk
+
+>>> BRANCH: ISE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BIS601          | Big Data analytics                                      | CS Allied            | Theory       | 3 hrs/wk
+1BIS602          | Information and Network Security                        | CS Allied            | Theory       | 3 hrs/wk
+1BIS603          | Data Science and Visualization                          | CS Allied            | Theory       | 3 hrs/wk
+1BIS604          | Cloud Computing and Applications                        | CS Allied            | Theory       | 3 hrs/wk
+1BXX605x         | Professional Elective Courses-II                        | CS Allied            | Theory       | 3 hrs/wk
+1BISL606         | Data Science and Visualization Laboratory               | CS Allied            | Practical    | 2 hrs/wk
+1BXXL607x        | Ability Enhancement Course Laboratory                   | CS Allied            | Practical    | 2 hrs/wk
+1BIS601L         | Big Data Analytics Laboratory                           | CS Allied            | Practical    | 2 hrs/wk
+
+>>> BRANCH: ME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BME601           | Heat Transfer                                           | ME                   | Theory       | 3 hrs/wk
+BME602           | Machine Design                                          | ME                   | Theory       | 4 hrs/wk
+BME613x          | Professional Elective - II                              | ME                   | Theory       | 3 hrs/wk
+BME654x          | Open Elective - I                                       | ME                   | Theory       | 3 hrs/wk
+BMEL606L         | Design lab                                              | ME                   | Practical    | 2 hrs/wk
+BME657x          | Ability Enhancement Course/Skill Development Course V   | ME                   | Practical    | 2 hrs/wk
+BME601L          | Heat Transfer Laboratory                                | ME                   | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 7 (VII SEMESTER) - BRANCH-WISE VTU SCHEMES
+--------------------------------------------------------------------------------------------------------------
+
+>>> BRANCH: AI&DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAD701          | High Performance Computing in Artificial Intelligence   | Artificial Intelligence & Data Science | Theory       | 3 hrs/wk
+1BAD702          | Professional Elective Course - III                      | Artificial Intelligence & Data Science | Theory       | 3 hrs/wk
+1BAD703          | Professional Elective Course - IV                       | Artificial Intelligence & Data Science | Theory       | 3 hrs/wk
+1BAD704          | Open Elective Course - I                                | Artificial Intelligence & Data Science | Theory       | 3 hrs/wk
+1BADL701         | High Performance Computing in AI Laboratory             | Artificial Intelligence & Data Science | Practical    | 2 hrs/wk
+
+>>> BRANCH: BME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BBM701           | Biomechanics and Biodynamics                            | Biomedical Engineering | Theory       | 3 hrs/wk
+BBM702           | ARM Processor                                           | Biomedical Engineering | Theory       | 3 hrs/wk
+BBM703           | Biometric System                                        | Biomedical Engineering | Theory       | 4 hrs/wk
+BBM714           | Professional Elective Course                            | Biomedical Engineering | Theory       | 3 hrs/wk
+BBM755           | Open Elective Course                                    | Biomedical Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: CH
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCH701          | Transport Phenomena                                     | Chem Dept            | Theory       | 4 hrs/wk
+1BCH702          | Chemical Process Modeling & Simulation                  | Chem Dept            | Theory       | 3 hrs/wk
+1BCH703          | Petroleum Refining & Petrochemicals                     | Chem Dept            | Theory       | 3 hrs/wk
+1BCH704          | Professional Elective Course - III                      | Chem Dept            | Theory       | 3 hrs/wk
+1BCHL705         | Process Modeling & Simulation Lab                       | Chem Dept            | Practical    | 2 hrs/wk
+1BCHP706         | Project Work Phase-I                                    | Chem Dept            | Practical    | 2 hrs/wk
+
+>>> BRANCH: CIV
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCV701          | Design & Detailing of Steel Structures                  | Civil Engineering    | Theory       | 3 hrs/wk
+1BCV702          | Professional Elective Course - III                      | Civil Engineering    | Theory       | 3 hrs/wk
+1BCV703          | Professional Elective Course - IV                       | Civil Engineering    | Theory       | 3 hrs/wk
+1BCV704          | Open Elective Course - I                                | Civil Engineering    | Theory       | 3 hrs/wk
+1BCVL701         | Design & Detailing of Steel Structures Laboratory       | Civil Engineering    | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS701          | Big Data Analytics                                      | Computer Science & Engineering | Theory       | 3 hrs/wk
+1BCS702          | Professional Elective Course - III                      | Computer Science & Engineering | Theory       | 3 hrs/wk
+1BCS703          | Professional Elective Course - IV                       | Computer Science & Engineering | Theory       | 3 hrs/wk
+1BCS704          | Open Elective Course - I                                | Computer Science & Engineering | Theory       | 3 hrs/wk
+1BCSL701         | Big Data Analytics Laboratory                           | Computer Science & Engineering | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-AIML
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCD701          | Deep Learning                                           | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BAI702          | Professional Elective Course - III                      | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BAI703          | Professional Elective Course - IV                       | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BAI704          | Open Elective Course - I                                | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BCDL701         | Deep Learning Laboratory                                | Artificial Intelligence & Machine Learning | Practical    | 2 hrs/wk
+
+>>> BRANCH: CSE-DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCD701          | Deep Learning                                           | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BDS702          | Professional Elective Course - III                      | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BDS703          | Professional Elective Course - IV                       | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BDS704          | Open Elective Course - I                                | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BCDL701         | Deep Learning Laboratory                                | Artificial Intelligence & Machine Learning | Practical    | 2 hrs/wk
+
+>>> BRANCH: ECE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEC701           | Microwave Engineering and Antenna Theory                | Electronics & Communication Engineering | Theory       | 3 hrs/wk
+BEC702           | Computer Networks and Protocols                         | Electronics & Communication Engineering | Theory       | 3 hrs/wk
+BEC703           | Wireless Communication Systems                          | Electronics & Communication Engineering | Theory       | 4 hrs/wk
+BEC714           | Professional Elective Course                            | Electronics & Communication Engineering | Theory       | 3 hrs/wk
+BEC755           | Open Elective Course                                    | Electronics & Communication Engineering | Theory       | 3 hrs/wk
+BECL701          | Microwave Engineering & Antenna Laboratory              | Electronics & Communication Engineering | Practical    | 2 hrs/wk
+BECL702          | Computer Networks & Protocols Laboratory                | Electronics & Communication Engineering | Practical    | 2 hrs/wk
+
+>>> BRANCH: EEE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEE701           | Switchgear and Protection                               | Electrical & Electronics Engineering | Theory       | 3 hrs/wk
+BEE702           | Industrial Drives and Applications                      | Electrical & Electronics Engineering | Theory       | 4 hrs/wk
+BEE703           | Power System Analysis - II                              | Electrical & Electronics Engineering | Theory       | 3 hrs/wk
+BEE714           | Professional Elective Course                            | Electrical & Electronics Engineering | Theory       | 3 hrs/wk
+BEE755           | Open Elective Course                                    | Electrical & Electronics Engineering | Theory       | 3 hrs/wk
+BEEL701          | Switchgear & Protection Laboratory                      | Electrical & Electronics Engineering | Practical    | 2 hrs/wk
+BEEL703          | Power System Analysis - II Laboratory                   | Electrical & Electronics Engineering | Practical    | 2 hrs/wk
+
+>>> BRANCH: ISE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BIS701          | High Performance Computing                              | Information Science & Engineering | Theory       | 3 hrs/wk
+1BIS702          | Professional Elective Course - III                      | Information Science & Engineering | Theory       | 3 hrs/wk
+1BIS703          | Professional Elective Course - IV                       | Information Science & Engineering | Theory       | 3 hrs/wk
+1BIS704          | Open Elective Course - I                                | Information Science & Engineering | Theory       | 3 hrs/wk
+1BISL701         | High Performance Computing Laboratory                   | Information Science & Engineering | Practical    | 2 hrs/wk
+
+>>> BRANCH: ME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BME701           | Finite Element Methods                                  | Mechanical Engineering | Theory       | 3 hrs/wk
+BME702           | Hydraulics and Pneumatics                               | Mechanical Engineering | Theory       | 3 hrs/wk
+BME703           | Control Engineering                                     | Mechanical Engineering | Theory       | 4 hrs/wk
+BME714           | Professional Elective - III                             | Mechanical Engineering | Theory       | 3 hrs/wk
+BME755           | Open Elective - II                                      | Mechanical Engineering | Theory       | 3 hrs/wk
+BMEL701          | Finite Element Methods Laboratory                       | Mechanical Engineering | Practical    | 2 hrs/wk
+BMEL702          | Hydraulics & Pneumatics Laboratory                      | Mechanical Engineering | Practical    | 2 hrs/wk
+
+--------------------------------------------------------------------------------------------------------------
+SEMESTER 8 (VIII SEMESTER) - BRANCH-WISE VTU SCHEMES
+--------------------------------------------------------------------------------------------------------------
+
+>>> BRANCH: AI&DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAD801          | Professional Elective-V (NPTEL/VTU Online Course)       | Artificial Intelligence & Data Science | Theory       | 3 hrs/wk
+1BAD802          | Open Elective-II (NPTEL/VTU Online Course)              | Artificial Intelligence & Data Science | Theory       | 3 hrs/wk
+
+>>> BRANCH: BME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BBM801           | Professional Elective (Online Courses)                  | Biomedical Engineering | Theory       | 3 hrs/wk
+BBM802           | Open Elective (Online Courses)                          | Biomedical Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: CH
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BCH801           | Professional Elective (Online Courses)                  | Chemical Engineering | Theory       | 3 hrs/wk
+BCH802           | Open Elective (Online Courses)                          | Chemical Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: CIV
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BCV801           | Professional Elective (Online Courses)                  | Civil Engineering    | Theory       | 3 hrs/wk
+BCV802           | Open Elective (Online Courses)                          | Civil Engineering    | Theory       | 3 hrs/wk
+
+>>> BRANCH: CSE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BCS801          | Professional Elective-V (NPTEL/VTU Online Course)       | Computer Science & Engineering | Theory       | 3 hrs/wk
+1BCS802          | Open Elective-II (NPTEL/VTU Online Course)              | Computer Science & Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: CSE-AIML
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BAI801          | Professional Elective-V (NPTEL/VTU Online Course)       | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BAI802          | Open Elective-II (NPTEL/VTU Online Course)              | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+
+>>> BRANCH: CSE-DS
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BDS801          | Professional Elective-V (NPTEL/VTU Online Course)       | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+1BDS802          | Open Elective-II (NPTEL/VTU Online Course)              | Artificial Intelligence & Machine Learning | Theory       | 3 hrs/wk
+
+>>> BRANCH: ECE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEC801           | Professional Elective (Online Courses)                  | Electronics & Communication Engineering | Theory       | 3 hrs/wk
+BEC802           | Open Elective (Online Courses)                          | Electronics & Communication Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: EEE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BEE801           | Professional Elective (Online Courses)                  | Electrical & Electronics Engineering | Theory       | 3 hrs/wk
+BEE802           | Open Elective (Online Courses)                          | Electrical & Electronics Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: ISE
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+1BIS801          | Professional Elective-V (NPTEL/VTU Online Course)       | Information Science & Engineering | Theory       | 3 hrs/wk
+1BIS802          | Open Elective-II (NPTEL/VTU Online Course)              | Information Science & Engineering | Theory       | 3 hrs/wk
+
+>>> BRANCH: ME
+CODE             | SUBJECT TITLE                                           | TEACHING DEPT        | TYPE         | HRS/WK
+--------------------------------------------------------------------------------------------------------------
+BME811           | Professional Elective -IV (Online Courses)              | Mechanical Engineering | Theory       | 3 hrs/wk
+BME852           | Open Elective - III (Online Courses)                    | Mechanical Engineering | Theory       | 3 hrs/wk
+
+==============================================================================================================
+MASTER ALPHABETICAL SUBJECT CODE INDEX (ALL UNIQUE VTU SUBJECT CODES)
+==============================================================================================================
+CODE             | SUBJECT TITLE                                        | TEACHING DEPT        | HRS/WK | SEMESTERS
+--------------------------------------------------------------------------------------------------------------
+1BAD601          | Natural Language Processing                          | CS Allied            | 3 hrs  | Sem 6
+1BAD601L         | Natural Language Processing Laboratory               | CS Allied            | 2 hrs  | Sem 6
+1BAD602          | Data Security & Privacy                              | CS Allied            | 3 hrs  | Sem 6
+1BAD604          | Big Data Analytics                                   | CS Allied            | 3 hrs  | Sem 6
+1BAD701          | High Performance Computing in Artificial Intelligence | Artificial Intelligence & Data Science | 3 hrs  | Sem 7
+1BAD702          | Professional Elective Course - III                   | Artificial Intelligence & Data Science | 3 hrs  | Sem 7
+1BAD703          | Professional Elective Course - IV                    | Artificial Intelligence & Data Science | 3 hrs  | Sem 7
+1BAD704          | Open Elective Course - I                             | Artificial Intelligence & Data Science | 3 hrs  | Sem 7
+1BAD801          | Professional Elective-V (NPTEL/VTU Online Course)    | Artificial Intelligence & Data Science | 3 hrs  | Sem 8
+1BAD802          | Open Elective-II (NPTEL/VTU Online Course)           | Artificial Intelligence & Data Science | 3 hrs  | Sem 8
+1BADL701         | High Performance Computing in AI Laboratory          | Artificial Intelligence & Data Science | 2 hrs  | Sem 7
+1BAI401          | Discrete Mathematics and Optimization Techniques     | Maths Dept           | 5 hrs  | Sem 4
+1BAI402          | Design and Analysis of Algorithms                    | CSE Dept             | 3 hrs  | Sem 4
+1BAI403          | Database Management Systems                          | Humanities Dept      | 5 hrs  | Sem 4
+1BAI404          | Machine Learning                                     | AI/DS Dept           | 5 hrs  | Sem 4
+1BAI502          | Artificial Intelligence                              | CS Allied            | 3 hrs  | Sem 5
+1BAI502L         | Artificial Intelligence Laboratory                   | CS Allied            | 2 hrs  | Sem 5
+1BAI504          | Computer Networks                                    | CS Allied            | 3 hrs  | Sem 5
+1BAI603          | Deep Learning                                        | CS Allied            | 3 hrs  | Sem 6
+1BAI702          | Professional Elective Course - III                   | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BAI703          | Professional Elective Course - IV                    | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BAI704          | Open Elective Course - I                             | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BAI801          | Professional Elective-V (NPTEL/VTU Online Course)    | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 8
+1BAI802          | Open Elective-II (NPTEL/VTU Online Course)           | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 8
+1BAIA103         | Introduction to AI and Applications                  | Any Dept             | 3 hrs  | Sem 1
+1BAIA203         | Introduction to AI and Applications                  | Any Dept             | 3 hrs  | Sem 2
+1BAIL405         | Machine Learning Laboratory                          | AI/DS Dept           | 2 hrs  | Sem 4
+1BAIL507         | Data Visualization Laboratory                        | CS Allied            | 2 hrs  | Sem 5
+1BAIL606         | Deep Learning Laboratory                             | CS Allied            | 2 hrs  | Sem 6
+1BBEE105         | Basics of Electrical Engineering (PSC)               | EEE Dept             | 3 hrs  | Sem 1
+1BBEE205         | Basics of Electrical Engineering (PSC)               | EEE Dept             | 3 hrs  | Sem 2
+1BBEEL107        | Basic Electrical Lab (PSCL)                          | EEE Dept             | 2 hrs  | Sem 1
+1BBEEL207        | Basic Electrical Lab (PSCL)                          | EEE Dept             | 2 hrs  | Sem 2
+1BBM301          | Transform Techniques and Fourier Series              | Biomedical Dept      | 5 hrs  | Sem 3
+1BBM302          | Digital Design and HDL                               | Biomedical Dept      | 3 hrs  | Sem 3
+1BBM303          | Analog Electronic Circuits                           | ECE Dept             | 5 hrs  | Sem 3
+1BBM304          | Human Anatomy and Physiology                         | Biomedical Dept      | 3 hrs  | Sem 3
+1BBM305          | Instrumentation, Measurements and Biomedical Transducers | Biomedical Dept      | 3 hrs  | Sem 3
+1BBM401          | Data Acquisition Circuits                            | Biomedical Dept      | 3 hrs  | Sem 4
+1BBM402          | Data Structures and Algorithms                       | CSE Dept             | 3 hrs  | Sem 4
+1BBM403          | Biomechanics                                         | Biomedical Dept      | 5 hrs  | Sem 4
+1BBM404          | Embedded Controllers                                 | Biomedical Dept      | 3 hrs  | Sem 4
+1BBM407          | Biology for Engineers                                | Biomedical Dept      | 2 hrs  | Sem 4
+1BBML306         | Analog Electronic Circuits Lab                       | ECE Dept             | 2 hrs  | Sem 3
+1BBML307         | Instrumentation, Measurements and Biomedical Transducers Lab | Biomedical Dept      | 2 hrs  | Sem 3
+1BBML405         | Data Acquisition Circuits Lab                        | Biomedical Dept      | 2 hrs  | Sem 4
+1BBML406         | Embedded Controllers Lab                             | Biomedical Dept      | 2 hrs  | Sem 4
+1BCD701          | Deep Learning                                        | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BCDL701         | Deep Learning Laboratory                             | Artificial Intelligence & Machine Learning | 2 hrs  | Sem 7
+1BCEDC103        | Computer-Aided Engineering Drawing for CV Stream     | ME Dept              | 2 hrs  | Sem 1
+1BCEDE103        | Computer-Aided Engineering Drawing for EEE stream    | ME Dept              | 2 hrs  | Sem 1
+1BCEDEC103       | Computer-Aided Engineering Drawing for ECE stream    | ME Dept              | 2 hrs  | Sem 1
+1BCEDM103        | Computer-Aided Engineering Drawing for ME stream     | ME Dept              | 2 hrs  | Sem 1
+1BCEDS103        | Computer-Aided Engineering Drawing for CSE stream    | ME Dept              | 2 hrs  | Sem 1
+1BCEDS103-LAB    | Computer-Aided Engineering Drawing Lab               | ME Dept              | 2 hrs  | Sem 1
+1BCEDS203        | Computer-Aided Engineering Drawing for CSE stream    | ME Dept              | 2 hrs  | Sem 2
+1BCEDS203-LAB    | Computer-Aided Engineering Drawing Lab               | ME Dept              | 2 hrs  | Sem 2
+1BCH302          | Mechanical Operations                                | ME Dept              | 3 hrs  | Sem 3
+1BCH303          | Momentum Transfer                                    | Chem Dept            | 5 hrs  | Sem 3
+1BCH304          | Process Principles and Calculations                  | Chem Dept            | 3 hrs  | Sem 3
+1BCH305          | Materials Chemistry and its Applications             | Chemistry Dept       | 3 hrs  | Sem 3
+1BCH402          | Heat Transfer                                        | Chem Dept            | 3 hrs  | Sem 4
+1BCH403          | Chemical Engineering Thermodynamics                  | ME Dept              | 4 hrs  | Sem 4
+1BCH404          | Industrial Pollution Control and Management          | Humanities Dept      | 3 hrs  | Sem 4
+1BCH405          | Chemical Reaction Engineering-I                      | Chem Dept            | 3 hrs  | Sem 4
+1BCH701          | Transport Phenomena                                  | Chem Dept            | 4 hrs  | Sem 7
+1BCH702          | Chemical Process Modeling & Simulation               | Chem Dept            | 3 hrs  | Sem 7
+1BCH703          | Petroleum Refining & Petrochemicals                  | Chem Dept            | 3 hrs  | Sem 7
+1BCH704          | Professional Elective Course - III                   | Chem Dept            | 3 hrs  | Sem 7
+1BCHEC102        | Applied Chemistry for Sustainable Structures (CV)    | Chemistry Dept       | 3 hrs  | Sem 1
+1BCHEC202        | Applied Chemistry for Sustainable Structures         | Chemistry Dept       | 3 hrs  | Sem 2
+1BCHEE102        | Applied Chemistry for Emerging Electronics (EEE/ECE) | Chemistry Dept       | 3 hrs  | Sem 1
+1BCHEE202        | Applied Chemistry for Emerging Electronics and Devices | Chemistry Dept       | 3 hrs  | Sem 2
+1BCHEM102        | Applied Chemistry for Advanced Metal Protection (ME) | Chemistry Dept       | 3 hrs  | Sem 1
+1BCHEM202        | Applied Chemistry for Advanced Metal Protection      | Chemistry Dept       | 3 hrs  | Sem 2
+1BCHES102        | Applied Chemistry for Smart Systems (CSE)            | Chemistry Dept       | 3 hrs  | Sem 1
+1BCHES102-LAB    | Applied Chemistry Laboratory                         | Chemistry Dept       | 2 hrs  | Sem 1
+1BCHES202        | Applied Chemistry for Smart Systems (CSE)            | Chemistry Dept       | 3 hrs  | Sem 2
+1BCHES202-LAB    | Applied Chemistry Laboratory                         | Chemistry Dept       | 2 hrs  | Sem 2
+1BCHL306         | Momentum Transfer Lab (Professional Core Course Lab) | Chem Dept            | 2 hrs  | Sem 3
+1BCHL307x        | Ability Enhancement Course Laboratory                | Chem Dept            | 2 hrs  | Sem 3
+1BCHL406         | Instrument Analysis and Pollution control lab (PCC Lab) | Chem Dept            | 2 hrs  | Sem 4
+1BCHL407         | Ability Enhancement Course Laboratory                | Chem Dept            | 2 hrs  | Sem 4
+1BCHL705         | Process Modeling & Simulation Lab                    | Chem Dept            | 2 hrs  | Sem 7
+1BCHP706         | Project Work Phase-I                                 | Chem Dept            | 2 hrs  | Sem 7
+1BCI603          | High Performance Computing in Artificial Intelligence | CS Allied            | 3 hrs  | Sem 6
+1BCIV105         | Engineering Mechanics (PSC)                          | Civil Dept           | 3 hrs  | Sem 1
+1BCIV205         | Engineering Mechanics (PSC)                          | Civil Dept           | 3 hrs  | Sem 2
+1BCS302          | Object Oriented Programming with Java                | CSE Dept             | 3 hrs  | Sem 3
+1BCS303          | Digital Design and Computer Organization             | CSE Dept             | 4 hrs  | Sem 3
+1BCS304          | Operating Systems                                    | CSE Dept             | 3 hrs  | Sem 3
+1BCS305          | Data Structures and Applications                     | CSE Dept             | 3 hrs  | Sem 3
+1BCS401          | Discrete Mathematics and Graph Theory                | Maths Dept           | 5 hrs  | Sem 4
+1BCS402          | Database Management Systems                          | Humanities Dept      | 3 hrs  | Sem 4
+1BCS403          | Computer Networks                                    | CSE Dept             | 4 hrs  | Sem 4
+1BCS404          | Design and Analysis of Algorithms                    | CSE Dept             | 5 hrs  | Sem 4
+1BCS407          | Biology for Computer Engineers                       | CSE Dept             | 2 hrs  | Sem 4
+1BCS501          | Software Engineering and Project Management          | CS Allied            | 3 hrs  | Sem 5
+1BCS502          | Machine Learning                                     | CS Allied            | 3 hrs  | Sem 5
+1BCS502L         | Machine Learning Laboratory                          | CS Allied            | 2 hrs  | Sem 5
+1BCS503          | Theory of Computation                                | CS Allied            | 4 hrs  | Sem 5
+1BCS504          | Computer Vision                                      | CS Allied            | 3 hrs  | Sem 5
+1BCS601          | Advanced Java Programming                            | CS Allied            | 3 hrs  | Sem 6
+1BCS601L         | Advanced Java Programming Laboratory                 | CS Allied            | 2 hrs  | Sem 6
+1BCS602          | Cryptography and Network Security                    | CS Allied            | 3 hrs  | Sem 6
+1BCS603          | High Performance Computing                           | CS Allied            | 3 hrs  | Sem 6
+1BCS604          | Internet of Things                                   | CS Allied            | 3 hrs  | Sem 6
+1BCS701          | Big Data Analytics                                   | Computer Science & Engineering | 3 hrs  | Sem 7
+1BCS702          | Professional Elective Course - III                   | Computer Science & Engineering | 3 hrs  | Sem 7
+1BCS703          | Professional Elective Course - IV                    | Computer Science & Engineering | 3 hrs  | Sem 7
+1BCS704          | Open Elective Course - I                             | Computer Science & Engineering | 3 hrs  | Sem 7
+1BCS801          | Professional Elective-V (NPTEL/VTU Online Course)    | Computer Science & Engineering | 3 hrs  | Sem 8
+1BCS802          | Open Elective-II (NPTEL/VTU Online Course)           | Computer Science & Engineering | 3 hrs  | Sem 8
+1BCSL306         | Data Structures Laboratory                           | CSE Dept             | 2 hrs  | Sem 3
+1BCSL307A        | Project Management (with Git)                        | Humanities Dept      | 2 hrs  | Sem 3
+1BCSL405         | Algorithms Laboratory                                | CSE Dept             | 2 hrs  | Sem 4
+1BCSL507         | Web Technology Laboratory                            | CS Allied            | 2 hrs  | Sem 5
+1BCSL606         | IoT laboratory                                       | CS Allied            | 2 hrs  | Sem 6
+1BCSL701         | Big Data Analytics Laboratory                        | Computer Science & Engineering | 2 hrs  | Sem 7
+1BCV302          | Fluid Mechanics and Hydraulic Machinery              | ME Dept              | 3 hrs  | Sem 3
+1BCV303          | Solid Mechanics                                      | Civil Dept           | 5 hrs  | Sem 3
+1BCV304          | Building Materials and Construction Methods          | Civil Dept           | 3 hrs  | Sem 3
+1BCV305          | Engineering Geology for Infrastructure Projects      | Civil Dept           | 3 hrs  | Sem 3
+1BCV401          | Surveying and Geospatial Techniques                  | Civil Dept           | 3 hrs  | Sem 4
+1BCV402          | Water Supply and Sanitary Engineering                | Civil Dept           | 3 hrs  | Sem 4
+1BCV403          | Analysis of Structures                               | Civil Dept           | 5 hrs  | Sem 4
+1BCV404          | Building Information Modelling (BIM)                 | Civil Dept           | 3 hrs  | Sem 4
+1BCV407          | Biology for Civil Engineers                          | Civil Dept           | 2 hrs  | Sem 4
+1BCV409          | Concrete Technology                                  | Civil Dept           | 3 hrs  | Sem 4
+1BCV701          | Design & Detailing of Steel Structures               | Civil Engineering    | 3 hrs  | Sem 7
+1BCV702          | Professional Elective Course - III                   | Civil Engineering    | 3 hrs  | Sem 7
+1BCV703          | Professional Elective Course - IV                    | Civil Engineering    | 3 hrs  | Sem 7
+1BCV704          | Open Elective Course - I                             | Civil Engineering    | 3 hrs  | Sem 7
+1BCVL306         | Building CAD and 3D Modelling Lab                    | Civil Dept           | 2 hrs  | Sem 3
+1BCVL307x        | Ability Enhancement Course Laboratory                | Civil Dept           | 2 hrs  | Sem 3
+1BCVL405         | Surveying and Geospatial Engineering Laboratory      | Civil Dept           | 2 hrs  | Sem 4
+1BCVL406         | Ability Enhancement Course Laboratory                | Civil Dept           | 2 hrs  | Sem 4
+1BCVL701         | Design & Detailing of Steel Structures Laboratory    | Civil Engineering    | 2 hrs  | Sem 7
+1BDS502          | No SQL Databases                                     | CS Allied            | 3 hrs  | Sem 5
+1BDS502L         | No SQL Databases Laboratory                          | CS Allied            | 2 hrs  | Sem 5
+1BDS702          | Professional Elective Course - III                   | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BDS703          | Professional Elective Course - IV                    | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BDS704          | Open Elective Course - I                             | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 7
+1BDS801          | Professional Elective-V (NPTEL/VTU Online Course)    | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 8
+1BDS802          | Open Elective-II (NPTEL/VTU Online Course)           | Artificial Intelligence & Machine Learning | 3 hrs  | Sem 8
+1BDSL606         | Big Data Analytics Laboratory                        | CS Allied            | 2 hrs  | Sem 6
+1BEBT105         | Elements of Biotechnology and Biomimetics (PSC)      | BT Dept              | 3 hrs  | Sem 1
+1BEC302          | Digital System Design Using Verilog                  | ECE Dept             | 3 hrs  | Sem 3
+1BEC303          | Network Analysis                                     | ECE Dept             | 5 hrs  | Sem 3
+1BEC304          | Analog Electronics and Linear Integrated Circuits    | ECE Dept             | 3 hrs  | Sem 3
+1BEC305          | Python Programming                                   | ECE Dept             | 3 hrs  | Sem 3
+1BEC402          | Applied Computer Organization and Microcontroller    | ECE Dept             | 3 hrs  | Sem 4
+1BEC403          | Control Systems                                      | ECE Dept             | 5 hrs  | Sem 4
+1BEC404          | Signals and Systems                                  | ECE Dept             | 3 hrs  | Sem 4
+1BEC407          | Biology for Electrical and Electronics Engineers     | ECE Dept             | 2 hrs  | Sem 4
+1BEC409          | Introduction to Analog Communication Systems         | ECE Dept             | 3 hrs  | Sem 4
+1BECE105         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept             | 3 hrs  | Sem 1
+1BECE205         | Fundamentals of Electronics & Communication Engineering (PSC) | ECE Dept             | 3 hrs  | Sem 2
+1BECEL107        | Fundamentals of Electronics Lab (PSCL)               | ECE Dept             | 2 hrs  | Sem 1
+1BECEL207        | Fundamentals of Electronics Lab (PSCL)               | ECE Dept             | 2 hrs  | Sem 2
+1BECL306         | Analog Electronics and Linear Integrated Circuits Lab | ECE Dept             | 2 hrs  | Sem 3
+1BECL307x        | Ability Enhancement Course Laboratory                | ECE Dept             | 2 hrs  | Sem 3
+1BECL405         | Signals and Analog Communications Lab                | ECE Dept             | 2 hrs  | Sem 4
+1BECL406         | Ability Enhancement Course Laboratory                | ECE Dept             | 2 hrs  | Sem 4
+1BEE302          | Electric Circuit Analysis                            | EEE Dept             | 4 hrs  | Sem 3
+1BEE303          | Analog Electronic Circuits                           | EEE Dept             | 3 hrs  | Sem 3
+1BEE304          | Electrical Machines-I                                | EEE Dept             | 3 hrs  | Sem 3
+1BEE305          | Electromagnetic Field Theory                         | EEE Dept             | 3 hrs  | Sem 3
+1BEE401          | Electric Motors                                      | EEE Dept             | 3 hrs  | Sem 4
+1BEE402          | Microcontroller                                      | ECE Dept             | 3 hrs  | Sem 4
+1BEE403          | Field Theory                                         | EEE Dept             | 5 hrs  | Sem 4
+1BEE404          | Transmission and Distribution                        | EEE Dept             | 3 hrs  | Sem 4
+1BEE407          | Biology for Electrical Engineers                     | EEE Dept             | 2 hrs  | Sem 4
+1BEE409          | Electric Power Generation and Economics              | EEE Dept             | 3 hrs  | Sem 4
+1BEEL306         | Analog Electronics Lab                               | EEE Dept             | 2 hrs  | Sem 3
+1BEEL307         | Electrical Machines Lab-I                            | EEE Dept             | 2 hrs  | Sem 3
+1BEEL405         | Electric Motors Lab                                  | EEE Dept             | 2 hrs  | Sem 4
+1BEEL406         | Ability Enhancement Course Laboratory                | EEE Dept             | 2 hrs  | Sem 4
+1BEIT105         | Programming in C (PSC)                               | CSE Dept             | 3 hrs  | Sem 1
+1BEIT205         | Programming in C (PSC)                               | CSE Dept             | 3 hrs  | Sem 2
+1BEME105         | Elements of Mechanical Engineering (PSC)             | ME Dept              | 3 hrs  | Sem 1
+1BEME205         | Elements of Mechanical Engineering (PSC)             | ME Dept              | 3 hrs  | Sem 2
+1BEMEL107        | Elements of Mechanical Engineering Lab (PSCL)        | ME Dept              | 2 hrs  | Sem 1
+1BEMEL207        | Elements of Mechanical Engineering Lab (PSCL)        | ME Dept              | 2 hrs  | Sem 2
+1BENG106         | Communication Skills                                 | Humanities Dept      | 1 hrs  | Sem 1
+1BENG206         | Communication Skills                                 | Humanities Dept      | 1 hrs  | Sem 2
+1BESC104A        | Building Sciences & Mechanics                        | Civil Dept           | 3 hrs  | Sem 1
+1BESC104B        | Introduction to Electrical Engineering               | EEE Dept             | 3 hrs  | Sem 1
+1BESC104C        | Introduction to Electronics and Communication Engineering | ECE Dept             | 3 hrs  | Sem 1
+1BESC104D        | Introduction to Mechanical Engineering               | ME Dept              | 3 hrs  | Sem 1
+1BESC104E        | Essentials of Information Technology                 | CSE/IT Dept          | 3 hrs  | Sem 1
+1BESC204A        | Building Sciences & Mechanics                        | Civil Dept           | 3 hrs  | Sem 2
+1BESC204B        | Introduction to Electrical Engineering               | EEE Dept             | 3 hrs  | Sem 2
+1BESC204C        | Introduction to Electronics & Communication Engineering | ECE Dept             | 3 hrs  | Sem 2
+1BESC204D        | Introduction to Mechanical Engineering               | ME Dept              | 3 hrs  | Sem 2
+1BESC204E        | Essentials of Information Technology                 | CSE/IT Dept          | 3 hrs  | Sem 2
+1BICO107         | Indian Constitution & Engineering Ethics             | Humanities Dept      | 1 hrs  | Sem 1
+1BICO207         | Indian Constitution & Engineering Ethics             | Humanities Dept      | 1 hrs  | Sem 2
+1BIDTL158        | Innovation and Design Thinking Lab (Project-based)   | Any Dept             | 2 hrs  | Sem 1
+1BIS504          | Full Stack Development                               | CS Allied            | 3 hrs  | Sem 5
+1BIS601          | Big Data analytics                                   | CS Allied            | 3 hrs  | Sem 6
+1BIS601L         | Big Data Analytics Laboratory                        | CS Allied            | 2 hrs  | Sem 6
+1BIS602          | Information and Network Security                     | CS Allied            | 3 hrs  | Sem 6
+1BIS603          | Data Science and Visualization                       | CS Allied            | 3 hrs  | Sem 6
+1BIS604          | Cloud Computing and Applications                     | CS Allied            | 3 hrs  | Sem 6
+1BIS701          | High Performance Computing                           | Information Science & Engineering | 3 hrs  | Sem 7
+1BIS702          | Professional Elective Course - III                   | Information Science & Engineering | 3 hrs  | Sem 7
+1BIS703          | Professional Elective Course - IV                    | Information Science & Engineering | 3 hrs  | Sem 7
+1BIS704          | Open Elective Course - I                             | Information Science & Engineering | 3 hrs  | Sem 7
+1BIS801          | Professional Elective-V (NPTEL/VTU Online Course)    | Information Science & Engineering | 3 hrs  | Sem 8
+1BIS802          | Open Elective-II (NPTEL/VTU Online Course)           | Information Science & Engineering | 3 hrs  | Sem 8
+1BISL507         | Full Stack Development Laboratory                    | CS Allied            | 2 hrs  | Sem 5
+1BISL606         | Data Science and Visualization Laboratory            | CS Allied            | 2 hrs  | Sem 6
+1BISL701         | High Performance Computing Laboratory                | Information Science & Engineering | 2 hrs  | Sem 7
+1BKBK109         | Balake Kannada                                       | Humanities Dept      | 1 hrs  | Sem 1
+1BKBK209         | Balake Kannada                                       | Humanities Dept      | 1 hrs  | Sem 2
+1BKSK109         | Samskrutika Kannada                                  | Humanities Dept      | 1 hrs  | Sem 1
+1BKSK209         | Samskrutika Kannada                                  | Humanities Dept      | 1 hrs  | Sem 2
+1BMATC101        | Differential Calculus and Linear Algebra: CV Stream  | Maths Dept           | 3 hrs  | Sem 1
+1BMATC201        | Differential Calculus and Numerical Methods: CV Stream | Maths Dept           | 3 hrs  | Sem 2
+1BMATCH301       | Applied Differential Calculus in Chemical Engineering | Maths Dept           | 5 hrs  | Sem 3
+1BMATCH401       | Probability and Statistics for Chemical Engineering  | Maths Dept           | 3 hrs  | Sem 4
+1BMATCS301       | Probability, Distributions and Statistics            | Maths Dept           | 5 hrs  | Sem 3
+1BMATCV301       | Probability and Statistics                           | Maths Dept           | 5 hrs  | Sem 3
+1BMATDIP310      | Mathematics course for Lateral Entry Students        | Maths Dept           | 1 hrs  | Sem 3
+1BMATE101        | Differential Calculus and Linear Algebra: EEE/ECE Stream | Maths Dept           | 3 hrs  | Sem 1
+1BMATE201        | Calculus, Laplace Transform and Numerical Techniques: EEE/ECE | Maths Dept           | 3 hrs  | Sem 2
+1BMATEC301       | Transform Techniques and Optimization Theory         | Maths Dept           | 5 hrs  | Sem 3
+1BMATEC401       | Mathematics for Machine Learning                     | Maths Dept           | 3 hrs  | Sem 4
+1BMATEEE301      | Mathematics for Electrical Engineers                 | Maths Dept           | 4 hrs  | Sem 3
+1BMATM101        | Differential Calculus and Linear Algebra: ME Stream  | Maths Dept           | 3 hrs  | Sem 1
+1BMATM201        | Multivariable Calculus and Numerical Methods: ME Stream | Maths Dept           | 3 hrs  | Sem 2
+1BMATM301        | Transforms and Statistics                            | Maths Dept           | 5 hrs  | Sem 3
+1BMATM401        | Complex Analysis and Probability Distributions       | Maths Dept           | 3 hrs  | Sem 4
+1BMATS101        | Calculus and Linear Algebra: CSE Stream              | Maths Dept           | 3 hrs  | Sem 1
+1BMATS101-TUT    | Calculus and Linear Algebra Tutorial                 | Maths Dept           | 2 hrs  | Sem 1
+1BMATS201        | Numerical Methods: CSE Stream                        | Maths Dept           | 3 hrs  | Sem 2
+1BMATS201-TUT    | Numerical Methods Tutorial                           | Maths Dept           | 2 hrs  | Sem 2
+1BME302          | Materials Science and Metallurgy                     | ME Dept              | 3 hrs  | Sem 3
+1BME303          | Basic Thermodynamics                                 | ME Dept              | 3 hrs  | Sem 3
+1BME304          | Mechanics of Materials                               | ME Dept              | 3 hrs  | Sem 3
+1BME305          | Manufacturing Technology - I                         | ME Dept              | 3 hrs  | Sem 3
+1BME402          | Manufacturing Technology - II                        | ME Dept              | 3 hrs  | Sem 4
+1BME403          | Applied Thermodynamics                               | ME Dept              | 5 hrs  | Sem 4
+1BME404          | Fluid Mechanics                                      | ME Dept              | 3 hrs  | Sem 4
+1BME407          | Biology for Engineers                                | ME Dept              | 2 hrs  | Sem 4
+1BME409          | Kinematics of Machines                               | ME Dept              | 3 hrs  | Sem 4
+1BMEL306         | Computer Aided Machine Drawing Lab                   | ME Dept              | 4 hrs  | Sem 3
+1BMEL307x        | Ability Enhancement Course Laboratory                | ME Dept              | 2 hrs  | Sem 3
+1BMEL405         | Mechanical Measurements and Metrology Lab            | ME Dept              | 2 hrs  | Sem 4
+1BMEL406x        | Ability Enhancement Course Laboratory                | ME Dept              | 2 hrs  | Sem 4
+1BMEML107        | Mechanics and Materials Lab (PSCL)                   | Civil Dept           | 2 hrs  | Sem 1
+1BMEML207        | Mechanics and Materials Lab (PSCL)                   | Civil Dept           | 2 hrs  | Sem 2
+1BPHEC102        | Quantum Physics and Electronics Sensors (ECE stream) | Physics Dept         | 3 hrs  | Sem 1
+1BPHEC202        | Quantum Physics and Electronic Sensors (ECE stream)  | Physics Dept         | 3 hrs  | Sem 2
+1BPHEE102        | Physics of Electrical Engineering Materials (EEE stream) | Physics Dept         | 3 hrs  | Sem 1
+1BPHEE202        | Physics of Electrical Engineering Materials (EEE stream) | Physics Dept         | 3 hrs  | Sem 2
+1BPHYC102        | Physics for Sustainable Structural Systems (CV stream) | Physics Dept         | 3 hrs  | Sem 1
+1BPHYC202        | Physics for Sustainable Structural Systems (CV stream) | Physics Dept         | 3 hrs  | Sem 2
+1BPHYM102        | Physics of Materials (Mech stream)                   | Physics Dept         | 3 hrs  | Sem 1
+1BPHYM202        | Physics of Materials (Mech stream)                   | Physics Dept         | 3 hrs  | Sem 2
+1BPHYS102        | Quantum Physics and Applications (CSE stream)        | Physics Dept         | 3 hrs  | Sem 1
+1BPHYS102-LAB    | Applied Physics Practical Sessions                   | Physics Dept         | 2 hrs  | Sem 1
+1BPHYS202        | Quantum Physics and Applications (CSE stream)        | Physics Dept         | 3 hrs  | Sem 2
+1BPHYS202-LAB    | Applied Physics Practical Sessions                   | Physics Dept         | 2 hrs  | Sem 2
+1BPLC105B        | Python Programming (for CSE and allied programmes)   | CSE Dept             | 3 hrs  | Sem 1
+1BPLC105B-LAB    | Python Programming Laboratory                        | CSE Dept             | 2 hrs  | Sem 1
+1BPLC105E        | Introduction to C Programming (For non-IT programmes) | Non-IT Engg Dept     | 3 hrs  | Sem 1
+1BPLC105E-LAB    | C Programming Laboratory                             | Non-IT Engg Dept     | 2 hrs  | Sem 1
+1BPLC205B        | Python Programming (For CSE and allied programmes)   | CSE Dept             | 3 hrs  | Sem 2
+1BPLC205B-LAB    | Python Programming Laboratory                        | CSE Dept             | 2 hrs  | Sem 2
+1BPLC205E        | Introduction to C Programming (for non-IT programmes) | Non-IT Engg Dept     | 3 hrs  | Sem 2
+1BPLC205E-LAB    | C Programming Laboratory                             | Non-IT Engg Dept     | 2 hrs  | Sem 2
+1BPOPL107        | C Programming Lab (PSCL)                             | CSE Dept             | 2 hrs  | Sem 1
+1BPOPL207        | C Programming Lab (PSCL)                             | CSE Dept             | 2 hrs  | Sem 2
+1BPRJ258         | Interdisciplinary Project-Based Learning             | Multiple Depts       | 2 hrs  | Sem 2
+1BRM408          | Program Specific Biology                             | Biomedical Dept      | 2 hrs  | Sem 4
+1BSKS106         | Soft Skills                                          | Humanities Dept      | 1 hrs  | Sem 1
+1BSKS206         | Soft Skills                                          | Humanities Dept      | 1 hrs  | Sem 2
+1BXX505x         | Professional Elective Course-I                       | CS Allied            | 3 hrs  | Sem 5
+1BXX605x         | Professional Elective Courses-II                     | CS Allied            | 3 hrs  | Sem 6
+1BXXL307x        | Ability Enhancement Course                           | AI/DS Dept           | 2 hrs  | Sem 3
+1BXXL406x        | Ability Enhancement Course                           | AI/DS Dept           | 2 hrs  | Sem 4
+1BXXL607x        | Ability Enhancement Course Laboratory                | CS Allied            | 2 hrs  | Sem 6
+1Bxx409          | Control Systems Engineering                          | Biomedical Dept      | 3 hrs  | Sem 4
+BBM501           | Technological Innovation Management & Entrepreneurship | BIOMEDICAL           | 3 hrs  | Sem 5
+BBM502           | Digital Signal Processing                            | BIOMEDICAL           | 3 hrs  | Sem 5
+BBM502L          | Digital Signal Processing Laboratory                 | BIOMEDICAL           | 2 hrs  | Sem 5
+BBM503           | Clinical Instrumentation                             | BIOMEDICAL           | 4 hrs  | Sem 5
+BBM504           | Clinical Instrumentation Lab                         | BIOMEDICAL           | 2 hrs  | Sem 5
+BBM515x          | Professional Elective Course                         | BIOMEDICAL           | 3 hrs  | Sem 5
+BBM601           | Medical Image Processing                             | BIOMEDICAL           | 3 hrs  | Sem 6
+BBM602           | Biomedical Digital Signal Processing                 | BIOMEDICAL           | 4 hrs  | Sem 6
+BBM613x          | Professional Elective Course                         | BIOMEDICAL           | 3 hrs  | Sem 6
+BBM654x          | Open Elective Course                                 | BIOMEDICAL           | 3 hrs  | Sem 6
+BBM701           | Biomechanics and Biodynamics                         | Biomedical Engineering | 3 hrs  | Sem 7
+BBM702           | ARM Processor                                        | Biomedical Engineering | 3 hrs  | Sem 7
+BBM703           | Biometric System                                     | Biomedical Engineering | 4 hrs  | Sem 7
+BBM714           | Professional Elective Course                         | Biomedical Engineering | 3 hrs  | Sem 7
+BBM755           | Open Elective Course                                 | Biomedical Engineering | 3 hrs  | Sem 7
+BBM801           | Professional Elective (Online Courses)               | Biomedical Engineering | 3 hrs  | Sem 8
+BBM802           | Open Elective (Online Courses)                       | Biomedical Engineering | 3 hrs  | Sem 8
+BCH501           | Industrial Process Management                        | CHEMICAL             | 3 hrs  | Sem 5
+BCH502           | Chemical Reaction Engineering                        | CHEMICAL             | 3 hrs  | Sem 5
+BCH502L          | Chemical Reaction Engineering Laboratory             | CHEMICAL             | 2 hrs  | Sem 5
+BCH503           | Mass Transfer Operations-I                           | CHEMICAL             | 4 hrs  | Sem 5
+BCH515x          | Professional Elective Course                         | CHEMICAL             | 3 hrs  | Sem 5
+BCH601           | Process Equipment Design and Drawing                 | CHEMICAL             | 3 hrs  | Sem 6
+BCH601L          | Process Equipment Design and Drawing Laboratory      | CHEMICAL             | 2 hrs  | Sem 6
+BCH602           | Mass Transfer Operations-II                          | CHEMICAL             | 4 hrs  | Sem 6
+BCH613x          | Professional Elective Course                         | CHEMICAL             | 3 hrs  | Sem 6
+BCH654x          | Open Elective Course                                 | CHEMICAL             | 3 hrs  | Sem 6
+BCH657x          | Ability Enhancement Course/Skill Development Course V | CHEMICAL             | 2 hrs  | Sem 6
+BCH801           | Professional Elective (Online Courses)               | Chemical Engineering | 3 hrs  | Sem 8
+BCH802           | Open Elective (Online Courses)                       | Chemical Engineering | 3 hrs  | Sem 8
+BCHL504          | Mass Transfer Operations Lab-1                       | CHEMICAL             | 2 hrs  | Sem 5
+BCHL606          | Mass Transfer Operations lab-2                       | CHEMICAL             | 2 hrs  | Sem 6
+BCV501           | Construction Management and Entrepreneurship         | CIVIL                | 3 hrs  | Sem 5
+BCV502           | Geotechnical Engineering                             | CIVIL                | 3 hrs  | Sem 5
+BCV502L          | Geotechnical Engineering Laboratory                  | CIVIL                | 2 hrs  | Sem 5
+BCV503           | Concrete Technology                                  | CIVIL                | 3 hrs  | Sem 5
+BCV503L          | Concrete Technology Laboratory                       | CIVIL                | 2 hrs  | Sem 5
+BCV504           | Environmental Engineering Lab                        | CIVIL                | 2 hrs  | Sem 5
+BCV515x          | Professional Elective Course                         | CIVIL                | 3 hrs  | Sem 5
+BCV601           | Design of RCC Structures                             | CIVIL                | 3 hrs  | Sem 6
+BCV601L          | Design of RCC Structures Laboratory                  | CIVIL                | 2 hrs  | Sem 6
+BCV602           | Irrigation Engineering and Hydraulic Structures      | CIVIL                | 4 hrs  | Sem 6
+BCV613x          | Professional Elective Course                         | CIVIL                | 3 hrs  | Sem 6
+BCV654x          | Open Elective Course                                 | CIVIL                | 3 hrs  | Sem 6
+BCV657x          | Ability Enhancement Course/Skill Development Course V | CIVIL                | 2 hrs  | Sem 6
+BCV801           | Professional Elective (Online Courses)               | Civil Engineering    | 3 hrs  | Sem 8
+BCV802           | Open Elective (Online Courses)                       | Civil Engineering    | 3 hrs  | Sem 8
+BCVL606          | Software Application Lab                             | CIVIL                | 2 hrs  | Sem 6
+BEC501           | Technological Innovation and Management Entrepreneurship | ECE/ETE              | 3 hrs  | Sem 5
+BEC502           | Digital Signal Processing                            | ECE/ETE              | 3 hrs  | Sem 5
+BEC502L          | Digital Signal Processing Laboratory                 | ECE/ETE              | 2 hrs  | Sem 5
+BEC503           | Digital Communication                                | ECE/ETE              | 4 hrs  | Sem 5
+BEC515x          | Professional Elective Course                         | ECE/ETE              | 3 hrs  | Sem 5
+BEC601           | Embedded System Design                               | ECE/ETE              | 3 hrs  | Sem 6
+BEC601L          | Embedded System Design Laboratory                    | ECE/ETE              | 2 hrs  | Sem 6
+BEC602           | VLSI Design and Testing                              | ECE/ETE              | 4 hrs  | Sem 6
+BEC613x          | Professional Elective Course                         | ECE/ETE              | 3 hrs  | Sem 6
+BEC654x          | Open Elective Course                                 | ECE/ETE              | 3 hrs  | Sem 6
+BEC657x          | Ability Enhancement Course/Skill Development Course V | ECE/ETE              | 2 hrs  | Sem 6
+BEC701           | Microwave Engineering and Antenna Theory             | Electronics & Communication Engineering | 3 hrs  | Sem 7
+BEC702           | Computer Networks and Protocols                      | Electronics & Communication Engineering | 3 hrs  | Sem 7
+BEC703           | Wireless Communication Systems                       | Electronics & Communication Engineering | 4 hrs  | Sem 7
+BEC714           | Professional Elective Course                         | Electronics & Communication Engineering | 3 hrs  | Sem 7
+BEC755           | Open Elective Course                                 | Electronics & Communication Engineering | 3 hrs  | Sem 7
+BEC801           | Professional Elective (Online Courses)               | Electronics & Communication Engineering | 3 hrs  | Sem 8
+BEC802           | Open Elective (Online Courses)                       | Electronics & Communication Engineering | 3 hrs  | Sem 8
+BECL504          | Digital Communication Lab                            | ECE/ETE              | 2 hrs  | Sem 5
+BECL606          | VLSI Design and Testing Lab                          | ECE/ETE              | 2 hrs  | Sem 6
+BECL701          | Microwave Engineering & Antenna Laboratory           | Electronics & Communication Engineering | 2 hrs  | Sem 7
+BECL702          | Computer Networks & Protocols Laboratory             | Electronics & Communication Engineering | 2 hrs  | Sem 7
+BEE501           | Engineering Management and Entrepreneurship          | EEE                  | 3 hrs  | Sem 5
+BEE502           | Signals & DSP                                        | EEE                  | 3 hrs  | Sem 5
+BEE502L          | Signals & DSP Laboratory                             | EEE                  | 2 hrs  | Sem 5
+BEE503           | Power Electronics                                    | EEE                  | 4 hrs  | Sem 5
+BEE515x          | Professional Elective Course                         | EEE                  | 3 hrs  | Sem 5
+BEE601           | Power system Analysis - I                            | EEE                  | 3 hrs  | Sem 6
+BEE601L          | Power system Analysis - I Laboratory                 | EEE                  | 2 hrs  | Sem 6
+BEE602           | Control Systems                                      | EEE                  | 4 hrs  | Sem 6
+BEE613x          | Professional Elective Course                         | EEE                  | 3 hrs  | Sem 6
+BEE654x          | Open Elective Course                                 | EEE                  | 3 hrs  | Sem 6
+BEE657x          | Ability Enhancement Course/Skill Development Course - V | EEE                  | 2 hrs  | Sem 6
+BEE701           | Switchgear and Protection                            | Electrical & Electronics Engineering | 3 hrs  | Sem 7
+BEE702           | Industrial Drives and Applications                   | Electrical & Electronics Engineering | 4 hrs  | Sem 7
+BEE703           | Power System Analysis - II                           | Electrical & Electronics Engineering | 3 hrs  | Sem 7
+BEE714           | Professional Elective Course                         | Electrical & Electronics Engineering | 3 hrs  | Sem 7
+BEE755           | Open Elective Course                                 | Electrical & Electronics Engineering | 3 hrs  | Sem 7
+BEE801           | Professional Elective (Online Courses)               | Electrical & Electronics Engineering | 3 hrs  | Sem 8
+BEE802           | Open Elective (Online Courses)                       | Electrical & Electronics Engineering | 3 hrs  | Sem 8
+BEEL504          | Power Electronics Lab                                | EEE                  | 2 hrs  | Sem 5
+BEEL606          | Control System Lab                                   | EEE                  | 2 hrs  | Sem 6
+BEEL701          | Switchgear & Protection Laboratory                   | Electrical & Electronics Engineering | 2 hrs  | Sem 7
+BEEL703          | Power System Analysis - II Laboratory                | Electrical & Electronics Engineering | 2 hrs  | Sem 7
+BESK508          | Environmental Studies                                | Humanities/Any       | 2 hrs  | Sem 5
+BIKS609          | Indian Knowledge System                              | Humanities/Any       | 1 hrs  | Sem 6
+BME501           | Industrial Management & Entrepreneurship             | ME                   | 3 hrs  | Sem 5
+BME502           | Turbo machines                                       | ME                   | 3 hrs  | Sem 5
+BME502L          | Turbo machines Laboratory                            | ME                   | 2 hrs  | Sem 5
+BME503           | Theory of Machines                                   | ME                   | 4 hrs  | Sem 5
+BME504L          | CNC Programming and 3-D Printing lab                 | ME                   | 2 hrs  | Sem 5
+BME515x          | Professional Elective - I                            | ME                   | 3 hrs  | Sem 5
+BME601           | Heat Transfer                                        | ME                   | 3 hrs  | Sem 6
+BME601L          | Heat Transfer Laboratory                             | ME                   | 2 hrs  | Sem 6
+BME602           | Machine Design                                       | ME                   | 4 hrs  | Sem 6
+BME613x          | Professional Elective - II                           | ME                   | 3 hrs  | Sem 6
+BME654x          | Open Elective - I                                    | ME                   | 3 hrs  | Sem 6
+BME657x          | Ability Enhancement Course/Skill Development Course V | ME                   | 2 hrs  | Sem 6
+BME701           | Finite Element Methods                               | Mechanical Engineering | 3 hrs  | Sem 7
+BME702           | Hydraulics and Pneumatics                            | Mechanical Engineering | 3 hrs  | Sem 7
+BME703           | Control Engineering                                  | Mechanical Engineering | 4 hrs  | Sem 7
+BME714           | Professional Elective - III                          | Mechanical Engineering | 3 hrs  | Sem 7
+BME755           | Open Elective - II                                   | Mechanical Engineering | 3 hrs  | Sem 7
+BME811           | Professional Elective -IV (Online Courses)           | Mechanical Engineering | 3 hrs  | Sem 8
+BME852           | Open Elective - III (Online Courses)                 | Mechanical Engineering | 3 hrs  | Sem 8
+BMEL606L         | Design lab                                           | ME                   | 2 hrs  | Sem 6
+BMEL701          | Finite Element Methods Laboratory                    | Mechanical Engineering | 2 hrs  | Sem 7
+BMEL702          | Hydraulics & Pneumatics Laboratory                   | Mechanical Engineering | 2 hrs  | Sem 7
+BRMK557          | Research Methodology and IPR                         | Humanities/Any       | 3 hrs  | Sem 5
+
+==============================================================================================================
+TOTAL UNIQUE VTU SUBJECTS: 402
+==============================================================================================================

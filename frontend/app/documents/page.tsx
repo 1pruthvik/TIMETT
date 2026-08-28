@@ -19,12 +19,14 @@ import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
 
 import { VTU_HIGHER_SEMESTER_TEMPLATES } from "@/lib/vtu-semester-data";
+import { getItemUserScoped, setItemUserScoped } from "@/lib/user-storage";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 interface VTUCourse {
   code: string;
   name: string;
+  is_vtu_standard?: boolean;
   selected: boolean;
   studentCount: number;
   cycle?: "physics" | "chemistry";
@@ -354,16 +356,21 @@ export default function DocumentsPage() {
         if (parsed.selectedYear) setSelectedYear(parsed.selectedYear);
       }
 
-      const savedCourses = localStorage.getItem("vtu_college_offered_courses");
-      if (savedCourses) {
-        const parsed: VTUCourse[] = JSON.parse(savedCourses);
-        setCourses(parsed);
-        const sel = parsed.find((c) => c.selected);
+      const savedCourses = getItemUserScoped<VTUCourse[]>("vtu_college_offered_courses");
+      if (savedCourses && Array.isArray(savedCourses) && savedCourses.length > 0) {
+        setCourses(savedCourses);
+        const sel = savedCourses.find((c) => c.selected);
         if (sel) setActiveCourseCode(sel.code);
       } else {
         const defaultCourses: VTUCourse[] = [
-          { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180, cycle: "physics" },
-          { code: "ECE", name: "Electronics & Communication Engineering", selected: true, studentCount: 120, cycle: "chemistry" },
+          { code: "CSE", name: "Computer Science & Engineering", is_vtu_standard: true, selected: true, studentCount: 180, cycle: "physics" },
+          { code: "ECE", name: "Electronics & Communication Engineering", is_vtu_standard: true, selected: true, studentCount: 120, cycle: "chemistry" },
+          { code: "ISE", name: "Information Science & Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
+          { code: "ME", name: "Mechanical Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
+          { code: "EEE", name: "Electrical & Electronics Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
+          { code: "CV", name: "Civil Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
+          { code: "AIML", name: "AI & Machine Learning", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
+          { code: "DS", name: "Data Science", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
         ];
         setCourses(defaultCourses);
       }

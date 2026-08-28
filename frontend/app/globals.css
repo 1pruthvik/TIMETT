@@ -2,6 +2,11 @@
 @import "./tw-animate.css";
 @import "shadcn/tailwind.css";
 
+/* Default 90% Window Zoom View */
+html {
+  zoom: 90%;
+}
+
 /* Hide browser default spin buttons for number inputs */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

@@ -114,12 +114,18 @@ export default function SectionsPage() {
 
       // 3. Load offered courses from user-scoped storage
       const savedCourses = getItemUserScoped<VTUCourse[]>("vtu_college_offered_courses");
-      if (savedCourses && Array.isArray(savedCourses)) {
+      if (savedCourses && Array.isArray(savedCourses) && savedCourses.length > 0) {
         setOfferedCourses(savedCourses);
       } else {
         setOfferedCourses([
           { code: "CSE", name: "Computer Science & Engineering", selected: true, studentCount: 180 },
           { code: "ECE", name: "Electronics & Communication Engineering", selected: true, studentCount: 120 },
+          { code: "ISE", name: "Information Science & Engineering", selected: true, studentCount: 60 },
+          { code: "ME", name: "Mechanical Engineering", selected: true, studentCount: 60 },
+          { code: "EEE", name: "Electrical & Electronics Engineering", selected: true, studentCount: 60 },
+          { code: "CV", name: "Civil Engineering", selected: true, studentCount: 60 },
+          { code: "AIML", name: "AI & Machine Learning", selected: true, studentCount: 60 },
+          { code: "DS", name: "Data Science", selected: true, studentCount: 60 },
         ]);
       }
     } catch (e) {

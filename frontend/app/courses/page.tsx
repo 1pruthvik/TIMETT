@@ -82,7 +82,7 @@ export default function CoursesPage() {
         if (data && Array.isArray(data)) {
           const initial = data.map((c: any, idx: number) => ({
             ...c,
-            selected: c.code === "CSE" || c.code === "ECE" || c.code === "ME" || c.code === "ISE",
+            selected: true,
             studentCount: c.code === "CSE" ? 180 : c.code === "ECE" ? 120 : 60,
             cycle: idx % 2 === 0 ? "physics" : "chemistry",
           }));
@@ -95,6 +95,10 @@ export default function CoursesPage() {
           { code: "ECE", name: "Electronics & Communication Engineering", is_vtu_standard: true, selected: true, studentCount: 120, cycle: "chemistry" },
           { code: "ISE", name: "Information Science & Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
           { code: "ME", name: "Mechanical Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
+          { code: "EEE", name: "Electrical & Electronics Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
+          { code: "CV", name: "Civil Engineering", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
+          { code: "AIML", name: "AI & Machine Learning", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "physics" },
+          { code: "DS", name: "Data Science", is_vtu_standard: true, selected: true, studentCount: 60, cycle: "chemistry" },
         ];
         setCourses(defaultCourses);
         saveCoursesToStorage(defaultCourses);

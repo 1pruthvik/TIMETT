@@ -434,7 +434,12 @@ export default function TimetablePage() {
               }
             });
           } else {
-            ["CSE", "ECE", "ISE"].forEach((code) => {
+            const savedOffered = getItemUserScoped<any[]>("vtu_college_offered_courses");
+            const activeCodes = (savedOffered && savedOffered.filter((c) => c.selected).length > 0)
+              ? savedOffered.filter((c) => c.selected).map((c) => c.code)
+              : ["CSE", "ECE", "ISE", "ME", "EEE", "CV", "AIML", "DS"];
+
+            activeCodes.forEach((code) => {
               sectionData.push(
                 { id: secIdCounter++, name: `${code}-A`, semester_id: semNum },
                 { id: secIdCounter++, name: `${code}-B`, semester_id: semNum }

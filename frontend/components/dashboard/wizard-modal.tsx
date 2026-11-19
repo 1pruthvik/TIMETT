@@ -308,54 +308,29 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Select Year</label>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border bg-background focus:ring-2 focus:ring-primary/40"
+              <div className="pt-2 space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">College Semester Term</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSemType("odd")}
+                    className={`py-3 px-4 rounded-xl border text-center transition flex flex-col items-center justify-center space-y-1 ${
+                      selectedSemType === "odd" ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" : "hover:bg-muted"
+                    }`}
                   >
-                    <option value="1">1st Year</option>
-                    <option value="2">2nd Year</option>
-                    <option value="3">3rd Year</option>
-                    <option value="4">4th Year</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Semester Type</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setSelectedSemType("odd")}
-                      className={`py-2.5 px-3 text-xs font-medium rounded-lg border transition ${
-                        selectedSemType === "odd" ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" : "hover:bg-muted"
-                      }`}
-                    >
-                      {selectedYear === "1"
-                        ? "1st Sem"
-                        : selectedYear === "2"
-                        ? "3rd Sem"
-                        : selectedYear === "3"
-                        ? "5th Sem"
-                        : "7th Sem"}
-                    </button>
-                    <button
-                      onClick={() => setSelectedSemType("even")}
-                      className={`py-2.5 px-3 text-xs font-medium rounded-lg border transition ${
-                        selectedSemType === "even" ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" : "hover:bg-muted"
-                      }`}
-                    >
-                      {selectedYear === "1"
-                        ? "2nd Sem"
-                        : selectedYear === "2"
-                        ? "4th Sem"
-                        : selectedYear === "3"
-                        ? "6th Sem"
-                        : "8th Sem"}
-                    </button>
-
-                  </div>
+                    <span className="text-xs font-bold text-foreground">Odd Semesters</span>
+                    <span className="text-[11px] text-primary">1st, 3rd, 5th, 7th Sem</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSemType("even")}
+                    className={`py-3 px-4 rounded-xl border text-center transition flex flex-col items-center justify-center space-y-1 ${
+                      selectedSemType === "even" ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" : "hover:bg-muted"
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-foreground">Even Semesters</span>
+                    <span className="text-[11px] text-primary">2nd, 4th, 6th, 8th Sem</span>
+                  </button>
                 </div>
               </div>
 
@@ -468,25 +443,6 @@ export function WizardModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                     <span className="text-[10px] opacity-75">({c.studentCount})</span>
                   </button>
                 ))}
-              </div>
-
-              <div className="border-2 border-dashed border-primary/30 rounded-2xl p-6 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative">
-                <input
-                  type="file"
-                  accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
-                  onChange={handleSchemeFileUpload}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <div className="p-3 rounded-full bg-primary/10 text-primary">
-                    {parsingScheme ? <RefreshCw className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
-                  </div>
-                  <p className="text-sm font-semibold">
-                    {parsingScheme ? `Extracting VTU Subjects for ${activeCourseCode}...` : `Click or Drag VTU Scheme Document / Photo for ${activeCourseCode} (PDF / Image / DOCX) Here`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Parser auto-categorizes Theory vs Practical Lab subjects for {activeCourseCode}</p>
-                </div>
-
               </div>
 
               {/* Segregated Subjects Display for Active Course */}

@@ -350,9 +350,20 @@ export default function DocumentsPage() {
   useEffect(() => {
     try {
       const savedSetup = localStorage.getItem("vtu_academic_setup");
+      const savedCycle = localStorage.getItem("vtu_active_sem_cycle");
+      let activeCycle: "odd" | "even" = "odd";
+      if (savedCycle === "even" || savedCycle === "odd") {
+        activeCycle = savedCycle as "odd" | "even";
+      } else if (savedSetup) {
+        const parsed = JSON.parse(savedSetup);
+        if (parsed.selectedSemType === "even" || parsed.selectedSemType === "odd") {
+          activeCycle = parsed.selectedSemType;
+        }
+      }
+      setSelectedSemType(activeCycle);
+
       if (savedSetup) {
         const parsed = JSON.parse(savedSetup);
-        if (parsed.selectedSemType) setSelectedSemType(parsed.selectedSemType);
         if (parsed.selectedYear) setSelectedYear(parsed.selectedYear);
       }
 
@@ -384,12 +395,24 @@ export default function DocumentsPage() {
     }
   }, []);
 
+  // Display only semesters for the chosen college cycle (Odd: 1, 3, 5, 7 vs Even: 2, 4, 6, 8)
+  const displayedSemesters = useMemo(() => {
+    return selectedSemType === "even" ? [2, 4, 6, 8] : [1, 3, 5, 7];
+  }, [selectedSemType]);
+
   // Compute exact semester number: Year 1 (1/2), Year 2 (3/4), Year 3 (5/6), Year 4 (7/8)
   const semNumber = useMemo(() => {
     const y = parseInt(selectedYear) || 1;
     const isOdd = selectedSemType === "odd";
     return (y - 1) * 2 + (isOdd ? 1 : 2);
   }, [selectedYear, selectedSemType]);
+
+  // Ensure current semester is in the displayed semester list for this term
+  useEffect(() => {
+    if (!displayedSemesters.includes(semNumber)) {
+      setSelectedYear("1");
+    }
+  }, [displayedSemesters, semNumber]);
 
   const isFirstYear = selectedYear === "1" || semNumber === 1 || semNumber === 2;
   const isSecondSem = semNumber === 2;
@@ -436,6 +459,7 @@ export default function DocumentsPage() {
           });
           setHigherSemSubjects(initial);
           setItemUserScoped(`vtu_higher_sem_subjects_map_sem_${semNumber}`, initial);
+          localStorage.setItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`, JSON.stringify(initial));
           setItemUserScoped("vtu_course_subjects_map", initial);
         }
       } catch (e) {
@@ -458,7 +482,9 @@ export default function DocumentsPage() {
     try {
       setHigherSemSubjects(updated);
       localStorage.setItem(`vtu_higher_sem_subjects_map_sem_${semNumber}`, JSON.stringify(updated));
+      setItemUserScoped(`vtu_higher_sem_subjects_map_sem_${semNumber}`, updated);
       localStorage.setItem("vtu_course_subjects_map", JSON.stringify(updated));
+      setItemUserScoped("vtu_course_subjects_map", updated);
     } catch (e) {
       console.error(e);
     }
@@ -630,6 +656,10 @@ export default function DocumentsPage() {
 
     try {
       localStorage.setItem("vtu_course_subjects_map", JSON.stringify(map));
+      setItemUserScoped("vtu_course_subjects_map", map);
+      const semKey = isSecondSem ? "vtu_first_year_subjects_map_sem_2" : "vtu_first_year_subjects_map_sem_1";
+      localStorage.setItem(semKey, JSON.stringify(map));
+      setItemUserScoped(semKey, map);
     } catch (e) {
       console.error(e);
     }
@@ -696,28 +726,39 @@ export default function DocumentsPage() {
     formData.append("semester", String(semNumber));
 
     try {
-      const res = await fetch(`${API_BASE}/documents/parse-scheme`, {
+      let res = await fetch(`${API_BASE}/vtu/parse-scheme`, {
         method: "POST",
         body: formData,
-      });
+      }).catch(() => null);
 
-      if (res.ok) {
+      if (!res || !res.ok) {
+        res = await fetch(`${API_BASE}/documents/parse-scheme`, {
+          method: "POST",
+          body: formData,
+        }).catch(() => null);
+      }
+
+      if (res && res.ok) {
         const data = await res.json();
-        const extractedTheory: SubjectItem[] = (data.theory || []).map((s: any) => ({
+        const rawTheory = data.theory_subjects || data.theory || [];
+        const rawTutorial = data.tutorial_subjects || data.tutorial || [];
+        const rawPractical = data.practical_subjects || data.practical || [];
+
+        const extractedTheory: SubjectItem[] = rawTheory.map((s: any) => ({
           code: s.code || "SUBJ-TH",
           name: s.name || "Theory Subject",
           department: s.department || `${activeCourseCode} Dept`,
           category: "theory",
           weekly_hours: s.weekly_hours || 4,
         }));
-        const extractedTutorial: SubjectItem[] = (data.tutorial || []).map((s: any) => ({
+        const extractedTutorial: SubjectItem[] = rawTutorial.map((s: any) => ({
           code: s.code || "SUBJ-TUT",
           name: s.name || "Tutorial Session",
           department: s.department || `${activeCourseCode} Dept`,
           category: "tutorial",
           weekly_hours: s.weekly_hours || 2,
         }));
-        const extractedPractical: SubjectItem[] = (data.practical || []).map((s: any) => ({
+        const extractedPractical: SubjectItem[] = rawPractical.map((s: any) => ({
           code: s.code || "SUBJ-LAB",
           name: s.name || "Practical Lab",
           department: s.department || `${activeCourseCode} Dept`,
@@ -725,41 +766,39 @@ export default function DocumentsPage() {
           weekly_hours: s.weekly_hours || 3,
         }));
 
-        const updated = {
-          ...higherSemSubjects,
-          [activeCourseCode]: {
-            theory: extractedTheory,
-            tutorial: extractedTutorial,
-            practical: extractedPractical,
-          },
-        };
-        saveHigherSemSubjects(updated);
-        setUploadSuccess(`Extracted ${extractedTheory.length + extractedTutorial.length + extractedPractical.length} subjects from ${file.name}`);
-      } else {
-        // Fallback for demo
-        const fallbackTheory: SubjectItem[] = [
-          { code: `21${activeCourseCode}${semNumber}1`, name: `Core Engineering Theory I`, department: `${activeCourseCode} Dept`, category: "theory", weekly_hours: 4 },
-          { code: `21${activeCourseCode}${semNumber}2`, name: `Core Engineering Theory II`, department: `${activeCourseCode} Dept`, category: "theory", weekly_hours: 4 },
-          { code: `21${activeCourseCode}${semNumber}3`, name: `Specialized Course / Elective`, department: `${activeCourseCode} Dept`, category: "theory", weekly_hours: 3 },
-        ];
-        const fallbackTutorial: SubjectItem[] = [
-          { code: `21${activeCourseCode}${semNumber}1-TUT`, name: `Core Theory Tutorial`, department: `${activeCourseCode} Dept`, category: "tutorial", weekly_hours: 2 },
-        ];
-        const fallbackPractical: SubjectItem[] = [
-          { code: `21${activeCourseCode}${semNumber}4L`, name: `Department Laboratory I`, department: `${activeCourseCode} Dept`, category: "practical", weekly_hours: 3 },
-          { code: `21${activeCourseCode}${semNumber}5L`, name: `Department Laboratory II`, department: `${activeCourseCode} Dept`, category: "practical", weekly_hours: 3 },
-        ];
+        if (extractedTheory.length > 0 || extractedPractical.length > 0) {
+          const updated = {
+            ...higherSemSubjects,
+            [activeCourseCode]: {
+              theory: extractedTheory,
+              tutorial: extractedTutorial,
+              practical: extractedPractical,
+            },
+          };
+          saveHigherSemSubjects(updated);
+          setUploadSuccess(`Extracted ${extractedTheory.length + extractedTutorial.length + extractedPractical.length} subjects from ${file.name}`);
+          return;
+        }
+      }
 
+      // Load official VTU syllabus template for active course branch & semester
+      const defaultTemplates = VTU_HIGHER_SEMESTER_TEMPLATES[semNumber] || {};
+      const streamType = resolveStreamType(activeCourseCode);
+      const tmpl = defaultTemplates[activeCourseCode] || defaultTemplates[streamType] || defaultTemplates["CSE"];
+      if (tmpl && ((tmpl.theory && tmpl.theory.length > 0) || (tmpl.practical && tmpl.practical.length > 0))) {
         const updated = {
           ...higherSemSubjects,
           [activeCourseCode]: {
-            theory: fallbackTheory,
-            tutorial: fallbackTutorial,
-            practical: fallbackPractical,
+            theory: (tmpl.theory || []).map((s) => ({ ...s, category: "theory" as const })),
+            tutorial: (tmpl.tutorial || []).map((s) => ({ ...s, category: "tutorial" as const })),
+            practical: (tmpl.practical || []).map((s) => ({ ...s, category: "practical" as const })),
           },
         };
         saveHigherSemSubjects(updated);
-        setUploadSuccess(`Extracted curriculum subjects for ${activeCourseCode} (Semester ${semNumber})`);
+        setUploadSuccess(`Loaded official VTU Scheme curriculum for ${activeCourseCode} (Semester ${semNumber})`);
+      } else {
+        setUploadSuccess(null);
+        alert(`Could not extract subjects from ${file.name}. Please enter subjects manually.`);
       }
     } catch (err) {
       console.error(err);
@@ -799,9 +838,9 @@ export default function DocumentsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            {/* Semester Switcher (Sem 1 through Sem 8) */}
+            {/* Semester Switcher (Filtered by Odd/Even college term) */}
             <div className="flex items-center gap-1 bg-muted/80 p-1 rounded-xl border border-border/60 overflow-x-auto max-w-full">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => {
+              {displayedSemesters.map((s) => {
                 const yearVal = String(Math.ceil(s / 2));
                 const semTypeVal = s % 2 === 1 ? "odd" : "even";
                 const isCurrent = semNumber === s;
@@ -819,6 +858,7 @@ export default function DocumentsPage() {
                           "vtu_academic_setup",
                           JSON.stringify({ ...parsed, selectedYear: yearVal, selectedSemType: semTypeVal })
                         );
+                        localStorage.setItem("vtu_active_sem", String(s));
                       } catch (e) {}
                     }}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
@@ -991,35 +1031,6 @@ export default function DocumentsPage() {
                 </div>
               </form>
             )}
-
-            {/* Scheme Upload Dropzone for 1st Year (Semester 1 & 2) */}
-            <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
-              <input
-                type="file"
-                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
-                onChange={handleSchemeFileUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="p-3.5 rounded-2xl bg-primary/10 text-primary shadow-xs">
-                  {parsingScheme ? (
-                    <RefreshCw className="h-6 w-6 animate-spin text-primary" />
-                  ) : (
-                    <Upload className="h-6 w-6" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">
-                    {parsingScheme
-                      ? "Extracting Curriculum Scheme..."
-                      : `Upload VTU Scheme for ${activeCourseCode} (Semester ${semNumber}) — PDF / PNG / JPG`}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Drag and drop your VTU branch scheme or click to upload
-                  </p>
-                </div>
-              </div>
-            </div>
 
             {/* BLOCK 1: THEORY SUBJECTS (L) */}
             <div className="rounded-2xl border border-border bg-card/60 p-6 sm:p-7 space-y-4">
@@ -1606,40 +1617,6 @@ export default function DocumentsPage() {
                   </button>
                 </div>
               </form>
-            )}
-
-            {/* Scheme Upload Dropzone for this higher semester */}
-            <div className="border-2 border-dashed border-primary/40 rounded-3xl p-8 text-center bg-primary/5 hover:bg-primary/10 transition cursor-pointer relative shadow-inner">
-              <input
-                type="file"
-                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,.bmp,.tiff,image/*"
-                onChange={handleSchemeFileUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-xs">
-                  {parsingScheme ? (
-                    <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-                  ) : (
-                    <Upload className="h-8 w-8" />
-                  )}
-                </div>
-                <p className="text-base font-bold text-foreground">
-                  {parsingScheme
-                    ? `Extracting Semester ${semNumber} Curriculum for ${activeCourseCode}...`
-                    : `Upload VTU Scheme for ${activeCourseCode} (Semester ${semNumber}) — PDF / PNG / JPG`}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Drag and drop your VTU branch scheme or click to upload
-                </p>
-              </div>
-            </div>
-
-            {uploadSuccess && (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-semibold flex items-center space-x-3 tt-animate-fade">
-                <CheckCircle2 className="h-5 w-5" />
-                <span>{uploadSuccess}</span>
-              </div>
             )}
 
             {/* Higher Semester 3-Block Layout */}

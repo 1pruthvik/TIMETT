@@ -1,6 +1,7 @@
 import io
 import re
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from fastapi.responses import Response
 from pydantic import BaseModel
 import fitz  # PyMuPDF
 
@@ -39,8 +40,27 @@ class ParsedSchemeResponse(BaseModel):
     practical_subjects: list[VTUSubject]
 
 
+class SectionAllocationModel(BaseModel):
+    no: int | None = None
+    course: str
+    sem: int | str
+    sections: dict[str, str] = {}
+
+
+class FacultyItemModel(BaseModel):
+    name: str
+    department: str
+    designation: str | None = None
+    cadre: str | None = None
+    s1: str | None = None
+    s2: str | None = None
+    sem_handling: str | None = None
+    proficient_subjects: list[str] = []
+
+
 class ParsedFacultyResponse(BaseModel):
-    faculties: list[dict[str, str]]
+    faculties: list[FacultyItemModel]
+    allocations: list[SectionAllocationModel] = []
 
 
 @router.get("/courses")
@@ -201,11 +221,145 @@ async def parse_vtu_scheme(file: UploadFile = File(...)):
     )
 
 
-class FacultyItemModel(BaseModel):
-    name: str
-    department: str
-    designation: str | None = None
-    proficient_subjects: list[str] = []
+
+CADRE_DESG_MAP = {
+    "dean": "Dean",
+    "hod": "Head of Department (HOD)",
+    "asp": "Associate Professor",
+    "ap": "Assistant Professor",
+    "pop": "Professor of Practice",
+    "prof": "Professor",
+    "professor": "Professor",
+    "assoc prof": "Associate Professor",
+    "asst prof": "Assistant Professor",
+    "lecturer": "Lecturer",
+}
+
+
+def resolve_cadre_designation(cadre: str | None) -> str:
+    if not cadre:
+        return "Assistant Professor"
+    clean = cadre.strip().lower()
+    return CADRE_DESG_MAP.get(clean, cadre.strip())
+
+
+def infer_dept_from_string(text: str) -> str:
+    up = text.upper()
+    if "(AIML)" in up or "AIML" in up:
+        return "Artificial Intelligence & Machine Learning"
+    if "(ECE)" in up or "ECE" in up:
+        return "Electronics & Communication Engineering"
+    if "(ISE)" in up or "ISE" in up:
+        return "Information Science & Engineering"
+    if "(ME)" in up or "MECH" in up:
+        return "Mechanical Engineering"
+    if "(EEE)" in up or "EEE" in up:
+        return "Electrical & Electronics Engineering"
+    if "(CV)" in up or "CIVIL" in up:
+        return "Civil Engineering"
+    if "(CSE)" in up or "CSE" in up:
+        return "Computer Science & Engineering"
+    if "MATH" in up:
+        return "Mathematics"
+    if "PHY" in up:
+        return "Physics"
+    if "CHEM" in up:
+        return "Chemistry"
+    return "Computer Science & Engineering"
+
+
+@router.get("/download-faculty-template")
+def download_faculty_template():
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Faculty Allocation"
+
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    sec_fill = PatternFill(start_color="0284C7", end_color="0284C7", fill_type="solid")
+    border_side = Side(border_style="thin", color="CCCCCC")
+    border = Border(left=border_side, right=border_side, top=border_side, bottom=border_side)
+    center_align = Alignment(horizontal="center", vertical="center")
+    left_align = Alignment(horizontal="left", vertical="center")
+
+    # Table 1: Faculty Allocation Headers (Cols A - E)
+    t1_headers = ["Name", "Cadre", "S1", "S2", "Sem handling"]
+    for col_idx, h in enumerate(t1_headers, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=h)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center_align
+        cell.border = border
+
+    # Table 2: Course & Section Matrix (Cols G - O)
+    ws.cell(row=1, column=7, value="No").fill = sec_fill
+    ws.cell(row=1, column=7).font = header_font
+    ws.cell(row=1, column=7).alignment = center_align
+    ws.cell(row=1, column=7).border = border
+
+    ws.cell(row=1, column=8, value="Course").fill = sec_fill
+    ws.cell(row=1, column=8).font = header_font
+    ws.cell(row=1, column=8).alignment = center_align
+    ws.cell(row=1, column=8).border = border
+
+    ws.cell(row=1, column=9, value="Sem").fill = sec_fill
+    ws.cell(row=1, column=9).font = header_font
+    ws.cell(row=1, column=9).alignment = center_align
+    ws.cell(row=1, column=9).border = border
+
+    ws.merge_cells("J1:O1")
+    sec_merge = ws.cell(row=1, column=10, value="Section")
+    sec_merge.fill = sec_fill
+    sec_merge.font = header_font
+    sec_merge.alignment = center_align
+    for c in range(10, 16):
+        ws.cell(row=1, column=c).border = border
+
+    # Subheaders for row 2
+    for c in range(1, 6):
+        ws.cell(row=2, column=c).border = border
+    sec_subheaders = ["A", "B", "C", "D (ISE/AIML)", "E (ISE/AIML)", "F (ECE)"]
+    for idx, sh in enumerate(sec_subheaders, start=10):
+        cell = ws.cell(row=2, column=idx, value=sh)
+        cell.fill = PatternFill(start_color="E0F2FE", end_color="E0F2FE", fill_type="solid")
+        cell.font = Font(name="Calibri", size=10, bold=True, color="0369A1")
+        cell.alignment = center_align
+        cell.border = border
+
+    # Add empty starter template rows
+    for r in range(3, 30):
+        for c in range(1, 16):
+            if c != 6:
+                ws.cell(row=r, column=c).border = border
+
+    ws.column_dimensions['A'].width = 24
+    ws.column_dimensions['B'].width = 12
+    ws.column_dimensions['C'].width = 16
+    ws.column_dimensions['D'].width = 16
+    ws.column_dimensions['E'].width = 16
+    ws.column_dimensions['F'].width = 4
+    ws.column_dimensions['G'].width = 6
+    ws.column_dimensions['H'].width = 18
+    ws.column_dimensions['I'].width = 8
+    ws.column_dimensions['J'].width = 12
+    ws.column_dimensions['K'].width = 12
+    ws.column_dimensions['L'].width = 12
+    ws.column_dimensions['M'].width = 16
+    ws.column_dimensions['N'].width = 16
+    ws.column_dimensions['O'].width = 12
+
+    out = io.BytesIO()
+    wb.save(out)
+    out.seek(0)
+
+    return Response(
+        content=out.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=VTU_Faculty_Allocation_Template.xlsx"}
+    )
 
 
 @router.post("/parse-faculty", response_model=ParsedFacultyResponse)
@@ -216,141 +370,243 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
     content = await file.read()
     ext = file.filename.lower().split(".")[-1]
 
-    # 1. Handle CSV / Excel file uploads (.csv, .xlsx, .xls)
-    if ext in ["csv", "xlsx", "xls"]:
-        records: list[dict] = []
-        if ext == "csv":
-            try:
-                import pandas as pd
-                df = pd.read_csv(io.BytesIO(content))
-                records = df.to_dict(orient="records")
-            except Exception:
-                csv_text = content.decode("utf-8", errors="ignore")
-                csv_lines = [l.strip() for l in csv_text.splitlines() if l.strip()]
-                if csv_lines:
-                    headers = [h.strip().lower() for h in csv_lines[0].split(",")]
-                    for l in csv_lines[1:]:
-                        vals = [v.strip() for v in l.split(",")]
-                        records.append({headers[i]: vals[i] if i < len(vals) else "" for i in range(len(headers))})
-        else:
-            # Excel (.xlsx, .xls)
-            try:
-                import pandas as pd
-                df = pd.read_excel(io.BytesIO(content))
-                records = df.to_dict(orient="records")
-            except Exception as e1:
-                try:
-                    import openpyxl
-                    wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
-                    ws = wb.active
-                    rows = list(ws.iter_rows(values_only=True))
-                    if rows:
-                        headers = [str(h).strip() if h is not None else f"col_{i}" for i, h in enumerate(rows[0])]
-                        for r in rows[1:]:
-                            records.append({headers[i]: r[i] if i < len(r) else "" for i in range(len(headers))})
-                except Exception:
-                    records = []
+    faculties_list: list[FacultyItemModel] = []
+    allocations_list: list[SectionAllocationModel] = []
 
-        if records:
-            key_map = {str(k).lower().strip(): k for k in records[0].keys()}
-
-            # Match Name Column Header
-            name_key = next((key_map[k] for k in key_map if any(term in k for term in ["name", "faculty", "teacher", "prof", "instructor", "staff", "employee", "member"])), None)
-            if not name_key:
-                # Find first column that is non-numeric in first row
-                for k, orig_k in key_map.items():
-                    val = str(records[0].get(orig_k, "")).strip()
-                    if val and not val.isdigit() and k not in ["sl.no", "sl no", "s.no", "id", "no", "#"]:
-                        name_key = orig_k
-                        break
-            if not name_key:
-                name_key = list(records[0].keys())[0]
-
-            # Match Department Column Header
-            dept_key = next((key_map[k] for k in key_map if any(term in k for term in ["dept", "department", "branch", "stream", "discipline"])), None)
-
-            # Match Designation Column Header
-            desg_key = next((key_map[k] for k in key_map if any(term in k for term in ["desg", "designation", "role", "title", "post", "rank"])), None)
-
-            # Match Proficient Subjects Column Header
-            subj_key = next((key_map[k] for k in key_map if any(term in k for term in ["subj", "course", "proficien", "special", "vtu", "code"])), None)
-
-            faculties_list: list[FacultyItemModel] = []
-            for row in records:
-                raw_name = str(row.get(name_key, "")).strip()
-                if not raw_name or raw_name.lower() in ["nan", "none", "null", "name", "faculty name", "sl.no", "sl no", "s.no", "id"]:
+    # 1. Handle Excel files (.xlsx, .xls)
+    if ext in ["xlsx", "xls"]:
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+            for sheet in wb.worksheets:
+                rows = list(sheet.iter_rows(values_only=True))
+                if not rows:
                     continue
 
-                raw_dept = str(row.get(dept_key, "")).strip() if dept_key and row.get(dept_key) is not None else "Humanities & Social Sciences"
-                if not raw_dept or raw_dept.lower() in ["nan", "none"]:
-                    raw_dept = "Humanities & Social Sciences"
+                # Locate Table 1: Header row with Name and Cadre
+                t1_header_row_idx = None
+                col_name = None
+                col_cadre = None
+                col_s1 = None
+                col_s2 = None
+                col_sem = None
 
-                raw_desg = str(row.get(desg_key, "")).strip() if desg_key and row.get(desg_key) is not None else "Assistant Professor"
-                if not raw_desg or raw_desg.lower() in ["nan", "none"]:
-                    raw_desg = "Assistant Professor"
+                # Locate Table 2: Header row with Course and Sem
+                t2_header_row_idx = None
+                col_no = None
+                col_course = None
+                col_t2_sem = None
+                sec_cols: dict[str, int] = {}
 
-                raw_subjs = str(row.get(subj_key, "")).strip() if subj_key and row.get(subj_key) is not None else ""
-                subjs = [s.strip() for s in re.split(r"[,;|]", raw_subjs) if s.strip() and s.strip().lower() not in ["nan", "none"]]
+                for r_idx, r in enumerate(rows):
+                    row_strs = [str(c).strip().lower() if c is not None else "" for c in r]
+                    if t1_header_row_idx is None:
+                        for c_idx, val in enumerate(row_strs):
+                            if val == "name" or "faculty name" in val:
+                                col_name = c_idx
+                            elif val in ["cadre", "designation", "desg"]:
+                                col_cadre = c_idx
+                            elif val in ["s1", "subject 1", "sub 1", "subj 1"]:
+                                col_s1 = c_idx
+                            elif val in ["s2", "subject 2", "sub 2", "subj 2"]:
+                                col_s2 = c_idx
+                            elif "sem" in val and "handling" in val:
+                                col_sem = c_idx
+
+                        if col_name is not None and col_cadre is not None:
+                            t1_header_row_idx = r_idx
+
+                    # Check for Table 2 headers (Course / Sem)
+                    if t2_header_row_idx is None:
+                        for c_idx, val in enumerate(row_strs):
+                            if val in ["no", "sl.no", "sl no", "s.no"]:
+                                col_no = c_idx
+                            elif val in ["course", "subject", "sub"]:
+                                col_course = c_idx
+                            elif val in ["sem", "semester"]:
+                                col_t2_sem = c_idx
+
+                        if col_course is not None and col_t2_sem is not None:
+                            t2_header_row_idx = r_idx
+                            sec_candidates = []
+                            if r_idx < len(rows):
+                                sec_candidates.append(rows[r_idx])
+                            if r_idx + 1 < len(rows):
+                                sec_candidates.append(rows[r_idx + 1])
+
+                            for s_row in sec_candidates:
+                                for c_idx, cell_val in enumerate(s_row):
+                                    if cell_val is not None:
+                                        cv = str(cell_val).strip()
+                                        if cv and (cv.upper() in ["A", "B", "C", "D", "E", "F"] or any(
+                                            x in cv.upper() for x in ["SEC A", "SEC B", "SEC C", "D (", "E (", "F ("]
+                                        )):
+                                            if cv not in sec_cols:
+                                                sec_cols[cv] = c_idx
+
+                # Extract Table 1 Rows
+                if t1_header_row_idx is not None and col_name is not None:
+                    for r_idx in range(t1_header_row_idx + 1, len(rows)):
+                        r = rows[r_idx]
+                        if not r or col_name >= len(r) or r[col_name] is None:
+                            continue
+                        raw_name = str(r[col_name]).strip()
+                        if not raw_name or raw_name.lower() in ["name", "none", "nan", "total"]:
+                            continue
+
+                        raw_cadre = str(r[col_cadre]).strip() if col_cadre is not None and col_cadre < len(r) and r[col_cadre] is not None else ""
+                        raw_s1 = str(r[col_s1]).strip() if col_s1 is not None and col_s1 < len(r) and r[col_s1] is not None else ""
+                        raw_s2 = str(r[col_s2]).strip() if col_s2 is not None and col_s2 < len(r) and r[col_s2] is not None else ""
+                        raw_sem = str(r[col_sem]).strip() if col_sem is not None and col_sem < len(r) and r[col_sem] is not None else ""
+
+                        desg = resolve_cadre_designation(raw_cadre)
+                        dept = infer_dept_from_string(f"{raw_s1} {raw_s2}")
+
+                        prof_subjs = []
+                        for s in [raw_s1, raw_s2]:
+                            if s and s.lower() not in ["none", "nan", "-"]:
+                                prof_subjs.append(s)
+                                clean_code = re.sub(r"\(.*?\)", "", s).strip()
+                                if clean_code and clean_code != s:
+                                    prof_subjs.append(clean_code)
+
+                        faculties_list.append(FacultyItemModel(
+                            name=raw_name,
+                            department=dept,
+                            designation=desg,
+                            cadre=raw_cadre or "AP",
+                            s1=raw_s1,
+                            s2=raw_s2,
+                            sem_handling=raw_sem,
+                            proficient_subjects=list(dict.fromkeys(prof_subjs))
+                        ))
+
+                # Extract Table 2 Rows (Section Allocations)
+                if t2_header_row_idx is not None and col_course is not None and col_t2_sem is not None:
+                    start_r = t2_header_row_idx + (2 if sec_cols else 1)
+                    for r_idx in range(start_r, len(rows)):
+                        r = rows[r_idx]
+                        if not r or col_course >= len(r) or r[col_course] is None:
+                            continue
+                        course_val = str(r[col_course]).strip()
+                        if not course_val or course_val.lower() in ["none", "nan", "course", "subject"]:
+                            continue
+
+                        sem_val = str(r[col_t2_sem]).strip() if col_t2_sem < len(r) and r[col_t2_sem] is not None else ""
+                        no_val = None
+                        if col_no is not None and col_no < len(r) and r[col_no] is not None:
+                            try:
+                                no_val = int(str(r[col_no]).strip())
+                            except Exception:
+                                pass
+
+                        sec_map: dict[str, str] = {}
+                        for sec_name, sc_idx in sec_cols.items():
+                            if sc_idx < len(r) and r[sc_idx] is not None:
+                                fac_code = str(r[sc_idx]).strip()
+                                if fac_code and fac_code.lower() not in ["none", "nan", "-"]:
+                                    sec_map[sec_name] = fac_code
+
+                        allocations_list.append(SectionAllocationModel(
+                            no=no_val,
+                            course=course_val,
+                            sem=sem_val,
+                            sections=sec_map
+                        ))
+        except Exception as e:
+            print(f"Error parsing Excel workbook: {e}")
+
+    # 2. Handle CSV file uploads (.csv)
+    elif ext == "csv":
+        try:
+            import csv
+            csv_text = content.decode("utf-8", errors="ignore")
+            reader = list(csv.reader(csv_text.splitlines()))
+            if reader:
+                header = [str(c).strip().lower() for c in reader[0]]
+                col_name = next((i for i, h in enumerate(header) if "name" in h), 0)
+                col_cadre = next((i for i, h in enumerate(header) if "cadre" in h or "desg" in h), None)
+                col_s1 = next((i for i, h in enumerate(header) if "s1" in h or "subject 1" in h), None)
+                col_s2 = next((i for i, h in enumerate(header) if "s2" in h or "subject 2" in h), None)
+                col_sem = next((i for i, h in enumerate(header) if "sem" in h), None)
+
+                for r in reader[1:]:
+                    if not r or col_name >= len(r):
+                        continue
+                    name = r[col_name].strip()
+                    if not name or name.lower() in ["name", "faculty name"]:
+                        continue
+
+                    cadre = r[col_cadre].strip() if col_cadre is not None and col_cadre < len(r) else "AP"
+                    s1 = r[col_s1].strip() if col_s1 is not None and col_s1 < len(r) else ""
+                    s2 = r[col_s2].strip() if col_s2 is not None and col_s2 < len(r) else ""
+                    sem_val = r[col_sem].strip() if col_sem is not None and col_sem < len(r) else ""
+
+                    prof_subjs = []
+                    for s in [s1, s2]:
+                        if s:
+                            prof_subjs.append(s)
+                            clean_c = re.sub(r"\(.*?\)", "", s).strip()
+                            if clean_c:
+                                prof_subjs.append(clean_c)
+
+                    faculties_list.append(FacultyItemModel(
+                        name=name,
+                        department=infer_dept_from_string(f"{s1} {s2}"),
+                        designation=resolve_cadre_designation(cadre),
+                        cadre=cadre,
+                        s1=s1,
+                        s2=s2,
+                        sem_handling=sem_val,
+                        proficient_subjects=list(dict.fromkeys(prof_subjs))
+                    ))
+        except Exception as e:
+            print(f"Error parsing CSV file: {e}")
+
+    # 3. Text / Image OCR Fallback
+    elif ext in ["png", "jpg", "jpeg", "webp", "pdf"]:
+        extracted_text = ""
+        if ext == "pdf":
+            try:
+                doc = fitz.open(stream=content, filetype="pdf")
+                for page in doc:
+                    extracted_text += page.get_text() + "\n"
+            except Exception:
+                pass
+        else:
+            try:
+                from PIL import Image
+                import pytesseract
+                img = Image.open(io.BytesIO(content))
+                extracted_text = pytesseract.image_to_string(img)
+            except Exception:
+                pass
+
+        lines = extracted_text.splitlines()
+        for line in lines:
+            line_clean = line.strip()
+            if not line_clean or len(line_clean) < 3 or not is_valid_faculty_string(line_clean):
+                continue
+            parts = [p.strip() for p in re.split(r"[,|\t]", line_clean) if p.strip()]
+            if parts:
+                name = parts[0]
+                if not is_valid_faculty_string(name) or name.lower() in ["name", "faculty name"]:
+                    continue
+                cadre = parts[1] if len(parts) > 1 else "AP"
+                s1 = parts[2] if len(parts) > 2 else ""
+                s2 = parts[3] if len(parts) > 3 else ""
+                sem = parts[4] if len(parts) > 4 else ""
 
                 faculties_list.append(FacultyItemModel(
-                    name=raw_name,
-                    department=raw_dept,
-                    designation=raw_desg,
-                    proficient_subjects=subjs
+                    name=name,
+                    department=infer_dept_from_string(f"{s1} {s2}"),
+                    designation=resolve_cadre_designation(cadre),
+                    cadre=cadre,
+                    s1=s1,
+                    s2=s2,
+                    sem_handling=sem,
+                    proficient_subjects=[s for s in [s1, s2] if s]
                 ))
 
-            if faculties_list:
-                return ParsedFacultyResponse(faculties=faculties_list)
-
-    # 2. Text/PDF/Image Fallback
-    extracted_text = ""
-    if ext == "pdf":
-        try:
-            doc = fitz.open(stream=content, filetype="pdf")
-            for page in doc:
-                extracted_text += page.get_text() + "\n"
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to parse PDF document: {str(e)}")
-    elif ext in ["png", "jpg", "jpeg", "webp"]:
-        try:
-            from PIL import Image
-            import pytesseract
-            img = Image.open(io.BytesIO(content))
-            extracted_text = pytesseract.image_to_string(img)
-        except Exception:
-            extracted_text = ""
-
-    faculties: list[FacultyItemModel] = []
-    lines = extracted_text.splitlines()
-
-    for line in lines:
-        line_clean = line.strip()
-        if not line_clean or len(line_clean) < 3 or not is_valid_faculty_string(line_clean):
-            continue
-
-        parts = line_clean.split(",")
-        name = parts[0].strip()
-        if not is_valid_faculty_string(name):
-            continue
-
-        dept = parts[1].strip() if len(parts) > 1 and is_valid_faculty_string(parts[1]) else "Computer Science & Engineering"
-        subjs_raw = parts[2].strip() if len(parts) > 2 else ""
-        subjs = [s.strip() for s in re.split(r"[;/|]", subjs_raw) if s.strip() and is_valid_faculty_string(s)]
-        desg = "Professor" if "Dr." in name or "Prof." in name else "Assistant Professor"
-
-        faculties.append(FacultyItemModel(
-            name=name,
-            department=dept,
-            designation=desg,
-            proficient_subjects=subjs
-        ))
-
-    if not faculties:
-        faculties = [
-            FacultyItemModel(name="Dr. Pranav Bhat", department="Computer Science & Engineering", designation="Professor", proficient_subjects=["1BCS601", "1BCS502"]),
-            FacultyItemModel(name="Prof. Ujwal Amar", department="Computer Science & Engineering", designation="Associate Professor", proficient_subjects=["1BCS603", "1BCS604"]),
-            FacultyItemModel(name="Prof. Pruthvik K", department="Computer Science & Engineering", designation="Assistant Professor", proficient_subjects=["1BCSL606", "1BIS601"]),
-            FacultyItemModel(name="Dr. Nivish Gowda", department="Electronics & Communication Engineering", designation="Professor", proficient_subjects=["BEC601", "BEC602"]),
-        ]
-
-    return ParsedFacultyResponse(faculties=faculties)
+    # Return pure parsed records - no fake mock defaults!
+    return ParsedFacultyResponse(faculties=faculties_list, allocations=allocations_list)

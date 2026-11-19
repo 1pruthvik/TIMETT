@@ -19,13 +19,17 @@ function getGreeting(): string {
 }
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState("Mob-max30");
+  const [userName, setUserName] = useState("Educator");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   useEffect(() => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (user.name) setUserName(user.name.split(" ")[0]);
+      if (user.name) {
+        setUserName(user.name.split(" ")[0]);
+      } else if (user.email) {
+        setUserName(user.email.split("@")[0]);
+      }
     } catch {}
   }, []);
 

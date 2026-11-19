@@ -19,9 +19,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     try {
-      // Synchronize with the document class that was set by the anti-flash script
-      const isLight = document.documentElement.classList.contains("light");
-      const currentTheme = isLight ? "light" : "dark";
+      const storedTheme = localStorage.getItem("timett-theme") as Theme | null;
+      const currentTheme = storedTheme === "light" ? "light" : "dark";
       setThemeState(currentTheme);
       applyTheme(currentTheme);
     } catch {

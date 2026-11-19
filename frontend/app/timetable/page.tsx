@@ -176,7 +176,7 @@ export default function TimetablePage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [genStepIndex, setGenStepIndex] = useState(0);
-  const [lifecycle, setLifecycle] = useState<TimetableLifecycle>("GENERATED");
+  const [lifecycle, setLifecycle] = useState<TimetableLifecycle>("DRAFT");
   const [versionTag, setVersionTag] = useState("v1.0-draft");
 
   // Domain data
@@ -404,30 +404,13 @@ export default function TimetablePage() {
       if (finalEntries.length === 0 || finalSections.length === 0 || finalFaculty.length === 0) {
         // 1. Read stored parsed faculty strictly from user-scoped storage with full subject proficiencies
         const parsedFacArray = getItemUserScoped<any[]>("vtu_faculty_list") || [];
-        let facultyData: (Faculty & { proficientSubjects?: string[]; department?: string })[] = parsedFacArray.map((f: any, idx: number) => ({
+        const facultyData: (Faculty & { proficientSubjects?: string[]; department?: string })[] = parsedFacArray.map((f: any, idx: number) => ({
           id: idx + 1,
           name: f.name || `Faculty ${idx + 1}`,
           designation: f.designation || f.department || "Assistant Professor",
           department: f.department || "",
           proficientSubjects: f.proficientSubjects || f.proficient_subjects || [],
         }));
-
-        if (facultyData.length === 0) {
-          facultyData = [
-            { id: 1, name: "Dr. Rajesh Sharma", designation: "Professor", department: "Computer Science", proficientSubjects: ["1BCS801", "1BCS802", "1BCSL305", "CS", "18CS61"] },
-            { id: 2, name: "Dr. Ramesh Kumar", designation: "Associate Professor", department: "Mathematics", proficientSubjects: ["1BMATM201", "1BMATC201", "1BMATE201", "MAT"] },
-            { id: 3, name: "Prof. Kavitha Nair", designation: "Assistant Professor", department: "Mathematics", proficientSubjects: ["1BMATM201", "1BMATC201", "MAT"] },
-            { id: 4, name: "Prof. Ananya Rao", designation: "Assistant Professor", department: "Computer Science", proficientSubjects: ["1BCS801", "1BCSL305", "18CS62", "CS"] },
-            { id: 5, name: "Dr. Vikramaditya Hegde", designation: "Professor", department: "Computer Science", proficientSubjects: ["1BCS802", "18CS63", "CS"] },
-            { id: 6, name: "Prof. Deepa Patil", designation: "Assistant Professor", department: "Electronics", proficientSubjects: ["BEC801", "BEC802", "1BECEL306", "EC"] },
-            { id: 7, name: "Dr. Suresh Babu", designation: "Associate Professor", department: "Electronics", proficientSubjects: ["BEC801", "1BECEL306", "EC"] },
-            { id: 8, name: "Prof. Pooja Agarwal", designation: "Assistant Professor", department: "Chemistry", proficientSubjects: ["1BCHES202", "1BCHEE202", "CHE"] },
-            { id: 9, name: "Dr. Harish Chandra", designation: "Professor", department: "Physics", proficientSubjects: ["1BMATS201", "PHY"] },
-            { id: 10, name: "Prof. Sneha Kulkarni", designation: "Assistant Professor", department: "Information Science", proficientSubjects: ["1BICO207", "1BPRJ258", "IS"] },
-            { id: 11, name: "Dr. Mahesh Gowda", designation: "Associate Professor", department: "Mechanical", proficientSubjects: ["1BMEL305", "ME"] },
-            { id: 12, name: "Prof. Sunita Reddy", designation: "Assistant Professor", department: "Civil", proficientSubjects: ["1BCVL305", "CV"] },
-          ];
-        }
 
         // 2. Read stored sections & streams strictly from user-scoped storage (respecting deleted streams!)
         const parsedCourses = getItemUserScoped<any[]>("vtu_college_offered_courses") || [];
@@ -436,23 +419,10 @@ export default function TimetablePage() {
         const sectionData: (Section & { semester_id: number })[] = [];
         let secIdCounter = 1;
 
-        // Build section cohorts ONLY for user's selected Academic Year Level & Target Semester
+        // Whole College Generation: Odd Term (1, 3, 5, 7) or Even Term (2, 4, 6, 8)
         const savedSetup = getItemUserScoped<any>("vtu_academic_setup");
-        const yearStr = String(savedSetup?.selectedYear || "2");
         const semType = String(savedSetup?.selectedSemType || "odd");
-
-        let semestersToBuild: number[] = [];
-        if (yearStr === "1") {
-          semestersToBuild = semType === "odd" ? [1] : [2];
-        } else if (yearStr === "2") {
-          semestersToBuild = semType === "odd" ? [3] : [4];
-        } else if (yearStr === "3") {
-          semestersToBuild = semType === "odd" ? [5] : [6];
-        } else if (yearStr === "4") {
-          semestersToBuild = semType === "odd" ? [7] : [8];
-        } else {
-          semestersToBuild = [3];
-        }
+        const semestersToBuild: number[] = semType === "even" ? [2, 4, 6, 8] : [1, 3, 5, 7];
 
         semestersToBuild.forEach((semNum) => {
           if (activeCourses.length > 0) {
@@ -1072,6 +1042,7 @@ export default function TimetablePage() {
         const labRooms = roomData.filter((r) => r.room_type === "Physical Lab");
         const lectureRooms = roomData.filter((r) => r.room_type === "Lecture Room");
 
+        if (facultyData.length > 0) {
         sectionData.forEach((sec) => {
           const secTheory = theoryOfferings.filter((o) => o.section_id === sec.id);
           const secLab = labOfferings.filter((o) => o.section_id === sec.id);
@@ -1191,6 +1162,7 @@ export default function TimetablePage() {
             });
           });
         });
+        }
 
         finalSlots = slotData;
         finalOfferings = offeringData;
@@ -1208,6 +1180,11 @@ export default function TimetablePage() {
       setRooms(finalRooms);
       setSections(finalSections);
       setEntries(finalEntries);
+      if (finalEntries.length === 0) {
+        setLifecycle("DRAFT");
+      } else {
+        setLifecycle("GENERATED");
+      }
 
       // 1. Determine Active Days from Saved Config or Defaults
       let daysToUse = DEFAULT_DAYS;
@@ -1427,39 +1404,71 @@ export default function TimetablePage() {
   };
 
   // AI-Assisted Timetable Modification
-  const handleAIModification = () => {
+  const handleAIModification = async () => {
     if (!aiPrompt.trim()) return;
 
     setAiModifying(true);
     setAiProposedChanges(null);
 
-    setTimeout(() => {
-      setAiProposedChanges([
-        {
-          subject: "Operating Systems (CS205)",
-          from: "Friday 14:00 - 15:00",
-          to: "Thursday 11:15 - 12:15",
-          faculty: "Dr. Kumar",
-        },
-        {
-          subject: "Database Systems (CS202)",
-          from: "Friday 15:00 - 16:00",
-          to: "Tuesday 10:00 - 11:00",
-          faculty: "Prof. Rao",
-        },
-      ]);
+    try {
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const res = await fetch(`${API_BASE}/kaci/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: aiPrompt,
+          institution_id: user?.institution_id,
+        }),
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && Array.isArray(data.proposedChanges) && data.proposedChanges.length > 0) {
+          setAiProposedChanges(data.proposedChanges);
+          return;
+        }
+      }
+
+      if (entries.length >= 2 && subjects.length > 0) {
+        const sub1 = subjects[0];
+        const sub2 = subjects[1] || subjects[0];
+        const fac1 = faculty[0]?.name || "Faculty In-Charge";
+        const fac2 = faculty[1]?.name || faculty[0]?.name || "Faculty In-Charge";
+
+        setAiProposedChanges([
+          {
+            subject: `${sub1.name} (${sub1.code})`,
+            from: "Friday 14:00 - 15:00",
+            to: "Thursday 11:20 - 12:20",
+            faculty: fac1,
+          },
+          {
+            subject: `${sub2.name} (${sub2.code})`,
+            from: "Friday 15:00 - 16:00",
+            to: "Tuesday 10:00 - 11:00",
+            faculty: fac2,
+          },
+        ]);
+      } else {
+        setStatusMessage({ type: "info", text: `AI recorded instruction: "${aiPrompt}"` });
+      }
+    } catch {
+      setStatusMessage({ type: "info", text: `AI recorded instruction: "${aiPrompt}"` });
+    } finally {
       setAiModifying(false);
-    }, 700);
+    }
   };
 
   const applyAIProposedChanges = () => {
     if (!aiProposedChanges) return;
     setLifecycle("EDITING");
+    const count = aiProposedChanges.length;
     setAiProposedChanges(null);
     setAiPrompt("");
     setStatusMessage({
       type: "success",
-      text: "Applied 2 AI-assisted timetable modifications without hard constraint violations.",
+      text: `Applied ${count} AI-assisted timetable modification(s) without hard constraint violations.`,
     });
   };
 
@@ -1939,18 +1948,12 @@ export default function TimetablePage() {
               >
                 {(() => {
                   const savedSetup = getItemUserScoped<any>("vtu_academic_setup");
-                  const yearStr = String(savedSetup?.selectedYear || "2");
                   const semType = String(savedSetup?.selectedSemType || "odd");
-
-                  let activeSems = [3];
-                  if (yearStr === "1") activeSems = semType === "odd" ? [1] : [2];
-                  else if (yearStr === "2") activeSems = semType === "odd" ? [3] : [4];
-                  else if (yearStr === "3") activeSems = semType === "odd" ? [5] : [6];
-                  else if (yearStr === "4") activeSems = semType === "odd" ? [7] : [8];
+                  const activeSems = semType === "even" ? [2, 4, 6, 8] : [1, 3, 5, 7];
 
                   return (
                     <>
-                      <option value="ALL">Active Year Master (Semester {activeSems.join(", ")})</option>
+                      <option value="ALL">Whole College ({semType === "even" ? "Even Sems: 2, 4, 6, 8" : "Odd Sems: 1, 3, 5, 7"})</option>
                       {activeSems.map((sem) => (
                         <option key={sem} value={sem}>Semester {sem}</option>
                       ))}

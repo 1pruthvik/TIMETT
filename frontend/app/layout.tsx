@@ -42,31 +42,6 @@ export default function RootLayout({
       className={`${nunito.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        {/* Synchronous Anti-Flash Theme Script (Prevents flash of dark/light on reload) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                var storedTheme = localStorage.getItem('timett-theme');
-                var root = document.documentElement;
-                if (storedTheme === 'light') {
-                  root.classList.remove('dark');
-                  root.classList.add('light');
-                  root.style.colorScheme = 'light';
-                } else {
-                  root.classList.remove('light');
-                  root.classList.add('dark');
-                  root.style.colorScheme = 'dark';
-                }
-              } catch (e) {
-                document.documentElement.classList.add('dark');
-              }
-            `,
-          }}
-        />
-      </head>
       <body className="min-h-full font-sans transition-colors duration-300" style={{ zoom: "90%" }}>
         <ThemeProvider>
           {children}

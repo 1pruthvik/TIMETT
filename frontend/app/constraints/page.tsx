@@ -20,7 +20,7 @@ import { MarkdownContent } from "@/components/ui/markdown-content";
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://tempus-backend-g36k.onrender.com").replace(/\/$/, "");
 
 const DEFAULT_SUGGESTIONS = [
-  "Move all of Prof. Rao's lectures away from Friday afternoon",
+  "Move heavy theory lectures away from Friday afternoon",
   "Ensure no instructor takes more than 2 consecutive hours",
   "Check for room or section double-booking conflicts",
   "Formulate soft constraint for morning laboratory sessions",
@@ -129,39 +129,12 @@ export default function KaciPage() {
       }
     } catch (err) {
       console.warn("Falling back to local rule analysis:", err);
-      // Local fallback
-      const lower = query.toLowerCase();
-      let aiReply: ChatMessage;
-      if (lower.includes("rao") || lower.includes("friday") || lower.includes("move")) {
-        aiReply = {
-          id: `ai_${Date.now()}`,
-          sender: "ai",
-          text: "I analyzed the timetable matrix and identified 2 lectures on Friday afternoon for Prof. Rao. Here is a conflict-free relocation proposal:",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          type: "proposed_moves",
-          proposedChanges: [
-            {
-              subject: "Operating Systems (CS205)",
-              from: "Friday 14:00 - 15:00",
-              to: "Thursday 11:15 - 12:15",
-              faculty: "Dr. Kumar",
-            },
-            {
-              subject: "Database Systems (CS202)",
-              from: "Friday 15:00 - 16:00",
-              to: "Tuesday 10:00 - 11:00",
-              faculty: "Prof. Rao",
-            },
-          ],
-        };
-      } else {
-        aiReply = {
-          id: `ai_${Date.now()}`,
-          sender: "ai",
-          text: `Understood. I have analyzed your request regarding "${query}". The constraint model parameters have been updated.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        };
-      }
+      const aiReply: ChatMessage = {
+        id: `ai_${Date.now()}`,
+        sender: "ai",
+        text: `Understood. I have recorded your scheduling instruction: "${query}". You can run the solver or apply this constraint in your timetable studio.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
       saveMessages([...nextMessages, aiReply]);
     } finally {
       setIsThinking(false);

@@ -17,7 +17,6 @@ export default function AcademicYearPage() {
 
   const [academicYear, setAcademicYear] = useState("2026 - 2027");
   const [institutionType, setInstitutionType] = useState<"vtu" | "university">("vtu");
-  const [selectedYear, setSelectedYear] = useState("2");
   const [selectedSemType, setSelectedSemType] = useState<"odd" | "even">("odd");
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -28,7 +27,6 @@ export default function AcademicYearPage() {
         const parsed = JSON.parse(saved);
         if (parsed.academicYear) setAcademicYear(parsed.academicYear);
         if (parsed.institutionType) setInstitutionType(parsed.institutionType);
-        if (parsed.selectedYear) setSelectedYear(parsed.selectedYear);
         if (parsed.selectedSemType) setSelectedSemType(parsed.selectedSemType);
       }
     } catch (e) {
@@ -45,21 +43,16 @@ export default function AcademicYearPage() {
       const config = {
         academicYear,
         institutionType,
-        selectedYear,
         selectedSemType,
+        activeSemesters: selectedSemType === "even" ? [2, 4, 6, 8] : [1, 3, 5, 7],
       };
       localStorage.setItem("vtu_academic_setup", JSON.stringify(config));
-
-      const computedSem = 
-        selectedYear === "1" ? (selectedSemType === "odd" ? "1" : "2") :
-        selectedYear === "2" ? (selectedSemType === "odd" ? "3" : "4") :
-        selectedYear === "3" ? (selectedSemType === "odd" ? "5" : "6") :
-        (selectedSemType === "odd" ? "7" : "8");
-      localStorage.setItem("vtu_active_sem", computedSem);
+      localStorage.setItem("vtu_active_sem_cycle", selectedSemType);
+      localStorage.setItem("vtu_active_sem", selectedSemType === "even" ? "4" : "3");
     } catch (e) {
       console.error(e);
     }
-  }, [academicYear, institutionType, selectedYear, selectedSemType, isLoaded]);
+  }, [academicYear, institutionType, selectedSemType, isLoaded]);
 
   return (
     <AppShell>
@@ -122,8 +115,8 @@ export default function AcademicYearPage() {
           </div>
         </div>
 
-        {/* Session & Term Details (No suggestion text) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Session & Term Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Academic Year with Scroll Wheel Animation */}
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
@@ -135,62 +128,38 @@ export default function AcademicYearPage() {
             />
           </div>
 
-          {/* Academic Level */}
+          {/* College Semester Term (Odd vs Even Semesters) */}
           <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-              Select Year Level
+              College Semester Term
             </label>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full h-12 px-4 text-sm font-semibold rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition cursor-pointer"
-            >
-              <option value="1">1st Year (Physics & Chemistry Cycle)</option>
-              <option value="2">2nd Year (3rd & 4th Sem)</option>
-              <option value="3">3rd Year (5th & 6th Sem)</option>
-              <option value="4">4th Year (7th & 8th Sem)</option>
-            </select>
-          </div>
-
-          {/* Semester Type */}
-          <div className="p-6 rounded-2xl border border-border bg-card/60 space-y-3">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-              Target Semester
-            </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => setSelectedSemType("odd")}
-                className={`h-12 px-3 text-xs font-bold rounded-xl border transition cursor-pointer flex items-center justify-center ${
+                className={`p-4 rounded-xl border transition cursor-pointer flex flex-col items-center justify-center text-center space-y-1.5 ${
                   selectedSemType === "odd"
                     ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-md"
                     : "border-border bg-background/50 hover:bg-muted/40 text-muted-foreground"
                 }`}
               >
-                {selectedYear === "1"
-                  ? "1st Sem"
-                  : selectedYear === "2"
-                  ? "3rd Sem"
-                  : selectedYear === "3"
-                  ? "5th Sem"
-                  : "7th Sem"}
+                <span className="text-sm font-extrabold text-foreground">Odd Semesters</span>
+                <span className="text-xs font-semibold text-primary">1st, 3rd, 5th & 7th Sem</span>
+                <span className="text-[10px] text-muted-foreground">Whole College Term</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setSelectedSemType("even")}
-                className={`h-12 px-3 text-xs font-bold rounded-xl border transition cursor-pointer flex items-center justify-center ${
+                className={`p-4 rounded-xl border transition cursor-pointer flex flex-col items-center justify-center text-center space-y-1.5 ${
                   selectedSemType === "even"
                     ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-md"
                     : "border-border bg-background/50 hover:bg-muted/40 text-muted-foreground"
                 }`}
               >
-                {selectedYear === "1"
-                  ? "2nd Sem"
-                  : selectedYear === "2"
-                  ? "4th Sem"
-                  : selectedYear === "3"
-                  ? "6th Sem"
-                  : "8th Sem"}
+                <span className="text-sm font-extrabold text-foreground">Even Semesters</span>
+                <span className="text-xs font-semibold text-primary">2nd, 4th, 6th & 8th Sem</span>
+                <span className="text-[10px] text-muted-foreground">Whole College Term</span>
               </button>
             </div>
           </div>

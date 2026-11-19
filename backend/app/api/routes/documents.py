@@ -121,3 +121,22 @@ def confirm_document_candidates(
     db.commit()
     db.refresh(doc)
     return doc
+
+
+@router.post("/parse-scheme")
+async def parse_scheme_document(file: UploadFile = File(...)):
+    """
+    Alias for VTU scheme parser directly under /documents/parse-scheme.
+    """
+    from app.api.routes.vtu_courses import parse_vtu_scheme
+    return await parse_vtu_scheme(file=file)
+
+
+@router.post("/parse-faculty")
+async def parse_faculty_document(file: UploadFile = File(...)):
+    """
+    Alias for VTU faculty parser directly under /documents/parse-faculty.
+    """
+    from app.api.routes.vtu_courses import parse_vtu_faculty
+    return await parse_vtu_faculty(file=file)
+

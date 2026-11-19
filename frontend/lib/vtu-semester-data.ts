@@ -12,6 +12,32 @@ export interface BranchSemesterSubjects {
   practical: MasterSubject[];
 }
 
+export function resolveStreamType(courseCode: string): "CSE" | "ECE" | "EEE" | "ME" | "CV" {
+  const upper = (courseCode || "").toUpperCase().trim();
+  if (upper === "CV" || upper === "CIV" || upper.includes("CIVIL")) return "CV";
+  if (upper === "CHE" || upper === "CH" || upper.includes("CHEM") || upper.includes("CHEMICAL")) return "ME";
+  if (
+    upper === "ME" || upper === "MECH" || upper.includes("MECHANICAL") ||
+    upper.includes("AERO") || upper.includes("AUTO") || upper.includes("MANUFACT") || upper.includes("ROBOT")
+  ) {
+    return "ME";
+  }
+  if (
+    upper === "BME" || upper === "BM" || upper === "BTE" ||
+    upper.includes("BIOMED") || upper.includes("MEDICAL") || upper.includes("BIOMEDICAL")
+  ) {
+    return "EEE";
+  }
+  if (
+    upper === "ECE" || upper.includes("ELECTRONIC") || upper.includes("COMMUNICATION") ||
+    upper === "TC" || upper === "ETE" || upper === "EI" || upper.includes("INSTRUMENT")
+  ) {
+    return "ECE";
+  }
+  if (upper === "EEE" || upper.includes("ELECTRICAL") || upper === "EE") return "EEE";
+  return "CSE";
+}
+
 export const VTU_HIGHER_SEMESTER_TEMPLATES: Record<
   number,
   Record<string, BranchSemesterSubjects>

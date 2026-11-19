@@ -141,8 +141,40 @@ export default function FacultiesPage() {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
   const handleDownloadExcelTemplate = () => {
-    window.open(`${API_BASE}/vtu/download-faculty-template`, "_blank");
+    let url = `${API_BASE}/vtu/download-faculty-template`;
+    try {
+      const calc = getItemUserScoped<any[]>("vtu_calculated_sections");
+      if (calc && Array.isArray(calc) && calc.length > 0) {
+        const labels = calc.map((s: any) => s.label || (s.branchCode ? `${s.letter} (${s.branchCode})` : s.letter)).join(",");
+        url += `?sections=${encodeURIComponent(labels)}`;
+      }
+    } catch {}
+    window.open(url, "_blank");
   };
+
+  const detectedSectionColumns = useMemo(() => {
+    const keys = new Set<string>();
+    sectionAllocations.forEach((alloc) => {
+      Object.keys(alloc.sections || {}).forEach((k) => {
+        if (k && !k.toLowerCase().includes("none") && !k.toLowerCase().includes("nan")) {
+          keys.add(k.trim());
+        }
+      });
+    });
+
+    if (keys.size > 0) {
+      return Array.from(keys).sort((a, b) => a.localeCompare(b));
+    }
+
+    try {
+      const calc = getItemUserScoped<any[]>("vtu_calculated_sections");
+      if (calc && Array.isArray(calc) && calc.length > 0) {
+        return calc.map((s) => s.label || (s.branchCode ? `${s.letter} (${s.branchCode})` : s.letter));
+      }
+    } catch {}
+
+    return ["A (CSE)", "B (CSE)", "C (CSE)", "D (CSE-AIML)", "E (CSE-AIML)", "F (ECE)"];
+  }, [sectionAllocations]);
 
   const handleDownloadCsvTemplate = () => {
     const csvContent =
@@ -1020,12 +1052,11 @@ export default function FacultiesPage() {
                         <th className="p-3 font-mono">No</th>
                         <th className="p-3">Course</th>
                         <th className="p-3 font-mono">Sem</th>
-                        <th className="p-3 text-center">Sec A</th>
-                        <th className="p-3 text-center">Sec B</th>
-                        <th className="p-3 text-center">Sec C</th>
-                        <th className="p-3 text-center">Sec D</th>
-                        <th className="p-3 text-center">Sec E</th>
-                        <th className="p-3 text-center">Sec F</th>
+                        {detectedSectionColumns.map((colName) => (
+                          <th key={colName} className="p-3 text-center font-mono">
+                            {colName.toLowerCase().startsWith("sec") ? colName : `Sec ${colName}`}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
@@ -1034,12 +1065,18 @@ export default function FacultiesPage() {
                           <td className="p-3 font-mono font-bold text-muted-foreground">{alloc.no ?? aIdx + 1}</td>
                           <td className="p-3 font-bold text-foreground">{alloc.course}</td>
                           <td className="p-3 font-mono text-primary font-bold">Sem {alloc.sem}</td>
-                          <td className="p-3 text-center font-mono font-semibold">{alloc.sections["A"] || alloc.sections["Sec A"] || "-"}</td>
-                          <td className="p-3 text-center font-mono font-semibold">{alloc.sections["B"] || alloc.sections["Sec B"] || "-"}</td>
-                          <td className="p-3 text-center font-mono font-semibold">{alloc.sections["C"] || alloc.sections["Sec C"] || "-"}</td>
-                          <td className="p-3 text-center font-mono font-semibold">{alloc.sections["D"] || alloc.sections["D (ISE/AIML)"] || "-"}</td>
-                          <td className="p-3 text-center font-mono font-semibold">{alloc.sections["E"] || alloc.sections["E (ISE/AIML)"] || "-"}</td>
-                          <td className="p-3 text-center font-mono font-semibold">{alloc.sections["F"] || alloc.sections["F (ECE)"] || "-"}</td>
+                          {detectedSectionColumns.map((colName) => {
+                            const val =
+                              alloc.sections[colName] ||
+                              alloc.sections[`Sec ${colName}`] ||
+                              alloc.sections[colName.split(" ")[0]] ||
+                              "-";
+                            return (
+                              <td key={colName} className="p-3 text-center font-mono font-semibold">
+                                {val}
+                              </td>
+                            );
+                          })}
                         </tr>
                       ))}
                     </tbody>

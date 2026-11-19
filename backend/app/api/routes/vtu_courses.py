@@ -1,4 +1,5 @@
 import io
+import math
 import re
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from fastapi.responses import Response
@@ -61,6 +62,124 @@ class FacultyItemModel(BaseModel):
 class ParsedFacultyResponse(BaseModel):
     faculties: list[FacultyItemModel]
     allocations: list[SectionAllocationModel] = []
+
+
+class BranchIntakeInput(BaseModel):
+    code: str
+    name: str
+    selected: bool = True
+    student_count: int = 60
+    sections_count: int | None = None
+    class_capacity: int | None = None
+    cycle: str | None = None
+
+
+class SectionItem(BaseModel):
+    letter: str
+    branch_code: str
+    branch_name: str
+    label: str
+    student_count: int
+
+
+class BranchSectionBreakdown(BaseModel):
+    branch_code: str
+    branch_name: str
+    student_count: int
+    class_capacity: int
+    num_sections: int
+    sections: list[SectionItem]
+
+
+class CalculateSectionsRequest(BaseModel):
+    branches: list[BranchIntakeInput]
+    default_capacity: int = 60
+    save_to_db: bool = True
+
+
+class CalculateSectionsResponse(BaseModel):
+    total_students: int
+    total_sections: int
+    sections: list[SectionItem]
+    breakdown: list[BranchSectionBreakdown]
+
+
+def get_section_letter(index: int) -> str:
+    """Generate continuous Excel-style section letter: 0 -> A, 1 -> B, ... 25 -> Z, 26 -> AA, etc."""
+    result = ""
+    while True:
+        result = chr(ord('A') + (index % 26)) + result
+        index = (index // 26) - 1
+        if index < 0:
+            break
+    return result
+
+
+# Global in-memory cache for latest continuous sections layout
+LATEST_SECTIONS_LAYOUT: list[SectionItem] = [
+    SectionItem(letter="A", branch_code="CSE", branch_name="Computer Science & Engineering", label="A (CSE)", student_count=60),
+    SectionItem(letter="B", branch_code="CSE", branch_name="Computer Science & Engineering", label="B (CSE)", student_count=60),
+    SectionItem(letter="C", branch_code="CSE", branch_name="Computer Science & Engineering", label="C (CSE)", student_count=60),
+    SectionItem(letter="D", branch_code="CSE-AIML", branch_name="CSE (Artificial Intelligence & Machine Learning)", label="D (CSE-AIML)", student_count=60),
+    SectionItem(letter="E", branch_code="CSE-AIML", branch_name="CSE (Artificial Intelligence & Machine Learning)", label="E (CSE-AIML)", student_count=60),
+    SectionItem(letter="F", branch_code="ECE", branch_name="Electronics & Communication Engineering", label="F (ECE)", student_count=60),
+]
+
+
+def compute_continuous_sections(
+    branches: list[BranchIntakeInput],
+    default_capacity: int = 60,
+) -> tuple[list[SectionItem], list[BranchSectionBreakdown]]:
+    active_branches = [b for b in branches if b.selected]
+    if not active_branches:
+        active_branches = branches
+
+    all_sections: list[SectionItem] = []
+    breakdowns: list[BranchSectionBreakdown] = []
+    curr_idx = 0
+
+    for b_idx, b in enumerate(active_branches):
+        intake = max(0, b.student_count)
+        if b.sections_count and b.sections_count > 0:
+            num_sec = b.sections_count
+            cap = max(1, math.ceil(intake / num_sec)) if intake > 0 else 60
+        else:
+            cap = max(1, b.class_capacity or default_capacity or 60)
+            num_sec = max(1, math.ceil(intake / cap)) if intake > 0 else 1
+
+        branch_secs: list[SectionItem] = []
+        for s_idx in range(num_sec):
+            letter = get_section_letter(curr_idx)
+            curr_idx += 1
+            # Every branch includes its branch identifier as per inputs: "A (CSE)", "D (CSE-AIML)", "F (ECE)"
+            label = f"{letter} ({b.code})" if b.code else letter
+
+            base_count = intake // num_sec if intake > 0 else cap
+            extra = (intake % num_sec) if intake > 0 else 0
+            sec_count = base_count + (1 if s_idx < extra else 0)
+
+            sec_item = SectionItem(
+                letter=letter,
+                branch_code=b.code,
+                branch_name=b.name,
+                label=label,
+                student_count=sec_count,
+            )
+            branch_secs.append(sec_item)
+            all_sections.append(sec_item)
+
+        breakdowns.append(
+            BranchSectionBreakdown(
+                branch_code=b.code,
+                branch_name=b.name,
+                student_count=intake,
+                class_capacity=cap,
+                num_sections=num_sec,
+                sections=branch_secs,
+            )
+        )
+
+    return all_sections, breakdowns
 
 
 @router.get("/courses")
@@ -268,10 +387,95 @@ def infer_dept_from_string(text: str) -> str:
     return "Computer Science & Engineering"
 
 
+@router.post("/calculate-sections", response_model=CalculateSectionsResponse)
+def calculate_and_save_sections(payload: CalculateSectionsRequest):
+    global LATEST_SECTIONS_LAYOUT
+    all_sections, breakdowns = compute_continuous_sections(payload.branches, payload.default_capacity)
+    LATEST_SECTIONS_LAYOUT = all_sections
+
+    if payload.save_to_db:
+        try:
+            from app.db.database import SessionLocal
+            from app.models.institution import Institution
+            from app.models.department import Department
+            from app.models.section import Section
+
+            db = SessionLocal()
+            try:
+                inst = db.query(Institution).first()
+                if not inst:
+                    inst = Institution(name="College Workspace")
+                    db.add(inst)
+                    db.commit()
+                    db.refresh(inst)
+
+                for b in breakdowns:
+                    dept = db.query(Department).filter(
+                        Department.institution_id == inst.id,
+                        (Department.name.ilike(f"%{b.branch_name}%")) | (Department.name.ilike(f"%{b.branch_code}%"))
+                    ).first()
+                    if not dept:
+                        dept = Department(name=b.branch_name, institution_id=inst.id)
+                        db.add(dept)
+                        db.commit()
+                        db.refresh(dept)
+
+                    # Delete existing sections for this department to re-generate continuous sections
+                    db.query(Section).filter(Section.department_id == dept.id).delete()
+
+                    for sec in b.sections:
+                        new_sec = Section(
+                            department_id=dept.id,
+                            name=f"Section {sec.letter}",
+                            student_count=sec.student_count,
+                        )
+                        db.add(new_sec)
+                db.commit()
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"Error saving sections to DB: {e}")
+
+    total_std = sum(b.student_count for b in breakdowns)
+    return CalculateSectionsResponse(
+        total_students=total_std,
+        total_sections=len(all_sections),
+        sections=all_sections,
+        breakdown=breakdowns,
+    )
+
+
+@router.get("/calculated-sections", response_model=CalculateSectionsResponse)
+def get_calculated_sections():
+    global LATEST_SECTIONS_LAYOUT
+    branch_map: dict[str, list[SectionItem]] = {}
+    for s in LATEST_SECTIONS_LAYOUT:
+        branch_map.setdefault(s.branch_code, []).append(s)
+
+    breakdowns = []
+    for b_code, secs in branch_map.items():
+        breakdowns.append(BranchSectionBreakdown(
+            branch_code=b_code,
+            branch_name=secs[0].branch_name,
+            student_count=sum(s.student_count for s in secs),
+            class_capacity=max((s.student_count for s in secs), default=60),
+            num_sections=len(secs),
+            sections=secs
+        ))
+
+    return CalculateSectionsResponse(
+        total_students=sum(s.student_count for s in LATEST_SECTIONS_LAYOUT),
+        total_sections=len(LATEST_SECTIONS_LAYOUT),
+        sections=LATEST_SECTIONS_LAYOUT,
+        breakdown=breakdowns
+    )
+
+
 @router.get("/download-faculty-template")
-def download_faculty_template():
+def download_faculty_template(sections: str | None = None):
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -283,7 +487,6 @@ def download_faculty_template():
     border_side = Side(border_style="thin", color="CCCCCC")
     border = Border(left=border_side, right=border_side, top=border_side, bottom=border_side)
     center_align = Alignment(horizontal="center", vertical="center")
-    left_align = Alignment(horizontal="left", vertical="center")
 
     # Table 1: Faculty Allocation Headers (Cols A - E)
     t1_headers = ["Name", "Cadre", "S1", "S2", "Sem handling"]
@@ -294,7 +497,21 @@ def download_faculty_template():
         cell.alignment = center_align
         cell.border = border
 
-    # Table 2: Course & Section Matrix (Cols G - O)
+    # Determine Section subheaders (continuous A (CSE), B (CSE), C (CSE), D (CSE-AIML), E (CSE-AIML)...)
+    if sections:
+        sec_subheaders = [s.strip() for s in sections.split(",") if s.strip()]
+    elif LATEST_SECTIONS_LAYOUT:
+        sec_subheaders = [s.label for s in LATEST_SECTIONS_LAYOUT]
+    else:
+        sec_subheaders = ["A (CSE)", "B (CSE)", "C (CSE)", "D (CSE-AIML)", "E (CSE-AIML)", "F (ECE)"]
+
+    num_secs = max(1, len(sec_subheaders))
+    sec_start_col = 10  # Column J
+    sec_end_col = sec_start_col + num_secs - 1
+    sec_start_letter = get_column_letter(sec_start_col)
+    sec_end_letter = get_column_letter(sec_end_col)
+
+    # Table 2: Course & Section Matrix (Cols G, H, I, and J onwards)
     ws.cell(row=1, column=7, value="No").fill = sec_fill
     ws.cell(row=1, column=7).font = header_font
     ws.cell(row=1, column=7).alignment = center_align
@@ -310,28 +527,38 @@ def download_faculty_template():
     ws.cell(row=1, column=9).alignment = center_align
     ws.cell(row=1, column=9).border = border
 
-    ws.merge_cells("J1:O1")
-    sec_merge = ws.cell(row=1, column=10, value="Section")
-    sec_merge.fill = sec_fill
-    sec_merge.font = header_font
-    sec_merge.alignment = center_align
-    for c in range(10, 16):
-        ws.cell(row=1, column=c).border = border
+    if sec_start_col == sec_end_col:
+        sec_merge = ws.cell(row=1, column=sec_start_col, value="Section")
+        sec_merge.fill = sec_fill
+        sec_merge.font = header_font
+        sec_merge.alignment = center_align
+        sec_merge.border = border
+    else:
+        ws.merge_cells(f"{sec_start_letter}1:{sec_end_letter}1")
+        sec_merge = ws.cell(row=1, column=sec_start_col, value="Section")
+        sec_merge.fill = sec_fill
+        sec_merge.font = header_font
+        sec_merge.alignment = center_align
+        for c in range(sec_start_col, sec_end_col + 1):
+            ws.cell(row=1, column=c).border = border
 
     # Subheaders for row 2
     for c in range(1, 6):
         ws.cell(row=2, column=c).border = border
-    sec_subheaders = ["A", "B", "C", "D (ISE/AIML)", "E (ISE/AIML)", "F (ECE)"]
-    for idx, sh in enumerate(sec_subheaders, start=10):
-        cell = ws.cell(row=2, column=idx, value=sh)
+
+    for idx, sh in enumerate(sec_subheaders):
+        col_c = sec_start_col + idx
+        cell = ws.cell(row=2, column=col_c, value=sh)
         cell.fill = PatternFill(start_color="E0F2FE", end_color="E0F2FE", fill_type="solid")
         cell.font = Font(name="Calibri", size=10, bold=True, color="0369A1")
         cell.alignment = center_align
         cell.border = border
+        ws.column_dimensions[get_column_letter(col_c)].width = max(12, len(sh) + 4)
 
     # Add empty starter template rows
+    total_cols = sec_end_col
     for r in range(3, 30):
-        for c in range(1, 16):
+        for c in range(1, total_cols + 1):
             if c != 6:
                 ws.cell(row=r, column=c).border = border
 
@@ -344,12 +571,6 @@ def download_faculty_template():
     ws.column_dimensions['G'].width = 6
     ws.column_dimensions['H'].width = 18
     ws.column_dimensions['I'].width = 8
-    ws.column_dimensions['J'].width = 12
-    ws.column_dimensions['K'].width = 12
-    ws.column_dimensions['L'].width = 12
-    ws.column_dimensions['M'].width = 16
-    ws.column_dimensions['N'].width = 16
-    ws.column_dimensions['O'].width = 12
 
     out = io.BytesIO()
     wb.save(out)
@@ -438,9 +659,10 @@ async def parse_vtu_faculty(file: UploadFile = File(...)):
                                 for c_idx, cell_val in enumerate(s_row):
                                     if cell_val is not None:
                                         cv = str(cell_val).strip()
-                                        if cv and (cv.upper() in ["A", "B", "C", "D", "E", "F"] or any(
-                                            x in cv.upper() for x in ["SEC A", "SEC B", "SEC C", "D (", "E (", "F ("]
-                                        )):
+                                        if cv and (
+                                            re.match(r'^(SEC(TION)?\s*)?[A-Z]+(\s*\(.*\))?$', cv.strip(), re.IGNORECASE)
+                                            or cv.upper() in ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"]
+                                        ):
                                             if cv not in sec_cols:
                                                 sec_cols[cv] = c_idx
 

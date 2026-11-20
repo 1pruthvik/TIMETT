@@ -11,9 +11,12 @@ import {
   Upload,
   RefreshCw,
   Plus,
+  Minus,
   Trash2,
   CheckCircle2,
   Building2,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { WizardFooter } from "@/components/ui/wizard-footer";
@@ -29,6 +32,7 @@ interface VTUCourse {
   is_vtu_standard?: boolean;
   selected: boolean;
   studentCount: number;
+  sectionsCount?: number;
   cycle?: "physics" | "chemistry";
 }
 
@@ -38,6 +42,13 @@ interface SubjectItem {
   department: string;
   category: "theory" | "tutorial" | "practical";
   weekly_hours: number;
+  num_batches?: number;
+  num_faculties?: number;
+}
+
+interface LabConfig {
+  batches: number;
+  faculties: number;
 }
 
 // ── Official VTU 100-Series ESC-I Offerings (I Sem) ──
@@ -344,8 +355,13 @@ export default function DocumentsPage() {
   const [newSubjDept, setNewSubjDept] = useState("CSE Dept");
   const [newSubjCategory, setNewSubjCategory] = useState<"theory" | "tutorial" | "practical">("theory");
   const [newSubjHours, setNewSubjHours] = useState(3);
+  const [newLabBatches, setNewLabBatches] = useState(2);
+  const [newLabFaculties, setNewLabFaculties] = useState(2);
   const [parsingScheme, setParsingScheme] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+
+  // Lab configurations: labCode / `${courseCode}_${labCode}` -> { batches: number, faculties: number }
+  const [labConfigs, setLabConfigs] = useState<Record<string, LabConfig>>({});
 
   useEffect(() => {
     try {
@@ -390,10 +406,63 @@ export default function DocumentsPage() {
       if (savedSelections) {
         setCourseSelections(JSON.parse(savedSelections));
       }
+
+      const savedLabConfigs = getItemUserScoped<Record<string, LabConfig>>("vtu_lab_configurations");
+      if (savedLabConfigs && typeof savedLabConfigs === "object") {
+        setLabConfigs(savedLabConfigs);
+      } else {
+        const raw = localStorage.getItem("vtu_lab_configurations");
+        if (raw) setLabConfigs(JSON.parse(raw));
+      }
     } catch (e) {
       console.error(e);
     }
   }, []);
+
+  const getLabConfig = (labCode: string): LabConfig => {
+    const specificKey = `${activeCourseCode}_${labCode}`;
+    if (labConfigs[specificKey]) return labConfigs[specificKey];
+    if (labConfigs[labCode]) return labConfigs[labCode];
+    return { batches: 2, faculties: 2 };
+  };
+
+  const handleUpdateLabConfig = (labCode: string, field: "batches" | "faculties", value: number) => {
+    const clamped = Math.max(1, Math.min(10, value));
+    const specificKey = `${activeCourseCode}_${labCode}`;
+    const current = getLabConfig(labCode);
+    const updatedConfig: LabConfig = {
+      ...current,
+      [field]: clamped,
+    };
+    const updatedMap: Record<string, LabConfig> = {
+      ...labConfigs,
+      [specificKey]: updatedConfig,
+      [labCode]: updatedConfig,
+    };
+    setLabConfigs(updatedMap);
+    setItemUserScoped("vtu_lab_configurations", updatedMap);
+    try {
+      localStorage.setItem("vtu_lab_configurations", JSON.stringify(updatedMap));
+    } catch {}
+
+    // If higher sem, also update higherSemSubjects state
+    if (!isFirstYear && higherSemSubjects[activeCourseCode]) {
+      const currentBranch = higherSemSubjects[activeCourseCode];
+      const updatedPractical = currentBranch.practical.map((p) => {
+        if (p.code === labCode) {
+          return {
+            ...p,
+            num_batches: field === "batches" ? clamped : (p.num_batches || current.batches),
+            num_faculties: field === "faculties" ? clamped : (p.num_faculties || current.faculties),
+          };
+        }
+        return p;
+      });
+      const updatedBranchData = { ...currentBranch, practical: updatedPractical };
+      const updatedHigher = { ...higherSemSubjects, [activeCourseCode]: updatedBranchData };
+      saveHigherSemSubjects(updatedHigher);
+    }
+  };
 
   // Display only semesters for the chosen college cycle (Odd: 1, 3, 5, 7 vs Even: 2, 4, 6, 8)
   const displayedSemesters = useMemo(() => {
@@ -419,6 +488,13 @@ export default function DocumentsPage() {
 
   const selectedCourses = courses.filter((c) => c.selected);
   const activeCourseObj = courses.find((c) => c.code === activeCourseCode);
+  const branchStdCount = activeCourseObj?.studentCount ?? 60;
+  const branchSecCount = Math.max(
+    1,
+    activeCourseObj?.sectionsCount ??
+      (activeCourseObj?.code === "CSE" ? 3 : activeCourseObj?.code === "CSE-AIML" ? 2 : 1)
+  );
+  const studentsPerSection = branchStdCount > 0 ? Math.round(branchStdCount / branchSecCount) : 60;
 
   // Load higher semesters stored subjects whenever semNumber changes
   useEffect(() => {
@@ -585,22 +661,47 @@ export default function DocumentsPage() {
           { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, department: "Maths Dept", category: "tutorial", weekly_hours: 2 },
         ];
 
-        const practical = [
-          { code: `${stream.physics.code}-LAB`, name: "Applied Physics Practical Sessions", department: "Physics Dept", category: "practical", weekly_hours: 2 },
-          { code: `${stream.caed.code}-LAB`, name: "Computer-Aided Engineering Drawing Lab", department: "ME Dept", category: "practical", weekly_hours: 2 },
+        const physLabCode = `${stream.physics.code}-LAB`;
+        const caedLabCode = `${stream.caed.code}-LAB`;
+        const pscLabCode = pscPair ? pscPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x";
+        const dtLabCode = isSecondSem ? "1BPRJ258" : "1BIDTL158";
+
+        const practical: SubjectItem[] = [
           {
-            code: pscPair ? pscPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x",
+            code: physLabCode,
+            name: "Applied Physics Practical Sessions",
+            department: "Physics Dept",
+            category: "practical",
+            weekly_hours: 2,
+            num_batches: getLabConfig(physLabCode).batches,
+            num_faculties: getLabConfig(physLabCode).faculties,
+          },
+          {
+            code: caedLabCode,
+            name: "Computer-Aided Engineering Drawing Lab",
+            department: "ME Dept",
+            category: "practical",
+            weekly_hours: 2,
+            num_batches: getLabConfig(caedLabCode).batches,
+            num_faculties: getLabConfig(caedLabCode).faculties,
+          },
+          {
+            code: pscLabCode,
             name: pscPair ? pscPair.pscl.name : "Programme-Specific Course Lab (PSCL)",
             department: pscPair ? pscPair.pscl.dept : "Respective Dept",
             category: "practical",
             weekly_hours: 2,
+            num_batches: getLabConfig(pscLabCode).batches,
+            num_faculties: getLabConfig(pscLabCode).faculties,
           },
           {
-            code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
+            code: dtLabCode,
             name: isSecondSem ? "Interdisciplinary Project-Based Learning" : "Innovation and Design Thinking Lab (Project-based)",
             department: isSecondSem ? "Multiple Depts" : "Any Dept",
             category: "practical",
             weekly_hours: 2,
+            num_batches: getLabConfig(dtLabCode).batches,
+            num_faculties: getLabConfig(dtLabCode).faculties,
           },
         ];
 
@@ -632,21 +733,37 @@ export default function DocumentsPage() {
           { code: `${stream.maths.code}-TUT`, name: `${stream.maths.name} (Tutorial)`, department: "Maths Dept", category: "tutorial", weekly_hours: 2 },
         ];
 
-        const practical = [
-          { code: `${stream.chemistry.code}-LAB`, name: "Applied Chemistry Laboratory", department: "Chemistry Dept", category: "practical", weekly_hours: 2 },
+        const chemLabCode = `${stream.chemistry.code}-LAB`;
+        const plcLabCode = plc ? plc.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB";
+        const dtLabCode = isSecondSem ? "1BPRJ258" : "1BIDTL158";
+
+        const practical: SubjectItem[] = [
           {
-            code: plc ? plc.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB",
+            code: chemLabCode,
+            name: "Applied Chemistry Laboratory",
+            department: "Chemistry Dept",
+            category: "practical",
+            weekly_hours: 2,
+            num_batches: getLabConfig(chemLabCode).batches,
+            num_faculties: getLabConfig(chemLabCode).faculties,
+          },
+          {
+            code: plcLabCode,
             name: plc ? plc.labName : "Programming Language Practice Lab",
             department: plc ? plc.dept : "CSE & Allied Dept",
             category: "practical",
             weekly_hours: 2,
+            num_batches: getLabConfig(plcLabCode).batches,
+            num_faculties: getLabConfig(plcLabCode).faculties,
           },
           {
-            code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
+            code: dtLabCode,
             name: isSecondSem ? "Interdisciplinary Project-Based Learning" : "Innovation and Design Thinking Lab (Project-based)",
             department: isSecondSem ? "Multiple Depts" : "Any Dept",
             category: "practical",
             weekly_hours: 2,
+            num_batches: getLabConfig(dtLabCode).batches,
+            num_faculties: getLabConfig(dtLabCode).faculties,
           },
         ];
 
@@ -663,7 +780,7 @@ export default function DocumentsPage() {
     } catch (e) {
       console.error(e);
     }
-  }, [selectedCourses, courseSelections, isSecondSem, isFirstYear]);
+  }, [selectedCourses, courseSelections, isSecondSem, isFirstYear, labConfigs]);
 
   // Higher semester subject manipulation
   const activeHigherData = higherSemSubjects[activeCourseCode] || { theory: [], tutorial: [], practical: [] };
@@ -672,13 +789,31 @@ export default function DocumentsPage() {
     e.preventDefault();
     if (!newSubjCode || !newSubjName) return;
 
+    const code = newSubjCode.toUpperCase().trim();
     const item: SubjectItem = {
-      code: newSubjCode.toUpperCase().trim(),
+      code,
       name: newSubjName.trim(),
       department: newSubjDept.trim() || `${activeCourseCode} Dept`,
       category: newSubjCategory,
       weekly_hours: newSubjHours,
+      num_batches: newSubjCategory === "practical" ? newLabBatches : undefined,
+      num_faculties: newSubjCategory === "practical" ? newLabFaculties : undefined,
     };
+
+    if (newSubjCategory === "practical") {
+      const specificKey = `${activeCourseCode}_${code}`;
+      const conf: LabConfig = { batches: newLabBatches, faculties: newLabFaculties };
+      const updatedConfigs = {
+        ...labConfigs,
+        [specificKey]: conf,
+        [code]: conf,
+      };
+      setLabConfigs(updatedConfigs);
+      setItemUserScoped("vtu_lab_configurations", updatedConfigs);
+      try {
+        localStorage.setItem("vtu_lab_configurations", JSON.stringify(updatedConfigs));
+      } catch {}
+    }
 
     const currentBranchData = higherSemSubjects[activeCourseCode] || { theory: [], tutorial: [], practical: [] };
     const updatedBranchData = {
@@ -695,6 +830,8 @@ export default function DocumentsPage() {
     setNewSubjCode("");
     setNewSubjName("");
     setNewSubjDept("");
+    setNewLabBatches(2);
+    setNewLabFaculties(2);
     setShowAddSubject(false);
   };
 
@@ -711,6 +848,164 @@ export default function DocumentsPage() {
       },
     };
     saveHigherSemSubjects(updated);
+  };
+
+  const renderLabCard = ({
+    code,
+    name,
+    dept,
+    weeklyHours = 2,
+    badge,
+    onRemove,
+  }: {
+    code: string;
+    name: string;
+    dept: string;
+    weeklyHours?: number;
+    badge?: string;
+    onRemove?: () => void;
+  }) => {
+    const currentConfig = getLabConfig(code);
+    const branchStdCount = activeCourseObj?.studentCount ?? 60;
+    const branchSecCount = Math.max(
+      1,
+      activeCourseObj?.sectionsCount ??
+        (activeCourseObj?.code === "CSE" ? 3 : activeCourseObj?.code === "CSE-AIML" ? 2 : 1)
+    );
+    const studentsPerSection = branchStdCount > 0 ? Math.round(branchStdCount / branchSecCount) : 60;
+    const numBatches = Math.max(1, currentConfig.batches);
+    const studentsPerBatch = Math.round(studentsPerSection / numBatches);
+
+    return (
+      <div
+        key={code}
+        className="p-4 rounded-xl border border-border/60 bg-background/60 space-y-3 hover:border-[#00A3FF]/40 transition group shadow-2xs"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 pr-2">
+            <div className="flex items-center space-x-2">
+              <span className="font-mono font-bold text-[#00A3FF] text-xs">
+                {code}
+              </span>
+              {badge && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
+                  {badge}
+                </span>
+              )}
+            </div>
+            <p className="font-semibold text-foreground text-sm truncate mt-0.5" title={name}>
+              {name}
+            </p>
+          </div>
+          <div className="flex items-center space-x-2 shrink-0">
+            <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
+              {dept}
+            </span>
+            <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
+              <Clock className="h-3 w-3" />
+              <span>{weeklyHours} hrs/wk</span>
+            </span>
+            {onRemove && (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                title="Remove Lab"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Lab Configuration Controls: Batches in Lab & Faculties in Lab */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-border/40 text-xs">
+          {/* Batches in Lab */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+              <Users className="h-3.5 w-3.5 text-[#00A3FF]" />
+              <span>Batches:</span>
+            </span>
+            <div className="flex items-center rounded-lg border border-border bg-card p-0.5 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => handleUpdateLabConfig(code, "batches", currentConfig.batches - 1)}
+                disabled={currentConfig.batches <= 1}
+                className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition disabled:opacity-30 cursor-pointer"
+                title="Decrease batches"
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={currentConfig.batches}
+                onChange={(e) => handleUpdateLabConfig(code, "batches", Number(e.target.value) || 1)}
+                className="w-7 text-center text-xs font-mono font-bold bg-transparent border-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                type="button"
+                onClick={() => handleUpdateLabConfig(code, "batches", currentConfig.batches + 1)}
+                disabled={currentConfig.batches >= 10}
+                className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition disabled:opacity-30 cursor-pointer"
+                title="Increase batches"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono font-medium">
+              ({Array.from({ length: currentConfig.batches }, (_, i) => `B${i + 1}`).join(", ")})
+            </span>
+            <span
+              className="text-[10px] px-2 py-0.5 rounded-md bg-[#00A3FF]/10 text-[#00A3FF] font-semibold font-mono border border-[#00A3FF]/20"
+              title={`Based on ${branchSecCount} section${branchSecCount > 1 ? "s" : ""} (~${studentsPerSection} std/sec) ÷ ${numBatches} batches`}
+            >
+              ~{studentsPerBatch} students / batch
+            </span>
+          </div>
+
+          {/* Faculties in Lab */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+              <UserCheck className="h-3.5 w-3.5 text-[#00A3FF]" />
+              <span>Faculties:</span>
+            </span>
+            <div className="flex items-center rounded-lg border border-border bg-card p-0.5 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => handleUpdateLabConfig(code, "faculties", currentConfig.faculties - 1)}
+                disabled={currentConfig.faculties <= 1}
+                className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition disabled:opacity-30 cursor-pointer"
+                title="Decrease faculties"
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <input
+                type="number"
+                min={1}
+                max={8}
+                value={currentConfig.faculties}
+                onChange={(e) => handleUpdateLabConfig(code, "faculties", Number(e.target.value) || 1)}
+                className="w-7 text-center text-xs font-mono font-bold bg-transparent border-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                type="button"
+                onClick={() => handleUpdateLabConfig(code, "faculties", currentConfig.faculties + 1)}
+                disabled={currentConfig.faculties >= 8}
+                className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition disabled:opacity-30 cursor-pointer"
+                title="Increase faculties"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-medium">
+              fac / lab
+            </span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const handleSchemeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1014,6 +1309,54 @@ export default function DocumentsPage() {
                     <option value="Humanities Dept">Humanities Dept</option>
                   </select>
                 </div>
+
+                {/* Lab Specific Configuration (Batches & Faculties) */}
+                {newSubjCategory === "practical" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-background/80 border border-[#00A3FF]/30">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Users className="h-3.5 w-3.5 text-[#00A3FF]" />
+                        <span>Number of Batches in Lab:</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={newLabBatches}
+                          onChange={(e) => setNewLabBatches(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
+                          className="h-10 w-24 px-3 text-xs font-mono font-bold rounded-xl border border-border bg-background"
+                        />
+                        <span className="text-[11px] text-muted-foreground font-mono">
+                          ({Array.from({ length: newLabBatches }, (_, i) => `B${i + 1}`).join(", ")})
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#00A3FF]/10 text-[#00A3FF] font-semibold font-mono border border-[#00A3FF]/20">
+                          ~{Math.round(studentsPerSection / Math.max(1, newLabBatches))} students / batch
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <UserCheck className="h-3.5 w-3.5 text-[#00A3FF]" />
+                        <span>Number of Faculties in Lab:</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          max={8}
+                          value={newLabFaculties}
+                          onChange={(e) => setNewLabFaculties(Math.max(1, Math.min(8, Number(e.target.value) || 1)))}
+                          className="h-10 w-24 px-3 text-xs font-mono font-bold rounded-xl border border-border bg-background"
+                        />
+                        <span className="text-[11px] text-muted-foreground">
+                          faculty / lab
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
@@ -1369,149 +1712,50 @@ export default function DocumentsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                
                 {/* Physics Lab OR Chemistry Lab */}
-                {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
-                    <div className="min-w-0 pr-2">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {streamData.physics.code}-LAB
-                      </span>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                        Applied Physics Practical Sessions
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                        {streamData.physics.dept}
-                      </span>
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>2 hrs/wk</span>
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
-                    <div className="min-w-0 pr-2">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {streamData.chemistry.code}-LAB
-                      </span>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                        Applied Chemistry Laboratory
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                        {streamData.chemistry.dept}
-                      </span>
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>2 hrs/wk</span>
-                      </span>
-                    </div>
-                  </div>
-                )}
+                {isPhysGroup
+                  ? renderLabCard({
+                      code: `${streamData.physics.code}-LAB`,
+                      name: "Applied Physics Practical Sessions",
+                      dept: streamData.physics.dept,
+                    })
+                  : renderLabCard({
+                      code: `${streamData.chemistry.code}-LAB`,
+                      name: "Applied Chemistry Laboratory",
+                      dept: streamData.chemistry.dept,
+                    })}
 
                 {/* CAED Lab (Physics Group) OR PLC Practice Lab (Chemistry Group) */}
-                {isPhysGroup ? (
-                  <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
-                    <div className="min-w-0 pr-2">
-                      <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                        {streamData.caed.code}-LAB
-                      </span>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                        Computer-Aided Engineering Drawing Lab
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                        {streamData.caed.dept}
-                      </span>
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>2 hrs/wk</span>
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between gap-3">
-                    <div className="min-w-0 pr-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                          {chosenPLC ? chosenPLC.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB"}
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
-                          Auto-Paired Lab
-                        </span>
-                      </div>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                        {chosenPLC ? chosenPLC.labName : "Programming Language Practice Lab"}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                        {chosenPLC ? chosenPLC.dept : "CSE & Allied Dept"}
-                      </span>
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>2 hrs/wk</span>
-                      </span>
-                    </div>
-                  </div>
-                )}
+                {isPhysGroup
+                  ? renderLabCard({
+                      code: `${streamData.caed.code}-LAB`,
+                      name: "Computer-Aided Engineering Drawing Lab",
+                      dept: streamData.caed.dept,
+                    })
+                  : renderLabCard({
+                      code: chosenPLC ? chosenPLC.labCode : isSecondSem ? "1BPLC205x-LAB" : "1BPLC105x-LAB",
+                      name: chosenPLC ? chosenPLC.labName : "Programming Language Practice Lab",
+                      dept: chosenPLC ? chosenPLC.dept : "CSE & Allied Dept",
+                      badge: "Auto-Paired Lab",
+                    })}
 
                 {/* Auto-Paired PSCL Lab (Physics Group only) */}
-                {isPhysGroup && (
-                  <div className="p-4 rounded-xl border border-[#00A3FF]/30 bg-[#00A3FF]/5 flex items-center justify-between gap-3">
-                    <div className="min-w-0 pr-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                          {chosenPSCPair ? chosenPSCPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x"}
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-[#00A3FF]/20 text-[#00A3FF] font-bold">
-                          Auto-Paired Lab
-                        </span>
-                      </div>
-                      <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                        {chosenPSCPair ? chosenPSCPair.pscl.name : "Programme-Specific Course Lab (PSCL)"}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                        {chosenPSCPair ? chosenPSCPair.pscl.dept : "Respective Dept"}
-                      </span>
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>2 hrs/wk</span>
-                      </span>
-                    </div>
-                  </div>
-                )}
+                {isPhysGroup &&
+                  renderLabCard({
+                    code: chosenPSCPair ? chosenPSCPair.pscl.code : isSecondSem ? "1BxxxL207x" : "1BxxxL107x",
+                    name: chosenPSCPair ? chosenPSCPair.pscl.name : "Programme-Specific Course Lab (PSCL)",
+                    dept: chosenPSCPair ? chosenPSCPair.pscl.dept : "Respective Dept",
+                    badge: "Auto-Paired Lab",
+                  })}
 
                 {/* Innovation & Design Thinking Lab (I Sem) OR Interdisciplinary Project-Based Learning (II Sem) */}
-                <div className="p-4 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3">
-                  <div className="min-w-0 pr-2">
-                    <span className="font-mono font-bold text-[#00A3FF] text-xs">
-                      {isSecondSem ? "1BPRJ258" : "1BIDTL158"}
-                    </span>
-                    <p className="font-semibold text-foreground text-sm truncate mt-0.5">
-                      {isSecondSem
-                        ? "Interdisciplinary Project-Based Learning"
-                        : "Innovation and Design Thinking Lab (Project-based)"}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2 shrink-0">
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                      {isSecondSem ? "Multiple Depts" : "Any Dept"}
-                    </span>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>2 hrs/wk</span>
-                    </span>
-                  </div>
-                </div>
-
+                {renderLabCard({
+                  code: isSecondSem ? "1BPRJ258" : "1BIDTL158",
+                  name: isSecondSem
+                    ? "Interdisciplinary Project-Based Learning"
+                    : "Innovation and Design Thinking Lab (Project-based)",
+                  dept: isSecondSem ? "Multiple Depts" : "Any Dept",
+                })}
               </div>
             </div>
 
@@ -1601,6 +1845,54 @@ export default function DocumentsPage() {
                     <option value="Humanities Dept">Humanities Dept</option>
                   </select>
                 </div>
+
+                {/* Lab Specific Configuration (Batches & Faculties) */}
+                {newSubjCategory === "practical" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-background/80 border border-[#00A3FF]/30">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Users className="h-3.5 w-3.5 text-[#00A3FF]" />
+                        <span>Number of Batches in Lab:</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={newLabBatches}
+                          onChange={(e) => setNewLabBatches(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
+                          className="h-10 w-24 px-3 text-xs font-mono font-bold rounded-xl border border-border bg-background"
+                        />
+                        <span className="text-[11px] text-muted-foreground font-mono">
+                          ({Array.from({ length: newLabBatches }, (_, i) => `B${i + 1}`).join(", ")})
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#00A3FF]/10 text-[#00A3FF] font-semibold font-mono border border-[#00A3FF]/20">
+                          ~{Math.round(studentsPerSection / Math.max(1, newLabBatches))} students / batch
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <UserCheck className="h-3.5 w-3.5 text-[#00A3FF]" />
+                        <span>Number of Faculties in Lab:</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          max={8}
+                          value={newLabFaculties}
+                          onChange={(e) => setNewLabFaculties(Math.max(1, Math.min(8, Number(e.target.value) || 1)))}
+                          className="h-10 w-24 px-3 text-xs font-mono font-bold rounded-xl border border-border bg-background"
+                        />
+                        <span className="text-[11px] text-muted-foreground">
+                          faculty / lab
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
@@ -1731,34 +2023,16 @@ export default function DocumentsPage() {
                     No practical laboratories added for Semester {semNumber}.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {activeHigherData.practical.map((s, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3.5 rounded-xl border border-border/60 bg-background/60 flex items-center justify-between gap-3 group hover:border-[#00A3FF]/40 transition"
-                      >
-                        <div className="min-w-0 pr-2">
-                          <span className="font-mono font-bold text-[#00A3FF] text-xs">{s.code}</span>
-                          <p className="font-semibold text-foreground text-sm truncate mt-0.5">{s.name}</p>
-                        </div>
-                        <div className="flex items-center space-x-2.5 shrink-0">
-                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-mono font-medium border border-border/40">
-                            {s.department || `${activeCourseCode} Dept`}
-                          </span>
-                          <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#00A3FF]/10 text-[#00A3FF] font-mono font-bold flex items-center space-x-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{s.weekly_hours} hrs/wk</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveHigherSubject("practical", idx)}
-                            className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {activeHigherData.practical.map((s, idx) =>
+                      renderLabCard({
+                        code: s.code,
+                        name: s.name,
+                        dept: s.department || `${activeCourseCode} Dept`,
+                        weeklyHours: s.weekly_hours,
+                        onRemove: () => handleRemoveHigherSubject("practical", idx),
+                      })
+                    )}
                   </div>
                 )}
               </div>

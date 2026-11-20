@@ -4,6 +4,8 @@ export interface MasterSubject {
   department: string;
   category: 'theory' | 'tutorial' | 'practical';
   weekly_hours: number;
+  num_batches?: number;
+  num_faculties?: number;
 }
 
 export interface BranchSemesterSubjects {
